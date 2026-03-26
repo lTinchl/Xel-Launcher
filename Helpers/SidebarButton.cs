@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace XelLauncher.UI
+namespace XelLauncher.Helpers
 {
     class SidebarButton : Control
     {

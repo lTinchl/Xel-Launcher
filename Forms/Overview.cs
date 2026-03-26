@@ -6,7 +6,6 @@ using System.Linq;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
 using XelLauncher.Models;
-using XelLauncher.UI;
 
 namespace XelLauncher.Forms
 {

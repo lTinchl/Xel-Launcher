@@ -69,7 +69,6 @@ namespace XelLauncher.Controls
             segmented1.SelectIndex = 0;
             segmented1.Size = new Size(495, 40);
             segmented1.TabIndex = 0;
-            segmented1.SelectIndexChanged += segmented1_SelectIndexChanged;
             // 
             // panel1
             // 
@@ -92,8 +91,6 @@ namespace XelLauncher.Controls
             txt_search.Size = new Size(330, 40);
             txt_search.SuffixSvg = "SearchOutlined";
             txt_search.TabIndex = 1;
-            txt_search.SuffixClick += txt_search_SuffixClick;
-            txt_search.TextChanged += txt_search_TextChanged;
             // 
             // vpanel
             // 
@@ -105,7 +102,6 @@ namespace XelLauncher.Controls
             vpanel.Size = new Size(845, 647);
             vpanel.TabIndex = 6;
             vpanel.Waterfall = true;
-            vpanel.ItemClick += vpanel_ItemClick;
             // 
             // Icon
             // 
