@@ -32,7 +32,6 @@ namespace XelLauncher
                 AntdUI.Style.SetPrimary(System.Drawing.ColorTranslator.FromHtml(cfg.PrimaryColor));
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             if (command == "m") Application.Run(new Main());
-            else if (command == "color") Application.Run(new Colors());
             else if (command == "tab") Application.Run(new TabHeaderForm());
             else Application.Run(new Overview(command == "t"));
         }
