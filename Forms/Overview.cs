@@ -306,6 +306,7 @@ namespace XelLauncher.Forms
                 }
                 var cfg = ConfigHelper.Load();
                 cfg.MinimizeToTray = setting.MinimizeToTray;
+                cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
                 ConfigHelper.Save(cfg);
                 Setting.ApplyStartWithWindows(setting.StartWithWindows);
             }

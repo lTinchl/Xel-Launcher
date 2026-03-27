@@ -307,6 +307,8 @@ namespace XelLauncher.Forms
                     }
                     GameLauncher.StartArknights(path, isEndfield);
                     config.OK("游戏启动成功");
+                    if (ConfigHelper.Load().CloseAfterLaunch)
+                        Invoke(new Action(() => Application.Exit()));
                 }
                 catch (Exception ex)
                 {
