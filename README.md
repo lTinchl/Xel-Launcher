@@ -1,4 +1,5 @@
 <div align="center">
+<img width="128" height="128" alt="logo" src="https://github.com/user-attachments/assets/448a8cf3-a270-4d82-810b-04119914a32a" />
 
 # Xel Launcher
 
