@@ -1,5 +1,6 @@
 <div align="center">
-
+<img width="128" height="128" alt="logo" src="https://github.com/user-attachments/assets/1f9c1601-b8e4-41c3-a113-36bfc5605fba" />
+  
 # Xel Launcher
 
 ![C#](https://img.shields.io/badge/C%23-13-square)
