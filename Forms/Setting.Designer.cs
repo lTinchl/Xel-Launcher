@@ -39,6 +39,8 @@ namespace XelLauncher
             switch6 = new AntdUI.Switch();
             label7 = new AntdUI.Label();
             switch7 = new AntdUI.Switch();
+            label8 = new AntdUI.Label();
+            switch8 = new AntdUI.Switch();
             panelLeft.SuspendLayout();
             panelRight.SuspendLayout();
             panelLog.SuspendLayout();
@@ -120,8 +122,11 @@ namespace XelLauncher
             tableSoftware.Controls.Add(switch6, 1, 5);
             tableSoftware.Controls.Add(label7, 0, 6);
             tableSoftware.Controls.Add(switch7, 1, 6);
+            tableSoftware.Controls.Add(label8, 0, 7);
+            tableSoftware.Controls.Add(switch8, 1, 7);
             tableSoftware.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableSoftware.RowCount = 8;
+            tableSoftware.RowCount = 9;
+            tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
@@ -235,13 +240,27 @@ namespace XelLauncher
             switch7.Size = new System.Drawing.Size(50, 30);
             switch7.TabIndex = 0;
             //
+            // label8
+            //
+            label8.Dock = System.Windows.Forms.DockStyle.Fill;
+            label8.Name = "label8";
+            label8.Text = "启动游戏后关闭";
+            label8.TabIndex = 0;
+            //
+            // switch8
+            //
+            switch8.Anchor = System.Windows.Forms.AnchorStyles.None;
+            switch8.Name = "switch8";
+            switch8.Size = new System.Drawing.Size(50, 30);
+            switch8.TabIndex = 0;
+            //
             // Setting
             //
             Controls.Add(panelRight);
             Controls.Add(dividerV);
             Controls.Add(panelLeft);
             Name = "Setting";
-            Size = new System.Drawing.Size(600, 352);
+            Size = new System.Drawing.Size(600, 400);
             tableSoftware.ResumeLayout(false);
             panelLog.ResumeLayout(false);
             panelRight.ResumeLayout(false);
@@ -270,6 +289,8 @@ namespace XelLauncher
         private AntdUI.Switch switch6;
         private AntdUI.Label label7;
         private AntdUI.Switch switch7;
+        private AntdUI.Label label8;
+        private AntdUI.Switch switch8;
         private AntdUI.Button btnLog;
         private System.Windows.Forms.Panel panelLog;
         private System.Windows.Forms.RichTextBox txtLog;

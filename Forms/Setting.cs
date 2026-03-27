@@ -11,7 +11,7 @@ namespace XelLauncher
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch;
 
         public Setting(AntdUI.BaseForm _form)
         {
@@ -28,6 +28,7 @@ namespace XelLauncher
             switch5.Checked = TextRenderingHighQuality = AntdUI.Config.TextRenderingHighQuality;
             switch6.Checked = MinimizeToTray = ConfigHelper.Load().MinimizeToTray;
             switch7.Checked = StartWithWindows = GetStartWithWindows();
+            switch8.Checked = CloseAfterLaunch = ConfigHelper.Load().CloseAfterLaunch;
 
             switch1.CheckedChanged += (s, e) => { Animation = e.Value; };
             switch2.CheckedChanged += (s, e) => { ShadowEnabled = e.Value; };
@@ -36,6 +37,7 @@ namespace XelLauncher
             switch5.CheckedChanged += (s, e) => { TextRenderingHighQuality = e.Value; };
             switch6.CheckedChanged += (s, e) => { MinimizeToTray = e.Value; };
             switch7.CheckedChanged += (s, e) => { StartWithWindows = e.Value; };
+            switch8.CheckedChanged += (s, e) => { CloseAfterLaunch = e.Value; };
         }
 
         private static bool GetStartWithWindows()
