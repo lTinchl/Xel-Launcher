@@ -1,6 +1,5 @@
 <div align="center">
-<img width="128" height="128" alt="logo" src="https://github.com/user-attachments/assets/1f9c1601-b8e4-41c3-a113-36bfc5605fba" />
-  
+
 # Xel Launcher
 
 ![C#](https://img.shields.io/badge/C%23-13-square)
@@ -13,6 +12,23 @@
 基于 [AntdUI](https://github.com/AntdUI/AntdUI) 构建，支持明日方舟、终末地多服切换，提供账号管理、MAA 集成等功能。
 
 </div>
+
+## 文件结构
+```
+├── Forms/                   # 界面窗体
+├── Helpers/                 # 工具类（配置、启动、日志等）
+├── Models/                  # 数据模型
+├── Properties/              # 资源与发布配置
+├── Resources/               # 图标、图片等静态资源
+├── load/                    # 切服用 payload 压缩包
+│   ├── ArkBilibili.zip      # 方舟 B 服
+│   ├── ArkOffiicial.zip     # 方舟官服
+│   ├── EndBilibili.zip      # 终末地 B 服
+│   ├── EndGlobal.zip        # 终末地国际服
+│   └── EndOfficial.zip      # 终末地官服
+├── Program.cs               # 程序入口
+└── XelLauncher.csproj
+```
 
 ## 注意事项
 - ⚠️请勿将游戏根目录与某讯ACE反作弊放在同一磁盘下,此操作将导致启动器无权读取游戏目录,无法切服
