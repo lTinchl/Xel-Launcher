@@ -244,7 +244,7 @@ namespace XelLauncher
             //
             label8.Dock = System.Windows.Forms.DockStyle.Fill;
             label8.Name = "label8";
-            label8.Text = "启动游戏后关闭";
+            label8.Text = "启动游戏后关闭软件";
             label8.TabIndex = 0;
             //
             // switch8

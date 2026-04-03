@@ -124,9 +124,7 @@ namespace XelLauncher.Forms
                 "Endfield" or "BiliEndfield" or "GlobalEndfield" => "End.jpg",
                 _ => "Arknights.jpg",
             };
-            string imgPath = Path.Combine(
-                Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-                "Resources", imgFile);
+            string imgPath = Path.Combine(AppContext.BaseDirectory, "Resources", imgFile);
             if (!File.Exists(imgPath)) return;
 
             var img = Image.FromFile(imgPath);
@@ -274,6 +272,35 @@ namespace XelLauncher.Forms
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
                 if (e2 != null) { e2.RootPath = path; ConfigHelper.Save(cfg2); }
+
+                // 路径刚被更新，重新计算 sameRoot / endfieldSameRoot / zipPath
+                var cfg3 = ConfigHelper.Load();
+                official = cfg3.Games.Find(g => g.IconName == "Arknights");
+                bilibili = cfg3.Games.Find(g => g.IconName == "BiliArknights");
+                sameRoot = official != null && bilibili != null &&
+                    !string.IsNullOrEmpty(official.RootPath) && !string.IsNullOrEmpty(bilibili.RootPath) &&
+                    Path.GetFullPath(official.RootPath).Equals(Path.GetFullPath(bilibili.RootPath), StringComparison.OrdinalIgnoreCase);
+
+                endfieldSameRoot = false;
+                if (isEndfield)
+                {
+                    var endfieldIcons2 = new[] { "Endfield", "BiliEndfield", "GlobalEndfield" };
+                    foreach (var other in endfieldIcons2)
+                    {
+                        if (other == _game.IconName) continue;
+                        var otherEntry = cfg3.Games.Find(g => g.IconName == other);
+                        if (otherEntry != null && !string.IsNullOrEmpty(otherEntry.RootPath) &&
+                            Path.GetFullPath(path).Equals(Path.GetFullPath(otherEntry.RootPath), StringComparison.OrdinalIgnoreCase))
+                        {
+                            endfieldSameRoot = true;
+                            break;
+                        }
+                    }
+                }
+
+                zipPath = isEndfield
+                    ? (endfieldSameRoot ? GameLauncher.GetPayloadZipPath(_game.IconName) : null)
+                    : (sameRoot ? GameLauncher.GetPayloadZipPath(_game.IconName) : null);
             }
 
             GameStart.LoadingWaveValue = 0;
@@ -292,7 +319,7 @@ namespace XelLauncher.Forms
                             await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
                         }
                     }
-                    if (sameRoot && zipPath != null)
+                    if ((sameRoot || endfieldSameRoot) && zipPath != null)
                     {
                         await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
                         {

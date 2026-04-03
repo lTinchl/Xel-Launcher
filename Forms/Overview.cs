@@ -18,6 +18,11 @@ namespace XelLauncher.Forms
         private bool _forceClose = false;
         private GamePage _currentGamePage = null;
 
+        // 侧边栏拖拽状态
+        private SidebarButton _dragBtn = null;
+        private System.Drawing.Point _dragStartPos;
+        private bool _isDragging = false;
+
         public Overview(bool top)
         {
             InitializeComponent();
@@ -32,10 +37,11 @@ namespace XelLauncher.Forms
             };
             btn_global.Items.AddRange(globals);
             btn_more.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem("检查更新","update").SetIcon("SyncOutlined"),
+                new AntdUI.SelectItem("帮助", "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem("关于","info").SetIcon("InfoCircleOutlined"),
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
-                new AntdUI.SelectItem("关于","info").SetIcon("InfoCircleOutlined"),
+
             });
             btn_bgcolor.Items.AddRange(new AntdUI.SelectItem[] {
                 new AntdUI.SelectItem("纯白",      "#FFFFFF"),
@@ -97,7 +103,14 @@ namespace XelLauncher.Forms
                 btn.Click += (s, e) => SelectGame(g);
                 btn.MouseDown += (s, e) =>
                 {
-                    if (e.Button != MouseButtons.Right) return;
+                    if (e.Button == MouseButtons.Left)
+                    {
+                        _dragBtn = btn;
+                        _dragStartPos = e.Location;
+                        _isDragging = false;
+                    }
+                    else if (e.Button == MouseButtons.Right)
+                    {
                     AntdUI.ContextMenuStrip.open(btn, it =>
                     {
                         var cfg = ConfigHelper.Load();
@@ -110,10 +123,70 @@ namespace XelLauncher.Forms
                     {
                         new AntdUI.ContextMenuStripItem("删除").SetIcon("DeleteOutlined"),
                     });
+                    }
                 };
+                btn.MouseMove += SidebarBtn_MouseMove;
+                btn.MouseUp += SidebarBtn_MouseUp;
                 _sidebarBtns.Add(btn);
                 panelSidebarItems.Controls.Add(btn);
             }
+        }
+
+        private void SidebarBtn_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_dragBtn == null || e.Button != MouseButtons.Left) return;
+            if (!_isDragging)
+            {
+                if (Math.Abs(e.X - _dragStartPos.X) < 4 && Math.Abs(e.Y - _dragStartPos.Y) < 4) return;
+                _isDragging = true;
+            }
+            // 将鼠标坐标转换到 panelSidebarItems 坐标系
+            var posInPanel = panelSidebarItems.PointToClient(_dragBtn.PointToScreen(e.Location));
+            int targetIndex = GetDropIndex(posInPanel.Y);
+            int currentIndex = panelSidebarItems.Controls.IndexOf(_dragBtn);
+            if (targetIndex != currentIndex && targetIndex >= 0 && targetIndex < panelSidebarItems.Controls.Count)
+            {
+                panelSidebarItems.Controls.SetChildIndex(_dragBtn, targetIndex);
+            }
+        }
+
+        private void SidebarBtn_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!_isDragging || e.Button != MouseButtons.Left)
+            {
+                _dragBtn = null;
+                _isDragging = false;
+                return;
+            }
+            _isDragging = false;
+            _dragBtn = null;
+            // 同步新顺序到 config
+            var cfg = ConfigHelper.Load();
+            var newOrder = new System.Collections.Generic.List<GameEntry>();
+            foreach (Control c in panelSidebarItems.Controls)
+            {
+                int idx = _sidebarBtns.IndexOf(c as SidebarButton);
+                if (idx >= 0 && idx < cfg.Games.Count)
+                    newOrder.Add(cfg.Games[idx]);
+            }
+            if (newOrder.Count == cfg.Games.Count)
+            {
+                cfg.Games = newOrder;
+                ConfigHelper.Save(cfg);
+            }
+            // 重建侧边栏以同步 _sidebarBtns 顺序
+            RebuildSidebar();
+        }
+
+        private int GetDropIndex(int y)
+        {
+            var controls = panelSidebarItems.Controls;
+            for (int i = 0; i < controls.Count; i++)
+            {
+                var c = controls[i];
+                if (y < c.Top + c.Height / 2) return i;
+            }
+            return controls.Count - 1;
         }
 
         private static System.Drawing.Bitmap ApplyRoundedCorners(System.Drawing.Bitmap src, int radius)

@@ -177,9 +177,7 @@ namespace XelLauncher.Forms
             {
                 try
                 {
-                    string basePath = Path.Combine(
-                        Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,
-                        "Resources");
+                    string basePath = Path.Combine(AppContext.BaseDirectory, "Resources");
                     string file = key switch
                     {
                         "Arknights"      => "Arknights.ico",
