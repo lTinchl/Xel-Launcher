@@ -74,21 +74,35 @@ namespace XelLauncher.Helpers
             });
         }
 
+        // 判断 pid 的祖先链（向上追溯）中是否包含 ancestorPids 中的任意一个
+        private static bool IsDescendantOf(int pid, System.Collections.Generic.HashSet<int> ancestorPids)
+        {
+            int current = pid;
+            // 最多向上追溯 10 层，防止进程树出现环路死循环
+            for (int depth = 0; depth < 10; depth++)
+            {
+                int parent = GetParentProcessId(current);
+                if (parent <= 0) return false;
+                if (ancestorPids.Contains(parent)) return true;
+                current = parent;
+            }
+            return false;
+        }
+
         public static async Task KillArknightsProcesses(bool isEndfield = false)
         {
             string mainName = isEndfield ? "Endfield" : "Arknights";
             var mainProcs = Process.GetProcessesByName(mainName);
             var mainPids = new System.Collections.Generic.HashSet<int>(mainProcs.Select(p => p.Id));
 
-            // 先杀父进程是主游戏进程的 PlatformProcess
+            // 先杀祖先链中包含主游戏进程的 PlatformProcess（兼容中间进程层级）
             foreach (var proc in Process.GetProcessesByName("PlatformProcess"))
             {
                 using (proc)
                 {
                     try
                     {
-                        int parentId = GetParentProcessId(proc.Id);
-                        if (mainPids.Contains(parentId))
+                        if (IsDescendantOf(proc.Id, mainPids))
                         {
                             proc.Kill();
                             proc.WaitForExit();
