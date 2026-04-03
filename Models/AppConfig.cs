@@ -5,7 +5,14 @@ namespace XelLauncher.Models
 {
     public class AppConfig
     {
-        public List<GameEntry> Games { get; set; } = new List<GameEntry>();
+        public List<GameEntry> Games { get; set; } = new List<GameEntry>
+        {
+            new GameEntry { Name = "明日方舟",       IconName = "Arknights" },
+            new GameEntry { Name = "明日方舟(B服)",   IconName = "BiliArknights" },
+            new GameEntry { Name = "终末地",          IconName = "Endfield" },
+            new GameEntry { Name = "终末地(B服)",     IconName = "BiliEndfield" },
+            new GameEntry { Name = "终末地(国际服)",  IconName = "GlobalEndfield" },
+        };
         public List<MaaEntry> MaaList { get; set; } = new List<MaaEntry>();
 
         public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();

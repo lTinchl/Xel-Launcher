@@ -122,17 +122,73 @@ namespace XelLauncher.Forms
 
             if (game.IconName == "BiliArknights")
             {
+                var btnReplaceOfficial = new AntdUI.Button
+                {
+                    Text = "将文件替换为B服",
+                    Location = new Point(20, 268),
+                    Size = new Size(320, 36),
+                    Ghost = true,
+                };
+                btnReplaceOfficial.Click += async (s, e) =>
+                {
+                    string path = _inputPath.Text.Trim();
+                    if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+                    {
+                        AntdUI.Message.warn(_overview, "请先设置B服路径");
+                        return;
+                    }
+                    string zipPath = GameLauncher.GetPayloadZipPath("BiliArknights");
+                    if (zipPath == null || !File.Exists(zipPath))
+                    {
+                        AntdUI.Message.error(_overview, "未找到B服资源包 (ArkBilibili.zip)，请确认 load 文件夹中是否存在该文件");
+                        return;
+                    }
+                    var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
+                        FindForm() as AntdUI.BaseForm ?? null,
+                        "确认替换",
+                        "确定要将当前官服替换为B服吗？此操作会覆盖游戏文件",
+                        AntdUI.TType.Warn)
+                    {
+                        OkText = "确定",
+                        CancelText = "取消"
+                    });
+                    if (result != DialogResult.OK) return;
+
+                    AntdUI.Message.loading(_overview, "替换中...", async (cfg) =>
+                    {
+                        try
+                        {
+                            await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                            {
+                                cfg.Text = msg;
+                                cfg.Refresh();
+                            });
+                            var cfg2 = ConfigHelper.Load();
+                            var BiliBili = cfg2.Games.Find(g => g.IconName == "Arknights");
+                            if (BiliBili != null) BiliBili.RootPath = path;
+                            ConfigHelper.Save(cfg2);
+                            cfg.OK("替换成功，B服资源包已覆盖至当前目录");
+                            (FindForm() as AntdUI.BaseForm)?.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            cfg.Error("替换失败：" + ex.Message);
+                        }
+                    });
+                };
+                Controls.Add(btnReplaceOfficial);
+
                 var btnBili = new AntdUI.Button
                 {
                     Text = "Arknights BiliBili官网",
-                    Location = new Point(20, 268),
+                    Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
                 btnBili.Click += (s, e) =>
                     Process.Start(new ProcessStartInfo("https://www.biligame.com/detail/?id=117664") { UseShellExecute = true });
                 Controls.Add(btnBili);
-                Size = new Size(360, 338);
+                Size = new Size(360, 386);
             }
             else if (game.IconName == "Endfield")
             {
@@ -176,31 +232,135 @@ namespace XelLauncher.Forms
             }
             else if (game.IconName == "BiliEndfield")
             {
+                var btnReplace = new AntdUI.Button
+                {
+                    Text = "将文件替换为B服",
+                    Location = new Point(20, 268),
+                    Size = new Size(320, 36),
+                    Ghost = true,
+                };
+                btnReplace.Click += async (s, e) =>
+                {
+                    string path = _inputPath.Text.Trim();
+                    if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+                    {
+                        AntdUI.Message.warn(_overview, "请先设置B服路径");
+                        return;
+                    }
+                    string zipPath = GameLauncher.GetPayloadZipPath("BiliEndfield");
+                    if (zipPath == null || !File.Exists(zipPath))
+                    {
+                        AntdUI.Message.error(_overview, "未找到B服资源包 (EndBilibili.zip)，请确认 load 文件夹中是否存在该文件");
+                        return;
+                    }
+                    var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
+                        FindForm() as AntdUI.BaseForm ?? null,
+                        "确认替换",
+                        "确定要将当前目录替换为B服文件吗？此操作会覆盖游戏文件",
+                        AntdUI.TType.Warn)
+                    {
+                        OkText = "确定",
+                        CancelText = "取消"
+                    });
+                    if (result != DialogResult.OK) return;
+
+                    AntdUI.Message.loading(_overview, "替换中...", async (cfg) =>
+                    {
+                        try
+                        {
+                            await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                            {
+                                cfg.Text = msg;
+                                cfg.Refresh();
+                            }, true);
+                            cfg.OK("替换成功，B服资源包已覆盖至当前目录");
+                            (FindForm() as AntdUI.BaseForm)?.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            cfg.Error("替换失败：" + ex.Message);
+                        }
+                    });
+                };
+                Controls.Add(btnReplace);
+
                 var btn = new AntdUI.Button
                 {
                     Text = "Endfield BiliBili官网",
-                    Location = new Point(20, 268),
+                    Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
                     Process.Start(new ProcessStartInfo("https://www.biligame.com/detail/?id=105651") { UseShellExecute = true });
                 Controls.Add(btn);
-                Size = new Size(360, 338);
+                Size = new Size(360, 386);
             }
             else if (game.IconName == "GlobalEndfield")
             {
+                var btnReplace = new AntdUI.Button
+                {
+                    Text = "将文件替换为国际服",
+                    Location = new Point(20, 268),
+                    Size = new Size(320, 36),
+                    Ghost = true,
+                };
+                btnReplace.Click += async (s, e) =>
+                {
+                    string path = _inputPath.Text.Trim();
+                    if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+                    {
+                        AntdUI.Message.warn(_overview, "请先设置国际服路径");
+                        return;
+                    }
+                    string zipPath = GameLauncher.GetPayloadZipPath("GlobalEndfield");
+                    if (zipPath == null || !File.Exists(zipPath))
+                    {
+                        AntdUI.Message.error(_overview, "未找到国际服资源包 (EndGlobal.zip)，请确认 load 文件夹中是否存在该文件");
+                        return;
+                    }
+                    var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
+                        FindForm() as AntdUI.BaseForm ?? null,
+                        "确认替换",
+                        "确定要将当前目录替换为国际服文件吗？此操作会覆盖游戏文件",
+                        AntdUI.TType.Warn)
+                    {
+                        OkText = "确定",
+                        CancelText = "取消"
+                    });
+                    if (result != DialogResult.OK) return;
+
+                    AntdUI.Message.loading(_overview, "替换中...", async (cfg) =>
+                    {
+                        try
+                        {
+                            await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                            {
+                                cfg.Text = msg;
+                                cfg.Refresh();
+                            }, true);
+                            cfg.OK("替换成功，国际服资源包已覆盖至当前目录");
+                            (FindForm() as AntdUI.BaseForm)?.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            cfg.Error("替换失败：" + ex.Message);
+                        }
+                    });
+                };
+                Controls.Add(btnReplace);
+
                 var btn = new AntdUI.Button
                 {
                     Text = "Endfield 国际服官网",
-                    Location = new Point(20, 268),
+                    Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
                     Process.Start(new ProcessStartInfo("https://endfield.hypergryph.com/en-US/") { UseShellExecute = true });
                 Controls.Add(btn);
-                Size = new Size(360, 338);
+                Size = new Size(360, 386);
             }
             else
             {
@@ -300,9 +460,7 @@ namespace XelLauncher.Forms
         {
             try
             {
-                string basePath = Path.Combine(
-                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,
-                    "Resources");
+                string basePath = Path.Combine(AppContext.BaseDirectory, "Resources");
                 string file = iconName switch
                 {
                     "Arknights"      => "Arknights.ico",

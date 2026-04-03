@@ -31,11 +31,11 @@ namespace XelLauncher
                     client.DefaultRequestHeaders.Add("User-Agent", "Xel Launcher/" + Application.ProductVersion);
                     client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
 
-                    var repoJson = await client.GetStringAsync("https://api.github.com/repos/lTinchl/XelLauncher");
+                    var repoJson = await client.GetStringAsync("https://api.github.com/repos/lTinchl/Xel-Launcher");
                     using var repoDoc = JsonDocument.Parse(repoJson);
                     var stars = repoDoc.RootElement.GetProperty("stargazers_count").GetInt32();
 
-                    var releasesJson = await client.GetStringAsync("https://api.github.com/repos/lTinchl/XelLauncher/releases");
+                    var releasesJson = await client.GetStringAsync("https://api.github.com/repos/lTinchl/Xel-Launcher/releases");
                     using var releasesDoc = JsonDocument.Parse(releasesJson);
                     var downloads = releasesDoc.RootElement.EnumerateArray()
                         .SelectMany(r => r.GetProperty("assets").EnumerateArray())

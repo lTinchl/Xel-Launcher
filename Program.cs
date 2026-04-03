@@ -14,6 +14,7 @@ namespace XelLauncher
         [STAThread]
         static void Main(string[] arge)
         {
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #if !NET10_0
             ComWrappers.RegisterForMarshalling(WinFormsComInterop.WinFormsComWrappers.Instance);
 #endif
@@ -30,7 +31,6 @@ namespace XelLauncher
             var cfg = ConfigHelper.Load();
             if (!string.IsNullOrEmpty(cfg.PrimaryColor))
                 AntdUI.Style.SetPrimary(System.Drawing.ColorTranslator.FromHtml(cfg.PrimaryColor));
-            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             if (command == "m") Application.Run(new Main());
             else if (command == "tab") Application.Run(new TabHeaderForm());
             else Application.Run(new Overview(command == "t"));
