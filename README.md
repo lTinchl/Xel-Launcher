@@ -47,6 +47,9 @@
 - [ ] 明日方舟Wiki
 - [ ] 终末地Wiki
 
+## 截图
+<img width="1280" height="760" alt="QQ_1775213815782" src="https://github.com/user-attachments/assets/b2f3b2e0-d0ac-480d-aaba-f7fee556baab" />
+
 ## 特别鸣谢
 
 - UI 框架：[AntdUI](https://github.com/AntdUI/AntdUI)
