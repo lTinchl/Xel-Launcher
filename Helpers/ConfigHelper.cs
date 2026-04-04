@@ -15,7 +15,7 @@ namespace XelLauncher.Helpers
 
         public static readonly string AccountBackupDir = Path.Combine(ConfigDir, "AccountBackups");
 
-        public static readonly string EndfieldAccountBackupDir = Path.Combine(ConfigDir, "EndAccountBackups");
+        public static readonly string EndAccountBackupDir = Path.Combine(ConfigDir, "EndAccountBackups");
 
         public static AppConfig Load()
         {

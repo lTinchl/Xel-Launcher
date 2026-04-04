@@ -194,7 +194,7 @@ namespace XelLauncher.Helpers
                 "AppData", "LocalLow", "Hypergryph", "Endfield"
             );
 
-            string target = Path.Combine(ConfigHelper.EndfieldAccountBackupDir, accountId);
+            string target = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
 
             var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
             if (sdkDir == null) return;
@@ -205,7 +205,7 @@ namespace XelLauncher.Helpers
 
         public static async Task RestoreEndfieldAccount(string accountId)
         {
-            string backupDir = Path.Combine(ConfigHelper.EndfieldAccountBackupDir, accountId);
+            string backupDir = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
             if (!Directory.Exists(backupDir))
                 throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
 
