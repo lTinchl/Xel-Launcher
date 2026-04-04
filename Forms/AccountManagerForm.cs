@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
+using XelLauncher.Models;
 
 namespace XelLauncher.Forms
 {
@@ -12,13 +13,17 @@ namespace XelLauncher.Forms
     {
         private readonly Overview _overview;
         private readonly GamePage _gamePage;
+        private readonly string _iconName;
         private AntdUI.Table table;
         private readonly HashSet<string> _pendingDelete = new();
 
-        public AccountManagerForm(Overview overview, GamePage gamePage)
+        private bool IsEndfield => _iconName == "Endfield";
+
+        public AccountManagerForm(Overview overview, GamePage gamePage, string iconName = "Arknights")
         {
             _overview = overview;
             _gamePage = gamePage;
+            _iconName = iconName;
             Font = new Font("Microsoft YaHei UI", 10F);
             Size = new Size(720, 560);
             BackColor = Color.Transparent;
@@ -82,11 +87,19 @@ namespace XelLauncher.Forms
             RefreshTable();
         }
 
+        private (Dictionary<string, string> accounts, List<string> order, string defaultId, HashSet<string> disabled) GetAccountData(AppConfig cfg)
+        {
+            if (IsEndfield)
+                return (cfg.EndfieldAccounts, cfg.EndfieldAccountOrder, cfg.EndfieldDefaultAccount, cfg.EndfieldDisabledAccounts);
+            return (cfg.Accounts, cfg.AccountOrder, cfg.DefaultAccount, cfg.DisabledAccounts);
+        }
+
         private List<string> GetOrderedIds()
         {
             var cfg = ConfigHelper.Load();
-            var ordered = cfg.AccountOrder.Where(id => cfg.Accounts.ContainsKey(id)).ToList();
-            foreach (var id in cfg.Accounts.Keys)
+            var (accounts, order, _, _) = GetAccountData(cfg);
+            var ordered = order.Where(id => accounts.ContainsKey(id)).ToList();
+            foreach (var id in accounts.Keys)
                 if (!ordered.Contains(id)) ordered.Add(id);
             return ordered;
         }
@@ -94,14 +107,15 @@ namespace XelLauncher.Forms
         private void RefreshTable()
         {
             var cfg = ConfigHelper.Load();
+            var (accounts, _, defaultId, disabled) = GetAccountData(cfg);
             var rows = new List<AccountRow>();
             var ordered = GetOrderedIds();
             for (int i = 0; i < ordered.Count; i++)
             {
                 var id = ordered[i];
-                if (!cfg.Accounts.TryGetValue(id, out var name)) continue;
-                bool isDef = id == cfg.DefaultAccount;
-                bool isDisabled = cfg.DisabledAccounts.Contains(id);
+                if (!accounts.TryGetValue(id, out var name)) continue;
+                bool isDef = id == defaultId;
+                bool isDisabled = disabled.Contains(id);
                 rows.Add(new AccountRow
                 {
                     id = id,
@@ -129,7 +143,9 @@ namespace XelLauncher.Forms
         {
             var sorted = table.SortList();
             var cfg = ConfigHelper.Load();
-            cfg.AccountOrder = sorted.OfType<AccountRow>().Select(r => r.id).ToList();
+            var newOrder = sorted.OfType<AccountRow>().Select(r => r.id).ToList();
+            if (IsEndfield) cfg.EndfieldAccountOrder = newOrder;
+            else cfg.AccountOrder = newOrder;
             ConfigHelper.Save(cfg);
             _gamePage.LoadAccountSelect();
         }
@@ -138,8 +154,16 @@ namespace XelLauncher.Forms
         {
             if (e.Record is not AccountRow row) return;
             var cfg = ConfigHelper.Load();
-            if (e.Value) cfg.DisabledAccounts.Remove(row.id);
-            else cfg.DisabledAccounts.Add(row.id);
+            if (IsEndfield)
+            {
+                if (e.Value) cfg.EndfieldDisabledAccounts.Remove(row.id);
+                else cfg.EndfieldDisabledAccounts.Add(row.id);
+            }
+            else
+            {
+                if (e.Value) cfg.DisabledAccounts.Remove(row.id);
+                else cfg.DisabledAccounts.Add(row.id);
+            }
             ConfigHelper.Save(cfg);
             _gamePage.LoadAccountSelect();
             RefreshTable();
@@ -157,7 +181,8 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            await GameLauncher.BackupAccount(row.id);
+                            if (IsEndfield) await GameLauncher.BackupEndfieldAccount(row.id);
+                            else await GameLauncher.BackupAccount(row.id);
                             config.OK($"已保存账号「{row.name}」");
                         }
                         catch (Exception ex)
@@ -168,7 +193,8 @@ namespace XelLauncher.Forms
                     break;
                 case "setDefault":
                     var cfg = ConfigHelper.Load();
-                    cfg.DefaultAccount = row.id;
+                    if (IsEndfield) cfg.EndfieldDefaultAccount = row.id;
+                    else cfg.DefaultAccount = row.id;
                     ConfigHelper.Save(cfg);
                     _gamePage.LoadAccountSelect();
                     RefreshTable();
@@ -185,11 +211,22 @@ namespace XelLauncher.Forms
                     }
                     _pendingDelete.Remove(row.id);
                     var cfg2 = ConfigHelper.Load();
-                    cfg2.Accounts.Remove(row.id);
-                    cfg2.AccountOrder.Remove(row.id);
-                    if (cfg2.DefaultAccount == row.id) cfg2.DefaultAccount = "";
+                    if (IsEndfield)
+                    {
+                        cfg2.EndfieldAccounts.Remove(row.id);
+                        cfg2.EndfieldAccountOrder.Remove(row.id);
+                        if (cfg2.EndfieldDefaultAccount == row.id) cfg2.EndfieldDefaultAccount = "";
+                    }
+                    else
+                    {
+                        cfg2.Accounts.Remove(row.id);
+                        cfg2.AccountOrder.Remove(row.id);
+                        if (cfg2.DefaultAccount == row.id) cfg2.DefaultAccount = "";
+                    }
                     ConfigHelper.Save(cfg2);
-                    string backupDir = System.IO.Path.Combine(ConfigHelper.AccountBackupDir, row.id);
+                    string backupDir = System.IO.Path.Combine(
+                        IsEndfield ? ConfigHelper.EndfieldAccountBackupDir : ConfigHelper.AccountBackupDir,
+                        row.id);
                     if (System.IO.Directory.Exists(backupDir))
                         System.IO.Directory.Delete(backupDir, true);
                     _gamePage.LoadAccountSelect();
@@ -223,9 +260,18 @@ namespace XelLauncher.Forms
 
             var cfg = ConfigHelper.Load();
             string id = "A" + DateTime.Now.Ticks.ToString()[^6..];
-            cfg.Accounts[id] = name;
-            cfg.AccountOrder.Add(id);
-            if (string.IsNullOrEmpty(cfg.DefaultAccount)) cfg.DefaultAccount = id;
+            if (IsEndfield)
+            {
+                cfg.EndfieldAccounts[id] = name;
+                cfg.EndfieldAccountOrder.Add(id);
+                if (string.IsNullOrEmpty(cfg.EndfieldDefaultAccount)) cfg.EndfieldDefaultAccount = id;
+            }
+            else
+            {
+                cfg.Accounts[id] = name;
+                cfg.AccountOrder.Add(id);
+                if (string.IsNullOrEmpty(cfg.DefaultAccount)) cfg.DefaultAccount = id;
+            }
             ConfigHelper.Save(cfg);
             _gamePage.LoadAccountSelect();
             RefreshTable();
@@ -256,7 +302,8 @@ namespace XelLauncher.Forms
             if (string.IsNullOrEmpty(name)) return;
 
             var cfg = ConfigHelper.Load();
-            cfg.Accounts[id] = name;
+            if (IsEndfield) cfg.EndfieldAccounts[id] = name;
+            else cfg.Accounts[id] = name;
             ConfigHelper.Save(cfg);
             _gamePage.LoadAccountSelect();
             RefreshTable();

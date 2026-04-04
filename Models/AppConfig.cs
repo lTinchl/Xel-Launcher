@@ -17,9 +17,15 @@ namespace XelLauncher.Models
 
         public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();
         public List<string> AccountOrder { get; set; } = new List<string>();
-
+        // 方舟官服账号管理
         public string DefaultAccount { get; set; } = "";                    // 默认账号 ID（如 "A1"）
         public HashSet<string> DisabledAccounts { get; set; } = new HashSet<string>(); // 禁用的账号 ID
+
+        // 终末地官服账号管理
+        public Dictionary<string, string> EndfieldAccounts { get; set; } = new Dictionary<string, string>();
+        public List<string> EndfieldAccountOrder { get; set; } = new List<string>();
+        public string EndfieldDefaultAccount { get; set; } = "";
+        public HashSet<string> EndfieldDisabledAccounts { get; set; } = new HashSet<string>();
         public bool IsFirstRun { get; set; } = true;                        // 是否首次运行（用于控制首次点击官服时解锁 B 服按钮）
         public string LastNotifiedVersion { get; set; } = "";               // 上次通知的版本号
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
