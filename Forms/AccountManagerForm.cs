@@ -225,7 +225,7 @@ namespace XelLauncher.Forms
                     }
                     ConfigHelper.Save(cfg2);
                     string backupDir = System.IO.Path.Combine(
-                        IsEndfield ? ConfigHelper.EndfieldAccountBackupDir : ConfigHelper.AccountBackupDir,
+                        IsEndfield ? ConfigHelper.EndAccountBackupDir : ConfigHelper.AccountBackupDir,
                         row.id);
                     if (System.IO.Directory.Exists(backupDir))
                         System.IO.Directory.Delete(backupDir, true);
