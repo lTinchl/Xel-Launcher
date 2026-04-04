@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -152,9 +153,11 @@ namespace XelLauncher.Forms
             panelLaunch.Location = new Point(bar.Width - panelLaunch.Width - 16, (bar.Height - panelLaunch.Height) / 2);
         }
 
+        private bool IsAccountGame => _game?.IconName == "Arknights" || _game?.IconName == "Endfield";
+
         private void UpdateAccountControlsVisibility()
         {
-            bool hideAccounts = _game?.IconName != "Arknights";
+            bool hideAccounts = !IsAccountGame;
             btnAccountManage.Visible = !hideAccounts;
             accountSelect.Visible = !hideAccounts;
 
@@ -170,14 +173,35 @@ namespace XelLauncher.Forms
         {
             var cfg = ConfigHelper.Load();
             accountSelect.Items.Clear();
-            var ordered = cfg.AccountOrder.Where(id => cfg.Accounts.ContainsKey(id)).ToList();
-            foreach (var id in cfg.Accounts.Keys)
+
+            Dictionary<string, string> accounts;
+            List<string> order;
+            string defaultId;
+            HashSet<string> disabled;
+
+            if (_game?.IconName == "Endfield")
+            {
+                accounts = cfg.EndfieldAccounts;
+                order = cfg.EndfieldAccountOrder;
+                defaultId = cfg.EndfieldDefaultAccount;
+                disabled = cfg.EndfieldDisabledAccounts;
+            }
+            else
+            {
+                accounts = cfg.Accounts;
+                order = cfg.AccountOrder;
+                defaultId = cfg.DefaultAccount;
+                disabled = cfg.DisabledAccounts;
+            }
+
+            var ordered = order.Where(id => accounts.ContainsKey(id)).ToList();
+            foreach (var id in accounts.Keys)
                 if (!ordered.Contains(id)) ordered.Add(id);
             foreach (var id in ordered)
-                if (!cfg.DisabledAccounts.Contains(id))
-                    accountSelect.Items.Add(new AntdUI.SelectItem("  " + cfg.Accounts[id], id));
-            if (!string.IsNullOrEmpty(cfg.DefaultAccount) && !cfg.DisabledAccounts.Contains(cfg.DefaultAccount))
-                accountSelect.SelectedValue = cfg.DefaultAccount;
+                if (!disabled.Contains(id))
+                    accountSelect.Items.Add(new AntdUI.SelectItem("  " + accounts[id], id));
+            if (!string.IsNullOrEmpty(defaultId) && !disabled.Contains(defaultId))
+                accountSelect.SelectedValue = defaultId;
             else if (accountSelect.Items.Count > 0)
                 accountSelect.SelectedValue = ((AntdUI.SelectItem)accountSelect.Items[0]).Tag;
             else
@@ -208,7 +232,7 @@ namespace XelLauncher.Forms
 
         private void btnAccountManage_Click(object sender, EventArgs e)
         {
-            var form = new AccountManagerForm(_overview, this);
+            var form = new AccountManagerForm(_overview, this, _game.IconName);
             AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, "账号管理", form)
             {
                 OkText = null,
@@ -317,6 +341,16 @@ namespace XelLauncher.Forms
                             config.Text = "切换账号中...";
                             config.Refresh();
                             await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
+                        }
+                    }
+                    else if (_game.IconName == "Endfield")
+                    {
+                        string selectedAccountId = accountSelect.SelectedValue as string;
+                        if (!string.IsNullOrEmpty(selectedAccountId))
+                        {
+                            config.Text = "切换账号中...";
+                            config.Refresh();
+                            await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
                         }
                     }
                     if ((sameRoot || endfieldSameRoot) && zipPath != null)

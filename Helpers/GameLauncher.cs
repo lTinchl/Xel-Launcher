@@ -187,6 +187,41 @@ namespace XelLauncher.Helpers
             await CopyDirectory(backupDir, sdkDir);
         }
 
+        public static async Task BackupEndfieldAccount(string accountId)
+        {
+            string sdkPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "AppData", "LocalLow", "Hypergryph", "Endfield"
+            );
+
+            string target = Path.Combine(ConfigHelper.EndfieldAccountBackupDir, accountId);
+
+            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+            if (sdkDir == null) return;
+
+            if (Directory.Exists(target)) Directory.Delete(target, true);
+            await CopyDirectory(sdkDir, target);
+        }
+
+        public static async Task RestoreEndfieldAccount(string accountId)
+        {
+            string backupDir = Path.Combine(ConfigHelper.EndfieldAccountBackupDir, accountId);
+            if (!Directory.Exists(backupDir))
+                throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
+
+            string sdkPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "AppData", "LocalLow", "Hypergryph", "Endfield"
+            );
+
+            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+            if (sdkDir == null)
+                throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
+
+            if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
+            await CopyDirectory(backupDir, sdkDir);
+        }
+
         public static async Task CopyDirectory(string sourceDir, string targetDir, int maxRetries = 5)
         {
             sourceDir = Path.GetFullPath(sourceDir).TrimEnd(Path.DirectorySeparatorChar);
