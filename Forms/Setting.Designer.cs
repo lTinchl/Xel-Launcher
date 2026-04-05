@@ -85,11 +85,11 @@ namespace XelLauncher
             //
             // btnMaa
             //
-            btnMaa.Text = "路径设置";
-            btnMaa.Dock = System.Windows.Forms.DockStyle.Top;
-            btnMaa.Height = 46;
-            btnMaa.Name = "btnMaa";
-            btnMaa.Type = AntdUI.TTypeMini.Default;
+            //btnMaa.Text = "路径设置";
+            //btnMaa.Dock = System.Windows.Forms.DockStyle.Top;
+            //btnMaa.Height = 46;
+            //btnMaa.Name = "btnMaa";
+            //btnMaa.Type = AntdUI.TTypeMini.Default;
             //
             // dividerV
             //
@@ -141,10 +141,10 @@ namespace XelLauncher
             //
             // labelMaaOfficial
             //
-            labelMaaOfficial.Dock = System.Windows.Forms.DockStyle.Fill;
-            labelMaaOfficial.Name = "labelMaaOfficial";
-            labelMaaOfficial.Text = "MAA 路径";
-            labelMaaOfficial.TabIndex = 0;
+            //labelMaaOfficial.Dock = System.Windows.Forms.DockStyle.Fill;
+            //labelMaaOfficial.Name = "labelMaaOfficial";
+            //labelMaaOfficial.Text = "MAA 路径";
+            //labelMaaOfficial.TabIndex = 0;
             //
             // txtMaaOfficial
             //
