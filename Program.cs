@@ -14,9 +14,21 @@ namespace XelLauncher
         [STAThread]
         static void Main(string[] arge)
         {
+            Microsoft.Web.WebView2.Core.CoreWebView2Environment.SetLoaderDllFolderPath("");
+            // 捕获 UI 线程未处理异常
+            Application.ThreadException += (s, e) =>
+                Helpers.LogHelper.LogError(e.Exception, "UI ThreadException");
+
+            // 捕获非 UI 线程未处理异常
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                if (e.ExceptionObject is Exception ex)
+                    Helpers.LogHelper.LogError(ex, "UnhandledException");
+            };
+
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #if !NET10_0
-            ComWrappers.RegisterForMarshalling(WinFormsComInterop.WinFormsComWrappers.Instance);
+            //ComWrappers.RegisterForMarshalling(WinFormsComInterop.WinFormsComWrappers.Instance);
 #endif
             var command = string.Join(" ", arge);
             AntdUI.Localization.DefaultLanguage = "zh-CN";
