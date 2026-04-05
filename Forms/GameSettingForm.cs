@@ -1,3 +1,4 @@
+using AntdUI;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -400,6 +401,64 @@ namespace XelLauncher.Forms
                 Size = new Size(360, 386);
             }
 
+            // ── 读取持久化的 Switch 状态 ──
+            var cfgNow = ConfigHelper.Load();
+            var entryNow = cfgNow.Games.Find(g => g.IconName == game.IconName);
+            bool syncEnabled = entryNow?.SyncLaunchEnabled ?? false;
+
+            var divider2 = new AntdUI.Divider
+            {
+                Location = new Point(20, 630),
+                Size = new Size(264, 20),
+                Thickness = 1F,
+                Text = "联动启动",
+                Orientation = AntdUI.TOrientation.Left,
+                OrientationMargin = 0
+            };
+
+            var swExtra = new AntdUI.Switch
+            {
+                Location = new Point(304, 630),
+                Size = new Size(36, 20),
+                Checked = syncEnabled,
+            };
+
+            // ── 管理按钮（Switch 开启时才显示）──
+            var btnManage = new AntdUI.Button
+            {
+                Text = "管理联动软件",
+                Location = new Point(20, 660),
+                Size = new Size(320, 36),
+                Ghost = true,
+                Visible = syncEnabled,
+            };
+            btnManage.Click += (s, e) =>
+            {
+                var syncForm = new SyncAppManagerForm(entryNow ?? game, _overview);
+
+                AntdUI.Drawer.open(new AntdUI.Drawer.Config(_overview.FindForm(), syncForm));
+            };
+            swExtra.CheckedChanged += (s, e) =>
+            {
+                bool on = swExtra.Checked;
+                btnManage.Visible = on;
+                Size = new Size(360, on ? 458 : 410);
+
+                // 持久化 Switch 状态
+                var cfg = ConfigHelper.Load();
+                var entry = cfg.Games.Find(g => g.IconName == game.IconName);
+                if (entry != null)
+                {
+                    entry.SyncLaunchEnabled = on;
+                    ConfigHelper.Save(cfg);
+                }
+            };
+
+            Size = new Size(360, syncEnabled ? 458 : 410);
+
+            Controls.Add(divider2);
+            Controls.Add(swExtra);
+            Controls.Add(btnManage);
             Controls.Add(picIcon);
             Controls.Add(lblName);
             Controls.Add(divider1);
@@ -424,7 +483,7 @@ namespace XelLauncher.Forms
             while (true)
             {
                 Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
-                using var dlg = new FolderBrowserDialog();
+                using var dlg = new System.Windows.Forms.FolderBrowserDialog();
                 dlg.Description = $"选择「{_game.Name}」游戏根目录";
                 dlg.UseDescriptionForTitle = true;
                 if (!string.IsNullOrEmpty(_inputPath.Text))
