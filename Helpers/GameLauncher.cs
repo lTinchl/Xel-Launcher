@@ -47,8 +47,39 @@ namespace XelLauncher.Helpers
             }
         }
 
-        public static void StartArknights(string rootPath, bool isEndfield = false)
+        public static void StartArknights(string rootPath, string iconName)
         {
+            // ── 联动启动 ──
+            var cfg = ConfigHelper.Load();
+            foreach (var g in cfg.Games)
+                LogHelper.Log($"IconName={g.IconName}, RootPath={g.RootPath}, SyncEnabled={g.SyncLaunchEnabled}, SyncApps={g.SyncApps.Count}");
+
+            var entry = cfg.Games.Find(g => g.IconName == iconName && g.RootPath == rootPath);
+            entry ??= cfg.Games.Find(g => g.IconName == iconName);
+
+            if (entry?.SyncLaunchEnabled == true && entry.SyncApps?.Count > 0)
+            {
+                foreach (var app in entry.SyncApps)
+                {
+                    if (File.Exists(app.Path))
+                    {
+                        try
+                        {
+                            Process.Start(new ProcessStartInfo(app.Path, app.Args ?? "")
+                            {
+                                UseShellExecute = true,
+                                WorkingDirectory = Path.GetDirectoryName(app.Path)!
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogError(ex, "SyncLaunch");
+                        }
+                    }
+                }
+            }
+
+            bool isEndfield = iconName == "Endfield" || iconName == "BiliEndfield" || iconName == "GlobalEndfield";
             string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
             string exePath = Path.Combine(rootPath, exeName);
             if (!File.Exists(exePath)) throw new Exception($"未找到 {exeName}");
@@ -57,19 +88,6 @@ namespace XelLauncher.Helpers
             {
                 FileName = exePath,
                 WorkingDirectory = rootPath,
-                UseShellExecute = true
-            });
-        }
-
-        public static void StartMAA(string exePath)
-        {
-            if (!File.Exists(exePath))
-                throw new Exception("未找到 MAA.exe");
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = exePath,
-                WorkingDirectory = Path.GetDirectoryName(exePath)!,
                 UseShellExecute = true
             });
         }
@@ -108,7 +126,7 @@ namespace XelLauncher.Helpers
                             proc.WaitForExit();
                         }
                     }
-                    catch { }
+                    catch (Exception ex) { LogHelper.LogError(ex, "KillProcess"); }
                 }
             }
 
@@ -117,7 +135,7 @@ namespace XelLauncher.Helpers
             {
                 using (proc)
                 {
-                    try { proc.Kill(); proc.WaitForExit(); } catch { }
+                    try { proc.Kill(); proc.WaitForExit(); } catch (Exception ex) { LogHelper.LogError(ex, "KillProcess"); }
                 }
             }
 
@@ -149,7 +167,7 @@ namespace XelLauncher.Helpers
                 if (status != 0) return -1;
                 return pbi.InheritedFromUniqueProcessId.ToInt32();
             }
-            catch { return -1; }
+            catch (Exception ex) { LogHelper.LogError(ex, "GetParentPid"); return -1; }
         }
 
         public static async Task BackupAccount(string accountId)
