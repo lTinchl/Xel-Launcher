@@ -26,7 +26,6 @@ namespace XelLauncher.Models
         public List<string> EndfieldAccountOrder { get; set; } = new List<string>();
         public string EndfieldDefaultAccount { get; set; } = "";
         public HashSet<string> EndfieldDisabledAccounts { get; set; } = new HashSet<string>();
-        public bool IsFirstRun { get; set; } = true;                        // 是否首次运行（用于控制首次点击官服时解锁 B 服按钮）
         public string LastNotifiedVersion { get; set; } = "";               // 上次通知的版本号
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
@@ -35,10 +34,8 @@ namespace XelLauncher.Models
         public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色
         public string BackgroundColor { get; set; } = "#FFFFFF";              // 窗口背景色
         public bool CloseAfterLaunch { get; set; } = false;               // 启动游戏后关闭软件
+        public string MAA_Official { get; set; } = "";                      // MAA
+        public string MAA_Bilibili { get; set; } = "";                      // MAA B 服
 
-        // 旧字段保留，兼容已有 config.json
-        [Obsolete] public string RootPath { get; set; } = "";
-        [Obsolete] public string MAA_Official { get; set; } = "";
-        [Obsolete] public string MAA_Bilibili { get; set; } = "";
     }
 }

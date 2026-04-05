@@ -25,8 +25,9 @@ namespace XelLauncher.Helpers
                 return JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(ConfigFile))
                        ?? new AppConfig();
             }
-            catch
+            catch (Exception ex)
             {
+                LogHelper.LogError(ex, "ConfigLoad");
                 return new AppConfig();
             }
         }
