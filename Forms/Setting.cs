@@ -48,8 +48,8 @@ namespace XelLauncher
             txtMaaOfficial.TextChanged += (s, e) => { MaaOfficial = txtMaaOfficial.Text; };
             txtMaaBilibili.TextChanged += (s, e) => { MaaBilibili = txtMaaBilibili.Text; };
 
-            btnMaaOfficialBrowse.Click += (s, e) => BrowseMaaPath(txtMaaOfficial, ref MaaOfficial);
-            btnMaaBilibiliBrowse.Click += (s, e) => BrowseMaaPath(txtMaaBilibili, ref MaaBilibili);
+            //btnMaaOfficialBrowse.Click += (s, e) => BrowseMaaPath(txtMaaOfficial, ref MaaOfficial);
+            //btnMaaBilibiliBrowse.Click += (s, e) => BrowseMaaPath(txtMaaBilibili, ref MaaBilibili);
         }
 
         private static bool GetStartWithWindows()
@@ -68,22 +68,22 @@ namespace XelLauncher
                 key.DeleteValue(AppName, false);
         }
 
-        private void BrowseMaaPath(AntdUI.Input input, ref string field)
-        {
-            using var dlg = new OpenFileDialog
-            {
-                Title = "选择 MAA.exe",
-                Filter = "MAA 程序 (MAA.exe)|MAA.exe|可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*",
-                CheckFileExists = true
-            };
-            if (!string.IsNullOrEmpty(input.Text))
-                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(input.Text);
-            if (dlg.ShowDialog() == DialogResult.OK)
-            {
-                input.Text = dlg.FileName;
-                field = dlg.FileName;
-            }
-        }
+        //private void BrowseMaaPath(AntdUI.Input input, ref string field)
+        //{
+        //    using var dlg = new OpenFileDialog
+        //    {
+        //        Title = "选择 MAA.exe",
+        //        Filter = "MAA 程序 (MAA.exe)|MAA.exe|可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*",
+        //        CheckFileExists = true
+        //    };
+        //    if (!string.IsNullOrEmpty(input.Text))
+        //        dlg.InitialDirectory = System.IO.Path.GetDirectoryName(input.Text);
+        //    if (dlg.ShowDialog() == DialogResult.OK)
+        //    {
+        //        input.Text = dlg.FileName;
+        //        field = dlg.FileName;
+        //    }
+        //}
 
         private void ShowPanel(int tab)
         {
