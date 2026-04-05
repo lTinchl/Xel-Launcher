@@ -366,13 +366,14 @@ namespace XelLauncher.Forms
                         GameStart.LoadingWaveValue = i / 100F;
                         System.Threading.Thread.Sleep(30);
                     }
-                    GameLauncher.StartArknights(path, isEndfield);
+                    GameLauncher.StartArknights(path, _game.IconName);
                     config.OK("游戏启动成功");
                     if (ConfigHelper.Load().CloseAfterLaunch)
                         Invoke(new Action(() => Application.Exit()));
                 }
                 catch (Exception ex)
                 {
+                    Helpers.LogHelper.LogError(ex, "GameStart");
                     config.Error(ex.Message);
                 }
                 Invoke(new Action(() =>
