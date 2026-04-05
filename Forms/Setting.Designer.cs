@@ -20,10 +20,19 @@ namespace XelLauncher
             panelLeft = new System.Windows.Forms.Panel();
             btnSoftware = new AntdUI.Button();
             btnLog = new AntdUI.Button();
+            btnMaa = new AntdUI.Button();
             dividerV = new AntdUI.Divider();
             panelRight = new System.Windows.Forms.Panel();
             panelLog = new System.Windows.Forms.Panel();
             txtLog = new System.Windows.Forms.RichTextBox();
+            panelMaa = new System.Windows.Forms.Panel();
+            tableMaa = new System.Windows.Forms.TableLayoutPanel();
+            labelMaaOfficial = new AntdUI.Label();
+            labelMaaBilibili = new AntdUI.Label();
+            txtMaaOfficial = new AntdUI.Input();
+            txtMaaBilibili = new AntdUI.Input();
+            btnMaaOfficialBrowse = new AntdUI.Button();
+            btnMaaBilibiliBrowse = new AntdUI.Button();
             tableSoftware = new System.Windows.Forms.TableLayoutPanel();
             label1 = new AntdUI.Label();
             label2 = new AntdUI.Label();
@@ -44,12 +53,15 @@ namespace XelLauncher
             panelLeft.SuspendLayout();
             panelRight.SuspendLayout();
             panelLog.SuspendLayout();
+            panelMaa.SuspendLayout();
+            tableMaa.SuspendLayout();
             tableSoftware.SuspendLayout();
             SuspendLayout();
             //
             // panelLeft
             //
             panelLeft.Controls.Add(btnLog);
+            panelLeft.Controls.Add(btnMaa);
             panelLeft.Controls.Add(btnSoftware);
             panelLeft.Dock = System.Windows.Forms.DockStyle.Left;
             panelLeft.Width = 120;
@@ -71,6 +83,14 @@ namespace XelLauncher
             btnLog.Name = "btnLog";
             btnLog.Type = AntdUI.TTypeMini.Default;
             //
+            // btnMaa
+            //
+            btnMaa.Text = "路径设置";
+            btnMaa.Dock = System.Windows.Forms.DockStyle.Top;
+            btnMaa.Height = 46;
+            btnMaa.Name = "btnMaa";
+            btnMaa.Type = AntdUI.TTypeMini.Default;
+            //
             // dividerV
             //
             dividerV.Dock = System.Windows.Forms.DockStyle.Left;
@@ -81,6 +101,7 @@ namespace XelLauncher
             // panelRight
             //
             panelRight.Controls.Add(panelLog);
+            panelRight.Controls.Add(panelMaa);
             panelRight.Controls.Add(tableSoftware);
             panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
             panelRight.Name = "panelRight";
@@ -91,6 +112,78 @@ namespace XelLauncher
             panelLog.Dock = System.Windows.Forms.DockStyle.Fill;
             panelLog.Name = "panelLog";
             panelLog.Visible = false;
+            //
+            // panelMaa
+            //
+            panelMaa.Controls.Add(tableMaa);
+            panelMaa.Dock = System.Windows.Forms.DockStyle.Fill;
+            panelMaa.Name = "panelMaa";
+            panelMaa.Visible = false;
+            //
+            // tableMaa
+            //
+            tableMaa.ColumnCount = 3;
+            tableMaa.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
+            tableMaa.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableMaa.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 70F));
+            tableMaa.Controls.Add(labelMaaOfficial, 0, 0);
+            tableMaa.Controls.Add(txtMaaOfficial, 1, 0);
+            tableMaa.Controls.Add(btnMaaOfficialBrowse, 2, 0);
+            tableMaa.Controls.Add(labelMaaBilibili, 0, 1);
+            tableMaa.Controls.Add(txtMaaBilibili, 1, 1);
+            tableMaa.Controls.Add(btnMaaBilibiliBrowse, 2, 1);
+            tableMaa.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableMaa.RowCount = 3;
+            tableMaa.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
+            tableMaa.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
+            tableMaa.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableMaa.Name = "tableMaa";
+            //
+            // labelMaaOfficial
+            //
+            labelMaaOfficial.Dock = System.Windows.Forms.DockStyle.Fill;
+            labelMaaOfficial.Name = "labelMaaOfficial";
+            labelMaaOfficial.Text = "MAA 路径";
+            labelMaaOfficial.TabIndex = 0;
+            //
+            // txtMaaOfficial
+            //
+            txtMaaOfficial.Dock = System.Windows.Forms.DockStyle.Fill;
+            txtMaaOfficial.Name = "txtMaaOfficial";
+            txtMaaOfficial.PlaceholderText = "请选择 MAA 官服路径...";
+            txtMaaOfficial.TabIndex = 0;
+            txtMaaOfficial.Margin = new System.Windows.Forms.Padding(0, 10, 6, 10);
+            //
+            // btnMaaOfficialBrowse
+            //
+            btnMaaOfficialBrowse.Text = "浏览";
+            btnMaaOfficialBrowse.Dock = System.Windows.Forms.DockStyle.Fill;
+            btnMaaOfficialBrowse.Name = "btnMaaOfficialBrowse";
+            btnMaaOfficialBrowse.Type = AntdUI.TTypeMini.Default;
+            btnMaaOfficialBrowse.Margin = new System.Windows.Forms.Padding(0, 10, 0, 10);
+            //
+            // labelMaaBilibili
+            //
+            labelMaaBilibili.Dock = System.Windows.Forms.DockStyle.Fill;
+            labelMaaBilibili.Name = "labelMaaBilibili";
+            labelMaaBilibili.Text = "MAA B服路径";
+            labelMaaBilibili.TabIndex = 0;
+            //
+            // txtMaaBilibili
+            //
+            txtMaaBilibili.Dock = System.Windows.Forms.DockStyle.Fill;
+            txtMaaBilibili.Name = "txtMaaBilibili";
+            txtMaaBilibili.PlaceholderText = "请选择 MAA B服路径...";
+            txtMaaBilibili.TabIndex = 0;
+            txtMaaBilibili.Margin = new System.Windows.Forms.Padding(0, 10, 6, 10);
+            //
+            // btnMaaBilibiliBrowse
+            //
+            btnMaaBilibiliBrowse.Text = "浏览";
+            btnMaaBilibiliBrowse.Dock = System.Windows.Forms.DockStyle.Fill;
+            btnMaaBilibiliBrowse.Name = "btnMaaBilibiliBrowse";
+            btnMaaBilibiliBrowse.Type = AntdUI.TTypeMini.Default;
+            btnMaaBilibiliBrowse.Margin = new System.Windows.Forms.Padding(0, 10, 0, 10);
             //
             // txtLog
             //
@@ -262,6 +355,8 @@ namespace XelLauncher
             Name = "Setting";
             Size = new System.Drawing.Size(600, 400);
             tableSoftware.ResumeLayout(false);
+            tableMaa.ResumeLayout(false);
+            panelMaa.ResumeLayout(false);
             panelLog.ResumeLayout(false);
             panelRight.ResumeLayout(false);
             panelLeft.ResumeLayout(false);
@@ -291,8 +386,17 @@ namespace XelLauncher
         private AntdUI.Switch switch7;
         private AntdUI.Label label8;
         private AntdUI.Switch switch8;
+        private AntdUI.Button btnMaa;
         private AntdUI.Button btnLog;
         private System.Windows.Forms.Panel panelLog;
         private System.Windows.Forms.RichTextBox txtLog;
+        private System.Windows.Forms.Panel panelMaa;
+        private System.Windows.Forms.TableLayoutPanel tableMaa;
+        private AntdUI.Label labelMaaOfficial;
+        private AntdUI.Label labelMaaBilibili;
+        private AntdUI.Input txtMaaOfficial;
+        private AntdUI.Input txtMaaBilibili;
+        private AntdUI.Button btnMaaOfficialBrowse;
+        private AntdUI.Button btnMaaBilibiliBrowse;
     }
 }
