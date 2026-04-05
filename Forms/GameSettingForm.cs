@@ -411,7 +411,7 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 630),
                 Size = new Size(264, 20),
                 Thickness = 1F,
-                Text = "联动启动",
+                Text = "自定义联动软件",
                 Orientation = AntdUI.TOrientation.Left,
                 OrientationMargin = 0
             };

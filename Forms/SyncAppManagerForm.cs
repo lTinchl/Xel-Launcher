@@ -34,7 +34,7 @@ namespace XelLauncher.Forms
 
             var lblTitle = new AntdUI.Label
             {
-                Text = "联动启动管理",
+                Text = "联动软件管理",
                 Location = new Point(20, 14),
                 Size = new Size(200, 28),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
