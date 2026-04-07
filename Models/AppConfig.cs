@@ -34,6 +34,7 @@ namespace XelLauncher.Models
         public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色
         public string BackgroundColor { get; set; } = "#FFFFFF";              // 窗口背景色
         public bool CloseAfterLaunch { get; set; } = false;               // 启动游戏后关闭软件
+        public bool HideToTrayOnLaunch { get; set; } = false;             // 启动游戏后隐藏至托盘，游戏关闭后恢复
         public string MAA_Official { get; set; } = "";                      // MAA
         public string MAA_Bilibili { get; set; } = "";                      // MAA B 服
 
