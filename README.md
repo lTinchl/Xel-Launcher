@@ -42,10 +42,10 @@
 ## 已支持功能
 - [x] 明日方舟官服 / B 服双服切换
 - [x] 终末地官服 / B 服 / 国际服三服切换
-- [x] 方舟官服多账号无感切换
-- [ ] 启动MAA
-- [ ] 明日方舟Wiki
-- [ ] 终末地Wiki
+- [x] 终末地、方舟官服多账号无感切换
+- [x] 联动软件启动
+- [x] 明日方舟Wiki
+- [x] 终末地Wiki
 
 ## 截图
 <img width="1280" height="760" alt="QQ_1775213815782" src="https://github.com/user-attachments/assets/b2f3b2e0-d0ac-480d-aaba-f7fee556baab" />
@@ -55,7 +55,7 @@
 - UI 框架：[AntdUI](https://github.com/AntdUI/AntdUI)
 - 思路来源:[▶️2分钟教会你明日方舟PC端官服-B服互转](https://www.bilibili.com/video/BV1VHFRzoE7T/?spm_id_from=333.337.search-card.all.click&vd_source=ec94b95a235413f9ad5d2ccb4597ac9f)
 - 账号无感切换:[▶️明日方舟PC端多账号无感切换教程](https://www.bilibili.com/video/BV1dgcsz1EjM/?share_source=copy_web&vd_source=5d993adf522c16219536a4e8a61f8484)
-- [明日方舟WiKi](https://prts.wiki/id/1) - [明日方舟工具箱](https://arkntools.app/) - [明日方舟一图流](https://ark.yituliu.cn/)
-
+- [Prts Wiki](https://prts.wiki/id/1) - [明日方舟工具箱](https://arkntools.app/) - [明日方舟一图流](https://ark.yituliu.cn/)
+- [华法林 Wiki](https://endfieldtools.dev/) - [Endfield Tools](https://endfieldtools.dev/) - [终末地一图流](https://ef.yituliu.cn/)
 ## 免责声明
 此工具不会将您的账号文件上传至互联网，仅用于本地替换。如担心账号安全请酌情使用，使用本工具造成的任何后果由使用者自行承担。
