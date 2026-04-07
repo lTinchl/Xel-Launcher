@@ -187,7 +187,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btnBili.Click += (s, e) =>
-                    Process.Start(new ProcessStartInfo("https://www.biligame.com/detail/?id=117664") { UseShellExecute = true });
+                    new TabHeaderForm("https://www.biligame.com/detail/?id=117664").Show();
                 Controls.Add(btnBili);
                 Size = new Size(360, 386);
             }
@@ -201,7 +201,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
-                    Process.Start(new ProcessStartInfo("https://endfield.hypergryph.com/") { UseShellExecute = true });
+                    new TabHeaderForm("https://endfield.hypergryph.com/").Show();
                 Controls.Add(btn);
 
                 var btnSync = new AntdUI.Button
@@ -293,7 +293,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
-                    Process.Start(new ProcessStartInfo("https://www.biligame.com/detail/?id=105651") { UseShellExecute = true });
+                    new TabHeaderForm("https://www.biligame.com/detail/?id=108422").Show();
                 Controls.Add(btn);
                 Size = new Size(360, 386);
             }
@@ -359,7 +359,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
-                    Process.Start(new ProcessStartInfo("https://endfield.hypergryph.com/en-US/") { UseShellExecute = true });
+                    new TabHeaderForm("https://endfield.hypergryph.com/en-US/").Show();
                 Controls.Add(btn);
                 Size = new Size(360, 386);
             }
@@ -373,7 +373,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btnguan.Click += (s, e) =>
-                    Process.Start(new ProcessStartInfo("https://ak.hypergryph.com/") { UseShellExecute = true });
+                    new TabHeaderForm("https://ak.hypergryph.com/").Show();
                 Controls.Add(btnguan);
 
                 var btnSync = new AntdUI.Button

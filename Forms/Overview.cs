@@ -351,7 +351,9 @@ namespace XelLauncher.Forms
             {
                 _sidebarBtns[i].Selected = config.Games[i].IconName == g.IconName;
             }
+            var oldPage = _currentGamePage;
             panelMain.Controls.Clear();
+            oldPage?.Dispose();
             AntdUI.Spin.open(panelMain, async cfg =>
             {
                 await System.Threading.Tasks.Task.Delay(800);
@@ -391,6 +393,24 @@ namespace XelLauncher.Forms
             WindowState = FormWindowState.Normal;
             Activate();
             _trayIcon.Visible = false;
+        }
+
+        public void HideToTray()
+        {
+            Hide();
+            _trayIcon.Visible = true;
+        }
+
+        public void ShowFromTray()
+        {
+            if (!IsHandleCreated) return;
+            Invoke(new Action(() =>
+            {
+                Show();
+                WindowState = FormWindowState.Normal;
+                Activate();
+                _trayIcon.Visible = false;
+            }));
         }
 
         protected override void OnSizeChanged(EventArgs e)
@@ -490,6 +510,7 @@ namespace XelLauncher.Forms
                 var cfg = ConfigHelper.Load();
                 cfg.MinimizeToTray = setting.MinimizeToTray;
                 cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
+                cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
                 cfg.MAA_Official = setting.MaaOfficial;
                 cfg.MAA_Bilibili = setting.MaaBilibili;
                 ConfigHelper.Save(cfg);

@@ -11,7 +11,7 @@ namespace XelLauncher
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch;
         public string MaaOfficial, MaaBilibili;
 
         public Setting(AntdUI.BaseForm _form)
@@ -31,6 +31,7 @@ namespace XelLauncher
             switch6.Checked = MinimizeToTray = ConfigHelper.Load().MinimizeToTray;
             switch7.Checked = StartWithWindows = GetStartWithWindows();
             switch8.Checked = CloseAfterLaunch = ConfigHelper.Load().CloseAfterLaunch;
+            switch9.Checked = HideToTrayOnLaunch = ConfigHelper.Load().HideToTrayOnLaunch;
 
             var cfg = ConfigHelper.Load();
             txtMaaOfficial.Text = MaaOfficial = cfg.MAA_Official ?? "";
@@ -44,12 +45,10 @@ namespace XelLauncher
             switch6.CheckedChanged += (s, e) => { MinimizeToTray = e.Value; };
             switch7.CheckedChanged += (s, e) => { StartWithWindows = e.Value; };
             switch8.CheckedChanged += (s, e) => { CloseAfterLaunch = e.Value; };
+            switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
 
             txtMaaOfficial.TextChanged += (s, e) => { MaaOfficial = txtMaaOfficial.Text; };
             txtMaaBilibili.TextChanged += (s, e) => { MaaBilibili = txtMaaBilibili.Text; };
-
-            //btnMaaOfficialBrowse.Click += (s, e) => BrowseMaaPath(txtMaaOfficial, ref MaaOfficial);
-            //btnMaaBilibiliBrowse.Click += (s, e) => BrowseMaaPath(txtMaaBilibili, ref MaaBilibili);
         }
 
         private static bool GetStartWithWindows()
@@ -67,27 +66,9 @@ namespace XelLauncher
             else
                 key.DeleteValue(AppName, false);
         }
-
-        //private void BrowseMaaPath(AntdUI.Input input, ref string field)
-        //{
-        //    using var dlg = new OpenFileDialog
-        //    {
-        //        Title = "选择 MAA.exe",
-        //        Filter = "MAA 程序 (MAA.exe)|MAA.exe|可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*",
-        //        CheckFileExists = true
-        //    };
-        //    if (!string.IsNullOrEmpty(input.Text))
-        //        dlg.InitialDirectory = System.IO.Path.GetDirectoryName(input.Text);
-        //    if (dlg.ShowDialog() == DialogResult.OK)
-        //    {
-        //        input.Text = dlg.FileName;
-        //        field = dlg.FileName;
-        //    }
-        //}
-
         private void ShowPanel(int tab)
         {
-            tableSoftware.Visible = tab == 0;
+            scrollSoftware.Visible = tab == 0;
             panelLog.Visible = tab == 1;
             panelMaa.Visible = tab == 2;
             btnSoftware.Type = tab == 0 ? AntdUI.TTypeMini.Primary : AntdUI.TTypeMini.Default;

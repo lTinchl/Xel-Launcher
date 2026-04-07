@@ -34,6 +34,7 @@ namespace XelLauncher
             btnMaaOfficialBrowse = new AntdUI.Button();
             btnMaaBilibiliBrowse = new AntdUI.Button();
             tableSoftware = new System.Windows.Forms.TableLayoutPanel();
+            scrollSoftware = new System.Windows.Forms.Panel();
             label1 = new AntdUI.Label();
             label2 = new AntdUI.Label();
             label3 = new AntdUI.Label();
@@ -50,8 +51,11 @@ namespace XelLauncher
             switch7 = new AntdUI.Switch();
             label8 = new AntdUI.Label();
             switch8 = new AntdUI.Switch();
+            label9 = new AntdUI.Label();
+            switch9 = new AntdUI.Switch();
             panelLeft.SuspendLayout();
             panelRight.SuspendLayout();
+            scrollSoftware.SuspendLayout();
             panelLog.SuspendLayout();
             panelMaa.SuspendLayout();
             tableMaa.SuspendLayout();
@@ -102,9 +106,16 @@ namespace XelLauncher
             //
             panelRight.Controls.Add(panelLog);
             panelRight.Controls.Add(panelMaa);
-            panelRight.Controls.Add(tableSoftware);
+            panelRight.Controls.Add(scrollSoftware);
             panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
             panelRight.Name = "panelRight";
+            //
+            // scrollSoftware
+            //
+            scrollSoftware.Controls.Add(tableSoftware);
+            scrollSoftware.Dock = System.Windows.Forms.DockStyle.Fill;
+            scrollSoftware.AutoScroll = true;
+            scrollSoftware.Name = "scrollSoftware";
             //
             // panelLog
             //
@@ -217,8 +228,12 @@ namespace XelLauncher
             tableSoftware.Controls.Add(switch7, 1, 6);
             tableSoftware.Controls.Add(label8, 0, 7);
             tableSoftware.Controls.Add(switch8, 1, 7);
-            tableSoftware.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableSoftware.RowCount = 9;
+            tableSoftware.Controls.Add(label9, 0, 8);
+            tableSoftware.Controls.Add(switch9, 1, 8);
+            tableSoftware.Dock = System.Windows.Forms.DockStyle.Top;
+            tableSoftware.AutoSize = true;
+            tableSoftware.RowCount = 10;
+            tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
@@ -347,6 +362,20 @@ namespace XelLauncher
             switch8.Size = new System.Drawing.Size(50, 30);
             switch8.TabIndex = 0;
             //
+            // label9
+            //
+            label9.Dock = System.Windows.Forms.DockStyle.Fill;
+            label9.Name = "label9";
+            label9.Text = "启动游戏后隐藏至托盘";
+            label9.TabIndex = 0;
+            //
+            // switch9
+            //
+            switch9.Anchor = System.Windows.Forms.AnchorStyles.None;
+            switch9.Name = "switch9";
+            switch9.Size = new System.Drawing.Size(50, 30);
+            switch9.TabIndex = 0;
+            //
             // Setting
             //
             Controls.Add(panelRight);
@@ -358,6 +387,7 @@ namespace XelLauncher
             tableMaa.ResumeLayout(false);
             panelMaa.ResumeLayout(false);
             panelLog.ResumeLayout(false);
+            scrollSoftware.ResumeLayout(false);
             panelRight.ResumeLayout(false);
             panelLeft.ResumeLayout(false);
             ResumeLayout(false);
@@ -369,6 +399,7 @@ namespace XelLauncher
         private AntdUI.Button btnSoftware;
         private AntdUI.Divider dividerV;
         private System.Windows.Forms.Panel panelRight;
+        private System.Windows.Forms.Panel scrollSoftware;
         private System.Windows.Forms.TableLayoutPanel tableSoftware;
         private AntdUI.Label label1;
         private AntdUI.Label label2;
@@ -386,6 +417,8 @@ namespace XelLauncher
         private AntdUI.Switch switch7;
         private AntdUI.Label label8;
         private AntdUI.Switch switch8;
+        private AntdUI.Label label9;
+        private AntdUI.Switch switch9;
         private AntdUI.Button btnMaa;
         private AntdUI.Button btnLog;
         private System.Windows.Forms.Panel panelLog;

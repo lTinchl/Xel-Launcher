@@ -14,11 +14,18 @@ namespace XelLauncher.Forms
         private readonly GameEntry _game;
         private readonly Overview _overview;
 
+        private AntdUI.Button btnArknightsWiki;
         private AntdUI.Button btnAccountManage;
         private AntdUI.Select accountSelect;
         private AntdUI.Button GameStart;
         private AntdUI.Dropdown floatMenu;
         private AntdUI.Panel panelLaunch;
+
+        private AntdUI.FormFloatButton? _floatBtn;
+        private bool _floatExpanded = false;
+
+        private bool _accountExpanded = false;
+        private readonly List<AntdUI.Button> _subBtns = new();
 
         public GamePage(GameEntry game, Overview overview)
         {
@@ -35,6 +42,22 @@ namespace XelLauncher.Forms
 
         private void BuildLaunchPanel()
         {
+            btnArknightsWiki = new AntdUI.Button
+            {
+                IconSvg = "PlusOutlined",
+                Type = AntdUI.TTypeMini.Default,
+                BackColor = Color.White,
+                Size = new Size(52, 52),
+                Location = new Point(0, 0),
+                BorderWidth = 0,
+                Radius = 26,
+                WaveSize = 4,
+            };
+
+            var tooltip = new AntdUI.TooltipComponent();
+            tooltip.SetTip(btnArknightsWiki, "小工具");
+            btnArknightsWiki.Click += btnArknightsWiki_Click;
+
             btnAccountManage = new AntdUI.Button
             {
                 IconSvg = "UserOutlined",
@@ -110,6 +133,7 @@ namespace XelLauncher.Forms
                 Size = new Size(448, 52),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
             };
+
             panelLaunch.Controls.Add(btnAccountManage);
             panelLaunch.Controls.Add(accountSelect);
             panelLaunch.Controls.Add(GameStart);
@@ -140,12 +164,48 @@ namespace XelLauncher.Forms
                 Dock = DockStyle.Bottom,
                 Height = 72,
             };
+
             // 将按钮控件从 panelLaunch 移到 bottomBar
+            // 子按钮紧靠 btnArknightsWiki 右侧展开，放在 bottomBar 里
+            switch (_game.IconName)
+            {
+                case "Arknights":
+                case "BiliArknights":
+                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click));
+                    break;
+                case "Endfield":
+                case "BiliEndfield":
+                    _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click));
+                    break;
+                case "GlobalEndfield":
+                    _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click));
+                    break;
+                default:
+                    btnArknightsWiki.Visible = false;
+                    break;
+            }
+
             bottomBar.Controls.Add(panelLaunch);
+            bottomBar.Controls.Add(btnArknightsWiki);
+            foreach (var btn in _subBtns)
+                bottomBar.Controls.Add(btn);
             Controls.Add(pb);
             Controls.Add(bottomBar);
-            HandleCreated += (s, e) => { PositionLaunchInBar(bottomBar); UpdateLaunchPanelColor(); };
-            bottomBar.SizeChanged += (s, e) => PositionLaunchInBar(bottomBar);
+            HandleCreated += (s, e) => {
+                PositionLaunchInBar(bottomBar);
+                PositionAddBtnInBar(bottomBar);
+                PositionSubButtons();
+                UpdateLaunchPanelColor();
+                };
+            bottomBar.SizeChanged += (s, e) =>
+            {
+                PositionLaunchInBar(bottomBar);
+                PositionAddBtnInBar(bottomBar);
+                PositionSubButtons();
+            };
         }
 
         private void PositionLaunchInBar(System.Windows.Forms.Panel bar)
@@ -229,7 +289,7 @@ namespace XelLauncher.Forms
                 panelLaunch.Back = Color.FromArgb(80, r, g, b);
             }
         }
-
+        //账号管理按钮调用逻辑
         private void btnAccountManage_Click(object sender, EventArgs e)
         {
             var form = new AccountManagerForm(_overview, this, _game.IconName);
@@ -240,6 +300,105 @@ namespace XelLauncher.Forms
                 BtnHeight = 0,
                 MaskClosable = true,
             });
+        }
+
+        private void btnArkntools_Click(object sender, EventArgs e)
+        {
+            new TabHeaderForm("https://arkntools.app").Show();
+        }
+
+        private void btnPrtsWiki_Click(object sender, EventArgs e)
+        {
+            new TabHeaderForm("https://prts.wiki").Show();
+        }
+
+        private void btnYituliu_Click(object sender, EventArgs e)
+        {
+            new TabHeaderForm("https://ark.yituliu.cn").Show();
+        }
+
+        private void btnEndYituliu_Click(object sender, EventArgs e)
+        {
+            new TabHeaderForm("https://ef.yituliu.cn/").Show();
+        }
+
+        private void btnWarfarin_Click(object sender, EventArgs e)
+        {
+            new TabHeaderForm("https://warfarin.wiki").Show();
+        }
+
+        private void btnEndfieldtools_Click(object sender, EventArgs e)
+        {
+            new TabHeaderForm("https://endfieldtools.dev/").Show();
+        }
+
+        private AntdUI.Button CreateSubButton(System.Drawing.Icon icon, EventHandler clickHandler)
+        {
+            var bmp = new Bitmap(32, 32);
+            using (var g = Graphics.FromImage(bmp))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.DrawImage(icon.ToBitmap(), 0, 0, 32, 32);
+            }
+            var btn = new AntdUI.Button
+            {
+                Icon = bmp,
+                IconSize = new Size(32, 32),
+                Type = AntdUI.TTypeMini.Default,
+                BackColor = Color.Transparent,
+                BorderWidth = 0,
+                Size = new Size(32, 32),
+                Radius = 22,
+                WaveSize = 4,
+                Visible = false,
+            };
+            btn.Click += clickHandler;
+            return btn;
+        }
+
+        private void PositionSubButtons()
+        {
+            if (_subBtns.Count == 0) return;
+            int x = btnArknightsWiki.Right + 4;
+            int btnH = _subBtns[0].Height;
+            int cy = btnArknightsWiki.Top + (btnArknightsWiki.Height - btnH) / 2;
+            for (int i = 0; i < _subBtns.Count; i++)
+                _subBtns[i].Location = new Point(x + i * (btnH + 4), cy);
+        }
+        //+号按钮展开/收起子按钮
+        private void btnArknightsWiki_Click(object sender, EventArgs e)
+        {
+            _accountExpanded = !_accountExpanded;
+
+            if (_accountExpanded)
+            {
+                btnArknightsWiki.Type = AntdUI.TTypeMini.Primary;
+                btnArknightsWiki.BackColor = null;
+                PositionSubButtons();
+                foreach (var btn in _subBtns) btn.Visible = true;
+            }
+            else
+            {
+                btnArknightsWiki.Type = AntdUI.TTypeMini.Default;
+                btnArknightsWiki.BackColor = Color.White;
+                foreach (var btn in _subBtns) btn.Visible = false;
+            }
+        }
+
+        //wiki悬浮按钮定位
+        private void PositionAddBtnInBar(System.Windows.Forms.Panel bar)
+        {
+            btnArknightsWiki.Location = new Point(16, (bar.Height - btnArknightsWiki.Height) / 2);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _floatBtn?.Close();
+                _floatBtn = null;
+            }
+            base.Dispose(disposing);
         }
 
         private void GameStart_Click(object sender, EventArgs e)
@@ -368,8 +527,52 @@ namespace XelLauncher.Forms
                     }
                     GameLauncher.StartArknights(path, _game.IconName);
                     config.OK("游戏启动成功");
-                    if (ConfigHelper.Load().CloseAfterLaunch)
+                    var latestCfg = ConfigHelper.Load();
+                    if (latestCfg.CloseAfterLaunch)
                         Invoke(new Action(() => Application.Exit()));
+                    else if (latestCfg.HideToTrayOnLaunch)
+                    {
+                        // 先隐藏到托盘，再后台等进程退出后恢复
+                        if (IsHandleCreated)
+                            Invoke(new Action(() => _overview.HideToTray()));
+                        var overviewRef = _overview;
+                        var iconName = _game.IconName;
+                        System.Threading.Tasks.Task.Run(() =>
+                        {
+                            try
+                            {
+                                bool isEndfield = iconName == "Endfield" || iconName == "BiliEndfield" || iconName == "GlobalEndfield";
+                                string procName = isEndfield ? "Endfield" : "Arknights";
+                                // 等待游戏进程出现（最多 30 秒）
+                                System.Diagnostics.Process gameProc = null;
+                                for (int i = 0; i < 30 && gameProc == null; i++)
+                                {
+                                    var procs = System.Diagnostics.Process.GetProcessesByName(procName);
+                                    if (procs.Length > 0) gameProc = procs[0];
+                                    else System.Threading.Thread.Sleep(1000);
+                                }
+                                if (gameProc != null)
+                                {
+                                    try
+                                    {
+                                        gameProc.EnableRaisingEvents = true;
+                                        gameProc.WaitForExit();
+                                    }
+                                    catch
+                                    {
+                                        // 无权监听时，改为轮询进程是否还存在
+                                        while (!gameProc.HasExited)
+                                            System.Threading.Thread.Sleep(3000);
+                                    }
+                                }
+                            }
+                            catch { }
+                            finally
+                            {
+                                overviewRef.ShowFromTray();
+                            }
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
