@@ -24,17 +24,20 @@
   <data name="MAA" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\.\Resources\MAA.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Main" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\.\Resources\Main.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="official" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\.\Resources\official.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="PRTS_WIKI" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\.\Resources\PRTS_WIKI.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Start" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\.\Resources\Start.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="End_Yituliu" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\.\Resources\End_Yituliu.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="warfarin" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\.\Resources\warfarin.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="endfieldtools" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\.\Resources\endfieldtools.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="logo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\.\Resources\logo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

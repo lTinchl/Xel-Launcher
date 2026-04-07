@@ -81,72 +81,22 @@ namespace XelLauncher.Properties {
         }
         
         /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        ///   查找类似于 (图标) 的 System.Drawing.Icon 类型的本地化资源。
         /// </summary>
-        internal static System.Drawing.Bitmap bg1 {
+        internal static System.Drawing.Icon End_Yituliu {
             get {
-                object obj = ResourceManager.GetObject("bg1", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("End_Yituliu", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
         /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        ///   查找类似于 (图标) 的 System.Drawing.Icon 类型的本地化资源。
         /// </summary>
-        internal static System.Drawing.Bitmap bg2 {
+        internal static System.Drawing.Icon endfieldtools {
             get {
-                object obj = ResourceManager.GetObject("bg2", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
-        internal static System.Drawing.Bitmap bg3 {
-            get {
-                object obj = ResourceManager.GetObject("bg3", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
-        internal static System.Drawing.Bitmap bg4 {
-            get {
-                object obj = ResourceManager.GetObject("bg4", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
-        internal static System.Drawing.Bitmap bg5 {
-            get {
-                object obj = ResourceManager.GetObject("bg5", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
-        internal static System.Drawing.Bitmap bg6 {
-            get {
-                object obj = ResourceManager.GetObject("bg6", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
-        internal static System.Drawing.Bitmap bg7 {
-            get {
-                object obj = ResourceManager.GetObject("bg7", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("endfieldtools", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
@@ -208,16 +158,6 @@ namespace XelLauncher.Properties {
         /// <summary>
         ///   查找 System.Drawing.Bitmap 类型的本地化资源。
         /// </summary>
-        internal static System.Drawing.Bitmap img1 {
-            get {
-                object obj = ResourceManager.GetObject("img1", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
         internal static System.Drawing.Bitmap logo {
             get {
                 object obj = ResourceManager.GetObject("logo", resourceCulture);
@@ -232,16 +172,6 @@ namespace XelLauncher.Properties {
             get {
                 object obj = ResourceManager.GetObject("MAA", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
-        /// </summary>
-        internal static System.Drawing.Bitmap Main {
-            get {
-                object obj = ResourceManager.GetObject("Main", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -266,12 +196,12 @@ namespace XelLauncher.Properties {
         }
         
         /// <summary>
-        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        ///   查找类似于 (图标) 的 System.Drawing.Icon 类型的本地化资源。
         /// </summary>
-        internal static System.Drawing.Bitmap Start {
+        internal static System.Drawing.Icon warfarin {
             get {
-                object obj = ResourceManager.GetObject("Start", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("warfarin", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
     }
