@@ -37,6 +37,7 @@ namespace XelLauncher.Models
         public bool HideToTrayOnLaunch { get; set; } = false;             // 启动游戏后隐藏至托盘，游戏关闭后恢复
         public string MAA_Official { get; set; } = "";                      // MAA
         public string MAA_Bilibili { get; set; } = "";                      // MAA B 服
+        public string Language { get; set; } = "";                          // 用户选择的语言 (zh-CN / en-US)
 
     }
 }
