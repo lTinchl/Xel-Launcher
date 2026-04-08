@@ -55,7 +55,7 @@ namespace XelLauncher.Forms
             };
 
             var tooltip = new AntdUI.TooltipComponent();
-            tooltip.SetTip(btnArknightsWiki, "小工具");
+            tooltip.SetTip(btnArknightsWiki, AntdUI.Localization.Get("App.Game.Toolbox", "小工具"));
             btnArknightsWiki.Click += btnArknightsWiki_Click;
 
             btnAccountManage = new AntdUI.Button
@@ -76,7 +76,7 @@ namespace XelLauncher.Forms
                 Size = new Size(164, 52),
                 Radius = 24,
                 BorderWidth = 1F,
-                PlaceholderText = "  选择账号",
+                PlaceholderText = AntdUI.Localization.Get("App.Game.SelectAccount", "  选择账号"),
                 Font = new Font("Microsoft YaHei UI", 11F),
                 DropDownRadius = 8,
                 Placement = AntdUI.TAlignFrom.TL,
@@ -86,7 +86,7 @@ namespace XelLauncher.Forms
             {
                 BackExtend = "135, #6253E1, #04BEFE",
                 IconSvg = "PoweroffOutlined",
-                Text = "开始游戏",
+                Text = AntdUI.Localization.Get("App.Game.Start", "开始游戏"),
                 Location = new Point(224, 0),
                 Size = new Size(168, 52),
                 BorderWidth = 0,
@@ -111,7 +111,7 @@ namespace XelLauncher.Forms
                 DropDownArrow = false,
                 DropDownRadius = 8,
             };
-            floatMenu.Items.Add(new AntdUI.SelectItem("游戏设置", "setting").SetIcon("SettingOutlined"));
+            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Setting", "游戏设置"), "setting").SetIcon("SettingOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "setting")
@@ -293,7 +293,7 @@ namespace XelLauncher.Forms
         private void btnAccountManage_Click(object sender, EventArgs e)
         {
             var form = new AccountManagerForm(_overview, this, _game.IconName);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, "账号管理", form)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, AntdUI.Localization.Get("App.Game.AccountManage", "账号管理"), form)
             {
                 OkText = null,
                 CancelText = null,
@@ -441,15 +441,15 @@ namespace XelLauncher.Forms
 
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
-                AntdUI.Message.warn(_overview, "请先选择游戏根目录");
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
                 Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
-                using var dlg = new FolderBrowserDialog { Description = $"选择「{_game.Name}」游戏根目录", UseDescriptionForTitle = true };
+                using var dlg = new FolderBrowserDialog { Description = $"{AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName())}", UseDescriptionForTitle = true };
                 if (dlg.ShowDialog(_overview) != DialogResult.OK) return;
                 path = dlg.SelectedPath;
                 string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
                 if (!File.Exists(Path.Combine(path, exeName)))
                 {
-                    AntdUI.Message.error(_overview, $"所选目录中未找到 {exeName}");
+                    AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Game.ExeNotFound", "所选目录中未找到 {0}"), exeName));
                     return;
                 }
                 var cfg2 = ConfigHelper.Load();
@@ -488,7 +488,7 @@ namespace XelLauncher.Forms
 
             GameStart.LoadingWaveValue = 0;
             GameStart.Loading = true;
-            AntdUI.Message.loading(_overview, "加载中...", async (config) =>
+            AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Loading", "加载中..."), async (config) =>
             {
                 try
                 {
@@ -497,7 +497,7 @@ namespace XelLauncher.Forms
                         string selectedAccountId = accountSelect.SelectedValue as string;
                         if (!string.IsNullOrEmpty(selectedAccountId))
                         {
-                            config.Text = "切换账号中...";
+                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
                             config.Refresh();
                             await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
                         }
@@ -507,7 +507,7 @@ namespace XelLauncher.Forms
                         string selectedAccountId = accountSelect.SelectedValue as string;
                         if (!string.IsNullOrEmpty(selectedAccountId))
                         {
-                            config.Text = "切换账号中...";
+                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
                             config.Refresh();
                             await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
                         }
@@ -526,7 +526,7 @@ namespace XelLauncher.Forms
                         System.Threading.Thread.Sleep(30);
                     }
                     GameLauncher.StartArknights(path, _game.IconName);
-                    config.OK("游戏启动成功");
+                    config.OK(AntdUI.Localization.Get("App.Game.LaunchSuccess", "游戏启动成功"));
                     var latestCfg = ConfigHelper.Load();
                     if (latestCfg.CloseAfterLaunch)
                         Invoke(new Action(() => Application.Exit()));

@@ -34,7 +34,7 @@ namespace XelLauncher.Forms
 
             var lblTitle = new AntdUI.Label
             {
-                Text = "联动软件管理",
+                Text = AntdUI.Localization.Get("App.Sync.Title", "联动软件管理"),
                 Location = new Point(20, 14),
                 Size = new Size(200, 28),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
@@ -42,7 +42,7 @@ namespace XelLauncher.Forms
 
             var btnAdd = new AntdUI.Button
             {
-                Text = "+ 添加",
+                Text = AntdUI.Localization.Get("App.Sync.BtnAdd", "+ 添加"),
                 Location = new Point(258, 13),
                 Size = new Size(82, 30),
                 Ghost = true,
@@ -79,7 +79,7 @@ namespace XelLauncher.Forms
 
             var btnBack = new AntdUI.Button
             {
-                Text = "← 返回",
+                Text = AntdUI.Localization.Get("App.Sync.BtnBack", "← 返回"),
                 Location = new Point(16, 382),
                 Size = new Size(328, 32),
                 Ghost = true,
@@ -114,7 +114,7 @@ namespace XelLauncher.Forms
 
                 var lblEmpty = new AntdUI.Label
                 {
-                    Text = "暂无联动软件",
+                    Text = AntdUI.Localization.Get("App.Sync.Empty", "暂无联动软件"),
                     Location = new Point(0, 0),
                     Size = new Size(328, 28),
                     Font = new Font("Microsoft YaHei UI", 10F),
@@ -124,7 +124,7 @@ namespace XelLauncher.Forms
 
                 var lblEmptySub = new AntdUI.Label
                 {
-                    Text = "点击右上角「+ 添加」来添加软件",
+                    Text = AntdUI.Localization.Get("App.Sync.EmptySub", "点击右上角「+ 添加」来添加软件"),
                     Location = new Point(0, 28),
                     Size = new Size(328, 24),
                     ForeColor = Color.FromArgb(200, 200, 200),
@@ -203,7 +203,7 @@ namespace XelLauncher.Forms
 
                 var btnDel = new AntdUI.Button
                 {
-                    Text = "删除",
+                    Text = AntdUI.Localization.Get("App.Sync.BtnDelete", "删除"),
                     Location = new Point(256, 13),
                     Size = new Size(52, 28),
                     Ghost = true,
@@ -234,8 +234,8 @@ namespace XelLauncher.Forms
         {
             using var dlg = new OpenFileDialog
             {
-                Title = "选择要联动启动的程序",
-                Filter = "可执行文件 (*)|*",
+                Title = AntdUI.Localization.Get("App.Sync.DialogTitle", "选择要联动启动的程序"),
+                Filter = AntdUI.Localization.Get("App.Sync.DialogFilter", "可执行文件 (*)|*"),
             };
             if (dlg.ShowDialog() != DialogResult.OK) return;
 
@@ -248,14 +248,14 @@ namespace XelLauncher.Forms
 
             if (entry.SyncApps.Exists(a => a.Path == path))
             {
-                AntdUI.Message.warn(_overview, "该软件已在列表中");
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Sync.AlreadyAdded", "该软件已在列表中"));
                 return;
             }
 
             entry.SyncApps.Add(new SyncApp { Name = name, Path = path });
             ConfigHelper.Save(cfg);
             RefreshList();
-            AntdUI.Message.success(_overview, $"已添加：{name}");
+            AntdUI.Message.success(_overview, string.Format(AntdUI.Localization.Get("App.Sync.AddSuccess", "已添加：{0}"), name));
         }
     }
 }

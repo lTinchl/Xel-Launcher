@@ -907,6 +907,228 @@ namespace XelLauncher.Helpers
                 case "PleaseWait":
                     return "Please be patient and wait";
 
+                // ── XelLauncher App strings ──────────────────────────────
+
+                // Overview toolbar
+                case "App.Lang.Chinese":
+                    return "中文";
+                case "App.Lang.English":
+                    return "English";
+                case "App.Menu.Help":
+                    return "Help";
+                case "App.Menu.About":
+                    return "About";
+                case "App.Sidebar.Delete":
+                    return "Delete";
+                case "App.BgColor.White":
+                    return "Pure White";
+                case "App.BgColor.Mint":
+                    return "Mint Green";
+                case "App.BgColor.Warm":
+                    return "Warm Beige";
+                case "App.BgColor.Sky":
+                    return "Sky Blue";
+                case "App.BgColor.Custom":
+                    return "Custom...";
+                case "App.BgColor.DialogTitle":
+                    return "Custom Background Color";
+                case "App.BgColor.OK":
+                    return "OK";
+                case "App.BgColor.Cancel":
+                    return "Cancel";
+
+                // Tray
+                case "App.Tray.Show":
+                    return "Show Window";
+                case "App.Tray.Exit":
+                    return "Exit";
+
+                // GamePage
+                case "App.Game.SelectAccount":
+                    return "  Select Account";
+                case "App.Game.Start":
+                    return "Start Game";
+                case "App.Game.Setting":
+                    return "Game Settings";
+                case "App.Game.AccountManage":
+                    return "Account Management";
+                case "App.Game.Toolbox":
+                    return "Toolbox";
+                case "App.Game.WarnSelectDir":
+                    return "Please select the game root directory first";
+                case "App.Game.ExeNotFound":
+                    return "Could not find {0} in the selected directory";
+                case "App.Game.Loading":
+                    return "Loading...";
+                case "App.Game.SwitchingAccount":
+                    return "Switching account...";
+                case "App.Game.LaunchSuccess":
+                    return "Game launched successfully";
+
+                // GameSettingForm
+                case "App.GameSetting.VersionEndfield":
+                    return "Version: v1.1.9";
+                case "App.GameSetting.VersionArknights":
+                    return "Version: v71.0.0";
+                case "App.GameSetting.InstallPath":
+                    return "Game Install Path";
+                case "App.GameSetting.PathPlaceholder":
+                    return "Path not set";
+                case "App.GameSetting.ChangePath":
+                    return "Change Path";
+                case "App.GameSetting.OpenDir":
+                    return "Open File Directory";
+                case "App.GameSetting.ReplaceBili":
+                    return "Replace files with Bilibili server";
+                case "App.GameSetting.ReplaceGlobal":
+                    return "Replace files with Global server";
+                case "App.GameSetting.BiliWebsite":
+                    return "Arknights BiliBili Website";
+                case "App.GameSetting.EndfieldWebsite":
+                    return "Endfield Official Website";
+                case "App.GameSetting.EndfieldBiliWebsite":
+                    return "Endfield BiliBili Website";
+                case "App.GameSetting.EndfieldGlobalWebsite":
+                    return "Endfield Global Website";
+                case "App.GameSetting.ArknightsWebsite":
+                    return "Arknights Official Website";
+                case "App.GameSetting.SyncToBili":
+                    return "Sync path to Bilibili server";
+                case "App.GameSetting.SyncToAll":
+                    return "Sync path to Bilibili / Global server";
+                case "App.GameSetting.WarnSetBiliPath":
+                    return "Please set the Bilibili server path first";
+                case "App.GameSetting.WarnSetGlobalPath":
+                    return "Please set the Global server path first";
+                case "App.GameSetting.WarnSetOfficialPath":
+                    return "Please set the Official server path first";
+                case "App.GameSetting.ZipNotFoundBili":
+                    return "Bilibili server resource package (ArkBilibili.zip) not found. Check the load folder.";
+                case "App.GameSetting.ZipNotFoundEndBili":
+                    return "Bilibili server resource package (EndBilibili.zip) not found. Check the load folder.";
+                case "App.GameSetting.ZipNotFoundGlobal":
+                    return "Global server resource package (EndGlobal.zip) not found. Check the load folder.";
+                case "App.GameSetting.ConfirmReplace":
+                    return "Confirm Replace";
+                case "App.GameSetting.ConfirmReplaceArkBili":
+                    return "Replace the current Official server files with Bilibili server files? This will overwrite game files.";
+                case "App.GameSetting.ConfirmReplaceEndBili":
+                    return "Replace the current directory with Bilibili server files? This will overwrite game files.";
+                case "App.GameSetting.ConfirmReplaceGlobal":
+                    return "Replace the current directory with Global server files? This will overwrite game files.";
+                case "App.GameSetting.Replacing":
+                    return "Replacing...";
+                case "App.GameSetting.ReplaceSuccess":
+                    return "Success! Server resource package has been applied.";
+                case "App.GameSetting.ReplaceFailed":
+                    return "Replace failed: ";
+                case "App.GameSetting.SyncSuccess":
+                    return "Path synced to Bilibili server.";
+                case "App.GameSetting.SyncSuccessAll":
+                    return "Path synced to Bilibili and Global servers.";
+                case "App.GameSetting.PathInvalid":
+                    return "Invalid Path";
+                case "App.GameSetting.PathInvalidMsg":
+                    return "{0} not found in the selected folder. Please choose the correct game root directory.";
+                case "App.GameSetting.Reselect":
+                    return "Reselect";
+                case "App.GameSetting.CustomSync":
+                    return "Custom Launch Sync";
+                case "App.GameSetting.ManageSync":
+                    return "Manage Sync Apps";
+
+                // Setting panel
+                case "App.Setting.Software":
+                    return "Software";
+                case "App.Setting.Log":
+                    return "Log";
+                case "App.Setting.MinimizeToTray":
+                    return "Minimize to Tray";
+                case "App.Setting.StartWithWindows":
+                    return "Boot Startup";
+                case "App.Setting.CloseAfterLaunch":
+                    return "Close after launching game";
+                case "App.Setting.HideToTrayOnLaunch":
+                    return "Hide to tray after launching game";
+
+                // BrowserForm
+                case "App.Browser.Title":
+                    return "Browser";
+                case "App.Browser.NoRuntime":
+                    return "WebView2 Runtime not found, please install it first!";
+
+                // AccountManagerForm
+                case "App.Account.ColName":
+                    return "Account Name";
+                case "App.Account.ColDefault":
+                    return "Default";
+                case "App.Account.ColStatus":
+                    return "Status";
+                case "App.Account.ColEnabled":
+                    return "Enabled";
+                case "App.Account.ColAction":
+                    return "Actions";
+                case "App.Account.TagDefault":
+                    return "Default";
+                case "App.Account.BadgeDisabled":
+                    return "Disabled";
+                case "App.Account.BadgeEnabled":
+                    return "Enabled";
+                case "App.Account.BtnRecord":
+                    return "Save";
+                case "App.Account.BtnSetDefault":
+                    return "Set Default";
+                case "App.Account.BtnRename":
+                    return "Rename";
+                case "App.Account.BtnDelete":
+                    return "Delete";
+                case "App.Account.BtnConfirmDelete":
+                    return "Confirm Delete";
+                case "App.Account.BtnDone":
+                    return "Done";
+                case "App.Account.BtnAdd":
+                    return "+ Add Account";
+                case "App.Account.SaveLoading":
+                    return "Saving...";
+                case "App.Account.SaveOK":
+                    return "Account \"{0}\" saved";
+                case "App.Account.AddTitle":
+                    return "Add Account";
+                case "App.Account.AddPlaceholder":
+                    return "Enter account name";
+                case "App.Account.RenameTitle":
+                    return "Rename Account";
+                case "App.Account.RenamePlaceholder":
+                    return "Enter new name";
+
+                // GameIconPickerForm
+                case "App.Picker.Title":
+                    return "Select a game to add";
+                case "App.Picker.AlreadyAdded":
+                    return "\"{0}\" is already in the list.";
+
+                // SyncAppManagerForm
+                case "App.Sync.Title":
+                    return "Sync App Manager";
+                case "App.Sync.BtnAdd":
+                    return "+ Add";
+                case "App.Sync.BtnBack":
+                    return "← Back";
+                case "App.Sync.Empty":
+                    return "No sync apps yet";
+                case "App.Sync.EmptySub":
+                    return "Click \"+ Add\" in the top right to add an app";
+                case "App.Sync.BtnDelete":
+                    return "Delete";
+                case "App.Sync.DialogTitle":
+                    return "Select a program to launch";
+                case "App.Sync.DialogFilter":
+                    return "Executable files (*)|*";
+                case "App.Sync.AlreadyAdded":
+                    return "This app is already in the list";
+                case "App.Sync.AddSuccess":
+                    return "Added: {0}";
+
                 case "smileys emotion":
                     return "Smileys & Emotion";
                 case "people body":

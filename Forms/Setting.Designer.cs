@@ -74,6 +74,7 @@ namespace XelLauncher
             // btnSoftware
             //
             btnSoftware.Text = "软件设置";
+            btnSoftware.LocalizationText = "App.Setting.Software";
             btnSoftware.Dock = System.Windows.Forms.DockStyle.Top;
             btnSoftware.Height = 46;
             btnSoftware.Name = "btnSoftware";
@@ -82,6 +83,7 @@ namespace XelLauncher
             // btnLog
             //
             btnLog.Text = "软件日志";
+            btnLog.LocalizationText = "App.Setting.Log";
             btnLog.Dock = System.Windows.Forms.DockStyle.Top;
             btnLog.Height = 46;
             btnLog.Name = "btnLog";
@@ -290,6 +292,7 @@ namespace XelLauncher
             label6.Dock = System.Windows.Forms.DockStyle.Fill;
             label6.Name = "label6";
             label6.Text = "最小化到托盘";
+            label6.LocalizationText = "App.Setting.MinimizeToTray";
             label6.TabIndex = 0;
             //
             // switch1
@@ -339,6 +342,7 @@ namespace XelLauncher
             label7.Dock = System.Windows.Forms.DockStyle.Fill;
             label7.Name = "label7";
             label7.Text = "开机自启动";
+            label7.LocalizationText = "App.Setting.StartWithWindows";
             label7.TabIndex = 0;
             //
             // switch7
@@ -353,6 +357,7 @@ namespace XelLauncher
             label8.Dock = System.Windows.Forms.DockStyle.Fill;
             label8.Name = "label8";
             label8.Text = "启动游戏后关闭软件";
+            label8.LocalizationText = "App.Setting.CloseAfterLaunch";
             label8.TabIndex = 0;
             //
             // switch8
@@ -367,6 +372,7 @@ namespace XelLauncher
             label9.Dock = System.Windows.Forms.DockStyle.Fill;
             label9.Name = "label9";
             label9.Text = "启动游戏后隐藏至托盘";
+            label9.LocalizationText = "App.Setting.HideToTrayOnLaunch";
             label9.TabIndex = 0;
             //
             // switch9
