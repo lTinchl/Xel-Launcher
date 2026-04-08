@@ -47,11 +47,11 @@ namespace XelLauncher.Forms
             table.Columns = new AntdUI.ColumnCollection
             {
                 new AntdUI.ColumnSort() { Fixed = true },
-                new AntdUI.Column("name", "账号名称", AntdUI.ColumnAlign.Center),
-                new AntdUI.Column("isDefault", "默认", AntdUI.ColumnAlign.Center).SetWidth("80"),
-                new AntdUI.Column("isEnabled", "状态", AntdUI.ColumnAlign.Center).SetWidth("80"),
-                new AntdUI.ColumnSwitch("enabledSwitch", "启用", AntdUI.ColumnAlign.Center).SetWidth("80"),
-                new AntdUI.Column("action", "操作", AntdUI.ColumnAlign.Center).SetWidth("320"),
+                new AntdUI.Column("name", AntdUI.Localization.Get("App.Account.ColName", "账号名称"), AntdUI.ColumnAlign.Center),
+                new AntdUI.Column("isDefault", AntdUI.Localization.Get("App.Account.ColDefault", "默认"), AntdUI.ColumnAlign.Center).SetWidth("80"),
+                new AntdUI.Column("isEnabled", AntdUI.Localization.Get("App.Account.ColStatus", "状态"), AntdUI.ColumnAlign.Center).SetWidth("80"),
+                new AntdUI.ColumnSwitch("enabledSwitch", AntdUI.Localization.Get("App.Account.ColEnabled", "启用"), AntdUI.ColumnAlign.Center).SetWidth("80"),
+                new AntdUI.Column("action", AntdUI.Localization.Get("App.Account.ColAction", "操作"), AntdUI.ColumnAlign.Center).SetWidth("320"),
             };
             table.CellButtonClick += Table_CellButtonClick;
             table.SortRows += Table_SortRows;
@@ -59,7 +59,7 @@ namespace XelLauncher.Forms
 
             var btndune = new AntdUI.Button
             {
-                Text = "完成",
+                Text = AntdUI.Localization.Get("App.Account.BtnDone", "完成"),
                 Dock = DockStyle.Bottom,
                 Height = 40,
                 Type = AntdUI.TTypeMini.Primary,
@@ -70,7 +70,7 @@ namespace XelLauncher.Forms
 
             var btnAdd = new AntdUI.Button
             {
-                Text = "+ 添加账号",
+                Text = AntdUI.Localization.Get("App.Account.BtnAdd", "+ 添加账号"),
                 Dock = DockStyle.Bottom,
                 Height = 40,
                 Ghost = true,
@@ -120,19 +120,19 @@ namespace XelLauncher.Forms
                 {
                     id = id,
                     name = name,
-                    isDefault = isDef ? new AntdUI.CellTag("默认", AntdUI.TTypeMini.Primary) : null,
+                    isDefault = isDef ? new AntdUI.CellTag(AntdUI.Localization.Get("App.Account.TagDefault", "默认"), AntdUI.TTypeMini.Primary) : null,
                     isEnabled = isDisabled
-                        ? new AntdUI.CellBadge(AntdUI.TState.Default, "禁用")
-                        : new AntdUI.CellBadge(AntdUI.TState.Processing, "启用"),
+                        ? new AntdUI.CellBadge(AntdUI.TState.Default, AntdUI.Localization.Get("App.Account.BadgeDisabled", "禁用"))
+                        : new AntdUI.CellBadge(AntdUI.TState.Processing, AntdUI.Localization.Get("App.Account.BadgeEnabled", "启用")),
                     enabledSwitch = !isDisabled,
                     action = new AntdUI.CellLink[]
                     {
-                        new AntdUI.CellButton("record",    "保存账号", AntdUI.TTypeMini.Info),
-                        new AntdUI.CellButton("setDefault","设为默认", AntdUI.TTypeMini.Success),
-                        new AntdUI.CellButton("rename",    "重命名",   AntdUI.TTypeMini.Default),
+                        new AntdUI.CellButton("record",    AntdUI.Localization.Get("App.Account.BtnRecord",     "保存账号"), AntdUI.TTypeMini.Info),
+                        new AntdUI.CellButton("setDefault",AntdUI.Localization.Get("App.Account.BtnSetDefault", "设为默认"), AntdUI.TTypeMini.Success),
+                        new AntdUI.CellButton("rename",    AntdUI.Localization.Get("App.Account.BtnRename",     "重命名"),   AntdUI.TTypeMini.Default),
                         _pendingDelete.Contains(id)
-                            ? new AntdUI.CellButton("delete", "确认删除", AntdUI.TTypeMini.Error)
-                            : new AntdUI.CellButton("delete", "删除", AntdUI.TTypeMini.Primary).SetBack(System.Drawing.Color.Orange),
+                            ? new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnConfirmDelete", "确认删除"), AntdUI.TTypeMini.Error)
+                            : new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnDelete",        "删除"),    AntdUI.TTypeMini.Primary).SetBack(System.Drawing.Color.Orange),
                     }
                 });
             }
@@ -177,13 +177,13 @@ namespace XelLauncher.Forms
             {
                 case "record":
                     var form = FindForm() as AntdUI.BaseForm;
-                    AntdUI.Message.loading(form, "保存中...", async config =>
+                    AntdUI.Message.loading(form, AntdUI.Localization.Get("App.Account.SaveLoading", "保存中..."), async config =>
                     {
                         try
                         {
                             if (IsEndfield) await GameLauncher.BackupEndfieldAccount(row.id);
                             else await GameLauncher.BackupAccount(row.id);
-                            config.OK($"已保存账号「{row.name}」");
+                            config.OK(string.Format(AntdUI.Localization.Get("App.Account.SaveOK", "已保存账号「{0}」"), row.name));
                         }
                         catch (Exception ex)
                         {
@@ -240,7 +240,7 @@ namespace XelLauncher.Forms
             var form = FindForm() as AntdUI.BaseForm;
             var input = new AntdUI.Input
             {
-                PlaceholderText = "输入账号名称",
+                PlaceholderText = AntdUI.Localization.Get("App.Account.AddPlaceholder", "输入账号名称"),
                 Dock = DockStyle.Fill,
             };
             var panel = new System.Windows.Forms.Panel { Height = 40, Dock = DockStyle.Top };
@@ -248,10 +248,10 @@ namespace XelLauncher.Forms
             var wrap = new System.Windows.Forms.Panel { Size = new Size(260, 40) };
             wrap.Controls.Add(panel);
 
-            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, "添加账号", wrap)
+            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Account.AddTitle", "添加账号"), wrap)
             {
-                OkText = "确定",
-                CancelText = "取消",
+                OkText = AntdUI.Localization.Get("OK", "确定"),
+                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
             });
             if (result != DialogResult.OK) return;
 
@@ -283,7 +283,7 @@ namespace XelLauncher.Forms
             var input = new AntdUI.Input
             {
                 Text = currentName,
-                PlaceholderText = "输入新名称",
+                PlaceholderText = AntdUI.Localization.Get("App.Account.RenamePlaceholder", "输入新名称"),
                 Dock = DockStyle.Fill,
             };
             var panel = new System.Windows.Forms.Panel { Height = 40, Dock = DockStyle.Top };
@@ -291,10 +291,10 @@ namespace XelLauncher.Forms
             var wrap = new System.Windows.Forms.Panel { Size = new Size(260, 40) };
             wrap.Controls.Add(panel);
 
-            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, "重命名账号", wrap)
+            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Account.RenameTitle", "重命名账号"), wrap)
             {
-                OkText = "确定",
-                CancelText = "取消",
+                OkText = AntdUI.Localization.Get("OK", "确定"),
+                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
             });
             if (result != DialogResult.OK) return;
 

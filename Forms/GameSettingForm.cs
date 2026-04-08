@@ -50,7 +50,7 @@ namespace XelLauncher.Forms
             catch { }
 
             // ── 游戏名 ──
-            string displayName = game.Name;
+            string displayName = game.GetLocalizedName();
             var lblName = new AntdUI.Label
             {
                 Text = displayName,
@@ -63,7 +63,9 @@ namespace XelLauncher.Forms
             bool isEndfield = game.IconName == "Endfield" || game.IconName == "BiliEndfield" || game.IconName == "GlobalEndfield";
             var lblVersion = new AntdUI.Label
             {
-                Text = isEndfield ? "版本：v1.1.9" : "版本：v71.0.0",
+                Text = isEndfield
+                    ? AntdUI.Localization.Get("App.GameSetting.VersionEndfield", "版本：v1.1.9")
+                    : AntdUI.Localization.Get("App.GameSetting.VersionArknights", "版本：v72.0.0"),
                 Location = new Point(80, 48),
                 Size = new Size(260, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
@@ -80,7 +82,7 @@ namespace XelLauncher.Forms
             // ── 游戏安装路径 标题 ──
             var lblPathSection = new AntdUI.Label
             {
-                Text = "游戏安装路径",
+                Text = AntdUI.Localization.Get("App.GameSetting.InstallPath", "游戏安装路径"),
                 Location = new Point(20, 94),
                 Size = new Size(320, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
@@ -93,13 +95,13 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 124),
                 Size = new Size(320, 36),
                 ReadOnly = true,
-                PlaceholderText = "未设置路径",
+                PlaceholderText = AntdUI.Localization.Get("App.GameSetting.PathPlaceholder", "未设置路径"),
             };
 
             // ── 更改路径 ──
             var btnBrowse = new AntdUI.Button
             {
-                Text = "更改路径",
+                Text = AntdUI.Localization.Get("App.GameSetting.ChangePath", "更改路径"),
                 Location = new Point(20, 172),
                 Size = new Size(320, 36),
                 Ghost = true,
@@ -109,7 +111,7 @@ namespace XelLauncher.Forms
             // ── 打开文件目录 ──
             var btnOpenDir = new AntdUI.Button
             {
-                Text = "打开文件目录",
+                Text = AntdUI.Localization.Get("App.GameSetting.OpenDir", "打开文件目录"),
                 Location = new Point(20, 220),
                 Size = new Size(320, 36),
                 Ghost = true,
@@ -125,7 +127,7 @@ namespace XelLauncher.Forms
             {
                 var btnReplaceOfficial = new AntdUI.Button
                 {
-                    Text = "将文件替换为B服",
+                    Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -135,27 +137,27 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, "请先设置B服路径");
+                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetBiliPath", "请先设置B服路径"));
                         return;
                     }
                     string zipPath = GameLauncher.GetPayloadZipPath("BiliArknights");
                     if (zipPath == null || !File.Exists(zipPath))
                     {
-                        AntdUI.Message.error(_overview, "未找到B服资源包 (ArkBilibili.zip)，请确认 load 文件夹中是否存在该文件");
+                        AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.GameSetting.ZipNotFoundBili", "未找到B服资源包 (ArkBilibili.zip)，请确认 load 文件夹中是否存在该文件"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        "确认替换",
-                        "确定要将当前官服替换为B服吗？此操作会覆盖游戏文件",
+                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
+                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplaceArkBili", "确定要将当前官服替换为B服吗？此操作会覆盖游戏文件"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = "确定",
-                        CancelText = "取消"
+                        OkText = AntdUI.Localization.Get("OK", "确定"),
+                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, "替换中...", async (cfg) =>
+                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
                     {
                         try
                         {
@@ -168,12 +170,12 @@ namespace XelLauncher.Forms
                             var BiliBili = cfg2.Games.Find(g => g.IconName == "Arknights");
                             if (BiliBili != null) BiliBili.RootPath = path;
                             ConfigHelper.Save(cfg2);
-                            cfg.OK("替换成功，B服资源包已覆盖至当前目录");
+                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error("替换失败：" + ex.Message);
+                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
                         }
                     });
                 };
@@ -181,7 +183,7 @@ namespace XelLauncher.Forms
 
                 var btnBili = new AntdUI.Button
                 {
-                    Text = "Arknights BiliBili官网",
+                    Text = AntdUI.Localization.Get("App.GameSetting.BiliWebsite", "Arknights BiliBili官网"),
                     Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -195,7 +197,7 @@ namespace XelLauncher.Forms
             {
                 var btn = new AntdUI.Button
                 {
-                    Text = "Endfield 官网",
+                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldWebsite", "Endfield 官网"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -206,7 +208,7 @@ namespace XelLauncher.Forms
 
                 var btnSync = new AntdUI.Button
                 {
-                    Text = "同步路径到 BillBili服 / 国际服",
+                    Text = AntdUI.Localization.Get("App.GameSetting.SyncToAll", "同步路径到 BillBili服 / 国际服"),
                     Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -216,7 +218,7 @@ namespace XelLauncher.Forms
                     string currentPath = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(currentPath))
                     {
-                        AntdUI.Message.warn(_overview, "请先设置官服路径");
+                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetOfficialPath", "请先设置官服路径"));
                         return;
                     }
                     var cfg = ConfigHelper.Load();
@@ -226,7 +228,7 @@ namespace XelLauncher.Forms
                         if (other != null) other.RootPath = currentPath;
                     }
                     ConfigHelper.Save(cfg);
-                    AntdUI.Message.success(_overview, "路径已同步到 BillBili服 和 国际服");
+                    AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccessAll", "路径已同步到 BillBili服 和 国际服"));
                 };
                 Controls.Add(btnSync);
                 Size = new Size(360, 386);
@@ -235,7 +237,7 @@ namespace XelLauncher.Forms
             {
                 var btnReplace = new AntdUI.Button
                 {
-                    Text = "将文件替换为B服",
+                    Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -245,27 +247,27 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, "请先设置B服路径");
+                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetBiliPath", "请先设置B服路径"));
                         return;
                     }
                     string zipPath = GameLauncher.GetPayloadZipPath("BiliEndfield");
                     if (zipPath == null || !File.Exists(zipPath))
                     {
-                        AntdUI.Message.error(_overview, "未找到B服资源包 (EndBilibili.zip)，请确认 load 文件夹中是否存在该文件");
+                        AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.GameSetting.ZipNotFoundEndBili", "未找到B服资源包 (EndBilibili.zip)，请确认 load 文件夹中是否存在该文件"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        "确认替换",
-                        "确定要将当前目录替换为B服文件吗？此操作会覆盖游戏文件",
+                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
+                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplaceEndBili", "确定要将当前目录替换为B服文件吗？此操作会覆盖游戏文件"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = "确定",
-                        CancelText = "取消"
+                        OkText = AntdUI.Localization.Get("OK", "确定"),
+                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, "替换中...", async (cfg) =>
+                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
                     {
                         try
                         {
@@ -274,12 +276,12 @@ namespace XelLauncher.Forms
                                 cfg.Text = msg;
                                 cfg.Refresh();
                             }, true);
-                            cfg.OK("替换成功，B服资源包已覆盖至当前目录");
+                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error("替换失败：" + ex.Message);
+                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
                         }
                     });
                 };
@@ -287,7 +289,7 @@ namespace XelLauncher.Forms
 
                 var btn = new AntdUI.Button
                 {
-                    Text = "Endfield BiliBili官网",
+                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldBiliWebsite", "Endfield BiliBili官网"),
                     Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -301,7 +303,7 @@ namespace XelLauncher.Forms
             {
                 var btnReplace = new AntdUI.Button
                 {
-                    Text = "将文件替换为国际服",
+                    Text = AntdUI.Localization.Get("App.GameSetting.ReplaceGlobal", "将文件替换为国际服"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -311,27 +313,27 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, "请先设置国际服路径");
+                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetGlobalPath", "请先设置国际服路径"));
                         return;
                     }
                     string zipPath = GameLauncher.GetPayloadZipPath("GlobalEndfield");
                     if (zipPath == null || !File.Exists(zipPath))
                     {
-                        AntdUI.Message.error(_overview, "未找到国际服资源包 (EndGlobal.zip)，请确认 load 文件夹中是否存在该文件");
+                        AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.GameSetting.ZipNotFoundGlobal", "未找到国际服资源包 (EndGlobal.zip)，请确认 load 文件夹中是否存在该文件"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        "确认替换",
-                        "确定要将当前目录替换为国际服文件吗？此操作会覆盖游戏文件",
+                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
+                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplaceGlobal", "确定要将当前目录替换为国际服文件吗？此操作会覆盖游戏文件"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = "确定",
-                        CancelText = "取消"
+                        OkText = AntdUI.Localization.Get("OK", "确定"),
+                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, "替换中...", async (cfg) =>
+                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
                     {
                         try
                         {
@@ -340,12 +342,12 @@ namespace XelLauncher.Forms
                                 cfg.Text = msg;
                                 cfg.Refresh();
                             }, true);
-                            cfg.OK("替换成功，国际服资源包已覆盖至当前目录");
+                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，国际服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error("替换失败：" + ex.Message);
+                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
                         }
                     });
                 };
@@ -353,7 +355,7 @@ namespace XelLauncher.Forms
 
                 var btn = new AntdUI.Button
                 {
-                    Text = "Endfield 国际服官网",
+                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldGlobalWebsite", "Endfield 国际服官网"),
                     Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -367,7 +369,7 @@ namespace XelLauncher.Forms
             {
                 var btnguan = new AntdUI.Button
                 {
-                    Text = "Arknights 官网",
+                    Text = AntdUI.Localization.Get("App.GameSetting.ArknightsWebsite", "Arknights 官网"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -378,7 +380,7 @@ namespace XelLauncher.Forms
 
                 var btnSync = new AntdUI.Button
                 {
-                    Text = "同步路径到 BillBili服",
+                    Text = AntdUI.Localization.Get("App.GameSetting.SyncToBili", "同步路径到 BillBili服"),
                     Location = new Point(20, 316),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -388,14 +390,14 @@ namespace XelLauncher.Forms
                     string currentPath = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(currentPath))
                     {
-                        AntdUI.Message.warn(_overview, "请先设置官服路径");
+                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetOfficialPath", "请先设置官服路径"));
                         return;
                     }
                     var cfg = ConfigHelper.Load();
                     var bili = cfg.Games.Find(g => g.IconName == "BiliArknights");
                     if (bili != null) bili.RootPath = currentPath;
                     ConfigHelper.Save(cfg);
-                    AntdUI.Message.success(_overview, "路径已同步到 BillBili服");
+                    AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccess", "路径已同步到 BillBili服"));
                 };
                 Controls.Add(btnSync);
                 Size = new Size(360, 386);
@@ -411,7 +413,7 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 630),
                 Size = new Size(264, 20),
                 Thickness = 1F,
-                Text = "自定义联动软件",
+                Text = AntdUI.Localization.Get("App.GameSetting.CustomSync", "自定义联动软件"),
                 Orientation = AntdUI.TOrientation.Left,
                 OrientationMargin = 0
             };
@@ -426,7 +428,7 @@ namespace XelLauncher.Forms
             // ── 管理按钮（Switch 开启时才显示）──
             var btnManage = new AntdUI.Button
             {
-                Text = "管理联动软件",
+                Text = AntdUI.Localization.Get("App.GameSetting.ManageSync", "管理联动软件"),
                 Location = new Point(20, 660),
                 Size = new Size(320, 36),
                 Ghost = true,
@@ -484,7 +486,7 @@ namespace XelLauncher.Forms
             {
                 Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
                 using var dlg = new System.Windows.Forms.FolderBrowserDialog();
-                dlg.Description = $"选择「{_game.Name}」游戏根目录";
+                dlg.Description = $"选择「{_game.GetLocalizedName()}」游戏根目录";
                 dlg.UseDescriptionForTitle = true;
                 if (!string.IsNullOrEmpty(_inputPath.Text))
                     dlg.InitialDirectory = _inputPath.Text;

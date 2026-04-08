@@ -11,13 +11,13 @@ namespace XelLauncher.Forms
 {
     public class GameIconPickerForm : UserControl
     {
-        private static readonly (string IconName, string Label)[] Icons =
+        private static readonly (string IconName, string StoreName, string LabelZh, string LabelEn)[] Icons =
         {
-            ("Arknights",     "Arknights officia"),
-            ("BiliArknights", "Arknights BiliBili"),
-            ("Endfield",      "Endfield officia"),
-            ("BiliEndfield",  "Endfield BiliBili "),
-            ("GlobalEndfield","Endfield Global "),
+            ("Arknights",      "明日方舟",        "明日方舟",        "Arknights (Official)"),
+            ("BiliArknights",  "明日方舟(B服)",   "明日方舟(B服)",   "Arknights (Bilibili)"),
+            ("Endfield",       "终末地",           "终末地",          "Endfield (Official)"),
+            ("BiliEndfield",   "终末地(B服)",     "终末地(B服)",     "Endfield (Bilibili)"),
+            ("GlobalEndfield", "终末地(国际服)",  "终末地(国际服)",  "Endfield (Global)"),
         };
 
         private readonly System.Collections.Generic.List<CardPanel> _cards = new();
@@ -40,7 +40,7 @@ namespace XelLauncher.Forms
 
             var lblTitle = new AntdUI.Label
             {
-                Text = "选择要添加的游戏",
+                Text = AntdUI.Localization.Get("App.Picker.Title", "选择要添加的游戏"),
                 Dock = DockStyle.Top,
                 Height = 36,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -48,10 +48,12 @@ namespace XelLauncher.Forms
                 Font = new Font("Microsoft YaHei UI", 12F),
             };
 
-            foreach (var (iconName, label) in Icons)
+            foreach (var (iconName, storeName, labelZh, labelEn) in Icons)
             {
                 var key = iconName;
-                var lbl = label;
+                var store = storeName;
+                bool isEn = AntdUI.Localization.CurrentLanguage.StartsWith("en");
+                var lbl = isEn ? labelEn : labelZh;
                 var card = new CardPanel(key, lbl)
                 {
                     Width = 120,
@@ -64,10 +66,10 @@ namespace XelLauncher.Forms
                     var cfg = ConfigHelper.Load();
                     if (cfg.Games.Exists(x => x.IconName == key))
                     {
-                        AntdUI.Message.error(_overview, $"「{lbl}」已在列表中，不能重复添加。");
+                        AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Picker.AlreadyAdded", "「{0}」已在列表中，不能重复添加。"), lbl));
                         return;
                     }
-                    var entry = new GameEntry { Name = lbl, IconName = key };
+                    var entry = new GameEntry { Name = store, IconName = key };
                     cfg.Games.Add(entry);
                     ConfigHelper.Save(cfg);
                     _overview.RebuildSidebar();

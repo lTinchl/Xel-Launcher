@@ -23,7 +23,7 @@ namespace XelLauncher.Forms
 
         public BrowserForm(string startUrl = "https://www.google.com")
         {
-            this.Text = "浏览器";
+            this.Text = AntdUI.Localization.Get("App.Browser.Title", "浏览器");
             this.Size = new System.Drawing.Size(1200, 800);
             this.StartPosition = FormStartPosition.CenterParent;
 
@@ -91,7 +91,7 @@ namespace XelLauncher.Forms
             }
             catch
             {
-                AntdUI.Message.error(this, "未找到 WebView2 Runtime，请先安装！");
+                AntdUI.Message.error(this, AntdUI.Localization.Get("App.Browser.NoRuntime", "未找到 WebView2 Runtime，请先安装！"));
             }
         }
 
@@ -141,23 +141,23 @@ namespace XelLauncher.Forms
 
             TopMost = top;
             var globals = new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem("中文","zh-CN"),
-                new AntdUI.SelectItem("English(待施工)","en-US")
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.Chinese", "中文"),"zh-CN"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.English", "English"),"en-US")
             };
             btn_global.Items.AddRange(globals);
             btn_more.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem("帮助", "help").SetIcon("QuestionCircleOutlined"),
-                new AntdUI.SelectItem("关于","info").SetIcon("InfoCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "帮助"), "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "关于"),"info").SetIcon("InfoCircleOutlined"),
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
 
             });
             btn_bgcolor.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem("纯白",      "#FFFFFF"),
-                new AntdUI.SelectItem("薄荷绿",    "#F0F7F4"),
-                new AntdUI.SelectItem("暖米色",    "#FAF7F2"),
-                new AntdUI.SelectItem("天空蓝",    "#EFF6FB"),
-                new AntdUI.SelectItem("自定义..", "custom"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.White", "纯白"),      "#FFFFFF"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Mint", "薄荷绿"),    "#F0F7F4"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Warm", "暖米色"),    "#FAF7F2"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Sky", "天空蓝"),    "#EFF6FB"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Custom", "自定义.."), "custom"),
             });
             var lang = AntdUI.Localization.CurrentLanguage;
             if (lang.StartsWith("en")) btn_global.SelectedValue = globals[1].Tag;
@@ -231,7 +231,7 @@ namespace XelLauncher.Forms
                         RebuildFloatMenu();
                     }, new AntdUI.IContextMenuStripItem[]
                     {
-                        new AntdUI.ContextMenuStripItem("删除").SetIcon("DeleteOutlined"),
+                    new AntdUI.ContextMenuStripItem(AntdUI.Localization.Get("App.Sidebar.Delete", "删除")).SetIcon("DeleteOutlined"),
                     });
                     }
                 };
@@ -380,9 +380,9 @@ namespace XelLauncher.Forms
                 Visible = false,
             };
             var menu = new System.Windows.Forms.ContextMenuStrip();
-            menu.Items.Add("显示主窗口", null, (s, e) => RestoreFromTray());
+            menu.Items.Add(AntdUI.Localization.Get("App.Tray.Show", "显示主窗口"), null, (s, e) => RestoreFromTray());
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("退出", null, (s, e) => { _forceClose = true; _trayIcon.Visible = false; Application.Exit(); });
+            menu.Items.Add(AntdUI.Localization.Get("App.Tray.Exit", "退出"), null, (s, e) => { _forceClose = true; _trayIcon.Visible = false; Application.Exit(); });
             _trayIcon.ContextMenuStrip = menu;
             _trayIcon.DoubleClick += (s, e) => RestoreFromTray();
         }
@@ -448,9 +448,9 @@ namespace XelLauncher.Forms
                     var picker = new AntdUI.ColorPicker { Size = new System.Drawing.Size(40, 40) };
                     var cfg0 = ConfigHelper.Load();
                     picker.Value = System.Drawing.ColorTranslator.FromHtml(cfg0.BackgroundColor);
-                    var result = AntdUI.Modal.open(new AntdUI.Modal.Config(this, "自定义背景色", picker)
+                    var result = AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("App.BgColor.DialogTitle", "自定义背景色"), picker)
                     {
-                        OkText = "确定", CancelText = "取消", MaskClosable = true,
+                        OkText = AntdUI.Localization.Get("App.BgColor.OK", "确定"), CancelText = AntdUI.Localization.Get("App.BgColor.Cancel", "取消"), MaskClosable = true,
                     });
                     if (result != System.Windows.Forms.DialogResult.OK) return;
                     hex = "#" + picker.Value.ToHex();
@@ -522,13 +522,49 @@ namespace XelLauncher.Forms
 
         private void btn_global_Changed(object sender, AntdUI.ObjectNEventArgs e)
         {
-            if (e.Value is string lang)
+            if (e.Value is not string lang) return;
+
+            // Apply language
+            if (lang.StartsWith("en")) AntdUI.Localization.Provider = new Localizer();
+            else AntdUI.Localization.Provider = null;
+            AntdUI.Localization.SetLanguage(lang);
+
+            // Persist language choice
+            var cfg = ConfigHelper.Load();
+            cfg.Language = lang;
+            ConfigHelper.Save(cfg);
+
+            // Rebuild localized runtime items
+            btn_more.Items.Clear();
+            btn_more.Items.AddRange(new AntdUI.SelectItem[] {
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "帮助"), "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "关于"),"info").SetIcon("InfoCircleOutlined"),
+                new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
+                new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
+            });
+            btn_bgcolor.Items.Clear();
+            btn_bgcolor.Items.AddRange(new AntdUI.SelectItem[] {
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.White", "纯白"),      "#FFFFFF"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Mint", "薄荷绿"),    "#F0F7F4"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Warm", "暖米色"),    "#FAF7F2"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Sky", "天空蓝"),    "#EFF6FB"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Custom", "自定义.."), "custom"),
+            });
+
+            // Rebuild sidebar (re-creates context menu items with updated language)
+            RebuildSidebar();
+
+            // 0.5s loading overlay on the whole window, then rebuild current page
+            AntdUI.Spin.open(this, async spinCfg =>
             {
-                if (lang.StartsWith("en")) AntdUI.Localization.Provider = new Localizer();
-                else AntdUI.Localization.Provider = null;
-                AntdUI.Localization.SetLanguage(lang);
-                Refresh();
-            }
+                await System.Threading.Tasks.Task.Delay(500);
+                this.Invoke(new Action(() =>
+                {
+                    // Rebuild the GamePage so all in-constructor strings are re-created in new language
+                    if (_currentGame != null) SelectGame(_currentGame);
+                    Refresh();
+                }));
+            });
         }
 
         private void btn_more_Changed(object sender, AntdUI.ObjectNEventArgs e)
