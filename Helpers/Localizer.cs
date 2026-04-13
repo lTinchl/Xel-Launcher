@@ -954,6 +954,8 @@ namespace XelLauncher.Helpers
                     return "Account Management";
                 case "App.Game.Toolbox":
                     return "Toolbox";
+                case "App.Game.SelectDirTitle":
+                    return "Select [{0}] Game Root Directory";
                 case "App.Game.WarnSelectDir":
                     return "Please select the game root directory first";
                 case "App.Game.ExeNotFound":
@@ -964,12 +966,36 @@ namespace XelLauncher.Helpers
                     return "Switching account...";
                 case "App.Game.LaunchSuccess":
                     return "Game launched successfully";
+                case "App.Game.HardLinkTip":
+                    return "Tip: Install the launcher on the same drive as your game to enable hard links for instant server switching";
+
+                // Switch progress
+                case "App.Switch.ConfirmTitle":
+                    return "Switch Server";
+                case "App.Switch.ConfirmMsg":
+                    return "Switching servers requires closing the running game. Continue?";
+                case "App.Switch.ConfirmOk":
+                    return "Close & Switch";
+                case "App.Switch.KillingProcess":
+                    return "Stopping game process...";
+                case "App.Switch.Linking":
+                    return "Switching server (hard link)...";
+                case "App.Switch.Copying":
+                    return "Copying files...";
+                case "App.Switch.Extracting":
+                    return "Extracting files...";
+                case "App.Switch.DoneHardLink":
+                    return "Server switched (hard link)";
+                case "App.Switch.DoneCopy":
+                    return "Server switched (file copy)";
+                case "App.Switch.NoPayload":
+                    return "Server resources not found (no folder or ZIP in load directory)";
 
                 // GameSettingForm
                 case "App.GameSetting.VersionEndfield":
                     return "Version: v1.1.9";
                 case "App.GameSetting.VersionArknights":
-                    return "Version: v71.0.0";
+                    return "Version: v72.0.0";
                 case "App.GameSetting.InstallPath":
                     return "Game Install Path";
                 case "App.GameSetting.PathPlaceholder":
@@ -978,6 +1004,12 @@ namespace XelLauncher.Helpers
                     return "Change Path";
                 case "App.GameSetting.OpenDir":
                     return "Open File Directory";
+                case "App.GameSetting.ReplaceOfficial":
+                    return "Replace files with Official server";
+                case "App.GameSetting.ConfirmReplaceArkOfficial":
+                    return "Replace the current directory with Official server files? This will overwrite game files.";
+                case "App.GameSetting.ZipNotFoundOfficial":
+                    return "Official server resource package (ArkOfficial.zip) not found. Check the load folder.";
                 case "App.GameSetting.ReplaceBili":
                     return "Replace files with Bilibili server";
                 case "App.GameSetting.ReplaceGlobal":
@@ -1050,6 +1082,8 @@ namespace XelLauncher.Helpers
                     return "Close after launching game";
                 case "App.Setting.HideToTrayOnLaunch":
                     return "Hide to tray after launching game";
+                case "App.Setting.UseExternalBrowser":
+                    return "Use external browser for links";
 
                 // BrowserForm
                 case "App.Browser.Title":

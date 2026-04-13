@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,41 +10,98 @@ namespace XelLauncher.Helpers
 {
     public static class GameLauncher
     {
-        public static string GetPayloadZipPath(string iconName)
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        public static string GetPayloadDirPath(string iconName)
         {
             string exeDir = AppContext.BaseDirectory;
-            string zipName = iconName switch
+            string dirName = iconName switch
             {
-                "BiliArknights"  => "ArkBilibili.zip",
-                "Arknights"      => "ArkOffiicial.zip",
-                "BiliEndfield"   => "EndBilibili.zip",
-                "GlobalEndfield" => "EndGlobal.zip",
-                "Endfield"       => "EndOfficial.zip",
+                "BiliArknights"  => "ArkBilibili",
+                "Arknights"      => "ArkOfficial",
+                "BiliEndfield"   => "EndBilibili",
+                "GlobalEndfield" => "EndGlobal",
+                "Endfield"       => "EndOfficial",
                 _ => null
             };
-            if (zipName == null) return null;
-            return Path.Combine(exeDir, "load", zipName);
+            if (dirName == null) return null;
+            return Path.Combine(exeDir, "load", dirName);
         }
 
-        public static async Task ExtractAndReplace(string rootPath, string zipPath, Action<string> onProgress, bool isEndfield = false)
+        // 判断两个路径是否在同一磁盘分区（根据盘符）
+        private static bool OnSameVolume(string pathA, string pathB)
         {
-            string tempDir = Path.Combine(Path.GetTempPath(), "XelLauncher_payload_" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                onProgress("解压文件中...");
-                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, tempDir, true));
+            string rootA = Path.GetPathRoot(Path.GetFullPath(pathA));
+            string rootB = Path.GetPathRoot(Path.GetFullPath(pathB));
+            return string.Equals(rootA, rootB, StringComparison.OrdinalIgnoreCase);
+        }
 
-                onProgress("结束游戏进程...");
-                await KillArknightsProcesses(isEndfield);
+        // 尝试创建硬链接；失败则回退到文件复制
+        private static void HardLinkOrCopyFile(string sourceFile, string destFile, bool sameVolume)
+        {
+            if (File.Exists(destFile)) File.Delete(destFile);
 
-                onProgress("文件替换中...");
-                await CopyDirectory(tempDir, rootPath);
-            }
-            finally
+            if (sameVolume)
             {
-                if (Directory.Exists(tempDir))
-                    await Task.Run(() => Directory.Delete(tempDir, true));
+                if (CreateHardLink(destFile, sourceFile, IntPtr.Zero))
+                    return;
+                // 硬链接失败（例如 FAT32）则回退复制
             }
+            File.Copy(sourceFile, destFile, true);
+        }
+
+        // 用硬链接（或复制）将 sourceDir 的文件部署到 targetDir
+        // 返回 true 表示使用了硬链接，false 表示使用了文件复制
+        public static async Task<bool> HardLinkOrCopyDirectory(string sourceDir, string targetDir, int maxRetries = 5)
+        {
+            sourceDir = Path.GetFullPath(sourceDir).TrimEnd(Path.DirectorySeparatorChar);
+            targetDir = Path.GetFullPath(targetDir).TrimEnd(Path.DirectorySeparatorChar);
+
+            bool sameVolume = OnSameVolume(sourceDir, targetDir);
+
+            await Task.Run(() =>
+            {
+                Directory.CreateDirectory(targetDir);
+                foreach (var file in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
+                {
+                    string relativePath = file.Substring(sourceDir.Length + 1);
+                    string destFile = Path.Combine(targetDir, relativePath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+
+                    for (int i = 0; i < maxRetries; i++)
+                    {
+                        try
+                        {
+                            HardLinkOrCopyFile(file, destFile, sameVolume);
+                            break;
+                        }
+                        catch (IOException) when (i < maxRetries - 1)
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                        }
+                    }
+                }
+            });
+
+            return sameVolume;
+        }
+
+        // 带结果回调的切服入口，onResult(true) = 使用了硬链接，onResult(false) = 文件复制
+        public static async Task SwitchServerWithResult(string rootPath, string iconName, Action<string> onProgress, bool isEndfield, Action<bool> onResult)
+        {
+            string payloadDir = GetPayloadDirPath(iconName);
+            if (payloadDir == null || !Directory.Exists(payloadDir))
+                throw new FileNotFoundException(AntdUI.Localization.Get("App.Switch.NoPayload", "未找到切服资源（文件夹或 ZIP 均不存在）"));
+
+            onProgress(AntdUI.Localization.Get("App.Switch.Linking", "切服中（硬链接）..."));
+            bool usedHardLink = await HardLinkOrCopyDirectory(payloadDir, rootPath);
+            onResult(usedHardLink);
+
+            string doneMsg = usedHardLink
+                ? AntdUI.Localization.Get("App.Switch.DoneHardLink", "游戏启动中···")
+                : AntdUI.Localization.Get("App.Switch.DoneCopy", "游戏启动中···");
+            onProgress(doneMsg);
         }
 
         public static void StartArknights(string rootPath, string iconName)
