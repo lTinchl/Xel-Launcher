@@ -24,8 +24,6 @@ namespace XelLauncher.Forms
             tabHeader1.ShowButton = true;
             tabHeader1.ShowIcon = true;
             tabHeader1.IconSvg = "ChromeFilled";
-            tabHeader1.BackActive = System.Drawing.Color.White;
-            tabHeader1.BackColor = System.Drawing.Color.FromArgb(232, 232, 232);
             tabHeader1.BorderWidth = 1F;
             tabHeader1.Size = new System.Drawing.Size(1200, 44);
             tabHeader1.TabIndex = 0;
@@ -37,7 +35,7 @@ namespace XelLauncher.Forms
             ClientSize = new System.Drawing.Size(1200, 800);
             Controls.Add(tabHeader1);
             Icon = Properties.Resources.icon;
-            Text = "浏览器";
+            Text = "";
             ResumeLayout(false);
         }
 

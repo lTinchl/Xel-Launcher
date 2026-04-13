@@ -35,7 +35,7 @@ namespace XelLauncher
             avatar.Name = "avatar";
             avatar.Size = new Size(64, 64);
             avatar.Radius = 8;
-            avatar.Margin = new Padding(168, 10, 0, 0);
+            avatar.Margin = new Padding(178, 10, 0, 0);
             avatar.TabIndex = 0;
             //
             // labelName
@@ -43,7 +43,7 @@ namespace XelLauncher
             labelName.Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold);
             labelName.Name = "labelName";
             labelName.Size = new Size(252, 36);
-            labelName.Margin = new Padding(74, 6, 0, 0);
+            labelName.Margin = new Padding(84, 6, 0, 0);
             labelName.TabIndex = 1;
             labelName.Text = "Xel Launcher";
             labelName.TextAlign = ContentAlignment.TopCenter;
@@ -52,7 +52,7 @@ namespace XelLauncher
             //
             labelAuthor.Name = "labelAuthor";
             labelAuthor.Size = new Size(252, 26);
-            labelAuthor.Margin = new Padding(74, 2, 0, 0);
+            labelAuthor.Margin = new Padding(84, 2, 0, 0);
             labelAuthor.TabIndex = 3;
             labelAuthor.Text = "By\uff1aTinch";
             labelAuthor.TextAlign = ContentAlignment.TopCenter;
@@ -75,7 +75,7 @@ namespace XelLauncher
             shieldLicense.AutoSizeMode = AntdUI.TAutoSize.Auto;
             shieldLicense.Color = Color.FromArgb(50, 160, 80);
             shieldLicense.Label = "license";
-            shieldLicense.Text = "MIT";
+            shieldLicense.Text = "Apache 2.0";
             shieldLicense.Radius = 4;
             shieldLicense.Size = new Size(80, 22);
             shieldLicense.Font = new Font("Microsoft YaHei UI", 8F);
@@ -120,7 +120,7 @@ namespace XelLauncher
             shieldPanel.FlowDirection = FlowDirection.LeftToRight;
             shieldPanel.WrapContents = false;
             shieldPanel.AutoSize = true;
-            shieldPanel.Margin = new Padding(26, 6, 0, 0);
+            shieldPanel.Margin = new Padding(46, 6, 0, 0);
             shieldPanel.Name = "shieldPanel";
             shieldPanel.TabIndex = 7;
             //
@@ -129,9 +129,10 @@ namespace XelLauncher
             btnClose.Type = AntdUI.TTypeMini.Primary;
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(80, 32);
-            btnClose.Margin = new Padding(160, 8, 0, 8);
+            btnClose.Margin = new Padding(170, 8, 0, 8);
             btnClose.TabIndex = 4;
             btnClose.Text = "关闭";
+            btnClose.LocalizationText = "Cancel";
             btnClose.Click += (s, e) => ParentForm?.Close();
             //
             // mainPanel
@@ -151,7 +152,7 @@ namespace XelLauncher
             //
             Controls.Add(mainPanel);
             Name = "About";
-            Size = new Size(400, 220);
+            Size = new Size(410, 220);
             BackColor = Color.Transparent;
             shieldPanel.ResumeLayout(false);
             mainPanel.ResumeLayout(false);

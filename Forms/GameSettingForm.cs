@@ -140,12 +140,6 @@ namespace XelLauncher.Forms
                         AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetBiliPath", "请先设置B服路径"));
                         return;
                     }
-                    string zipPath = GameLauncher.GetPayloadZipPath("BiliArknights");
-                    if (zipPath == null || !File.Exists(zipPath))
-                    {
-                        AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.GameSetting.ZipNotFoundBili", "未找到B服资源包 (ArkBilibili.zip)，请确认 load 文件夹中是否存在该文件"));
-                        return;
-                    }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
                         AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
@@ -161,17 +155,23 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                            bool usedHardLink = false;
+                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
+                            cfg.Refresh();
+                            await GameLauncher.KillArknightsProcesses(false);
+                            await GameLauncher.SwitchServerWithResult(path, "BiliArknights", msg =>
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            });
+                            }, false, r => usedHardLink = r);
                             var cfg2 = ConfigHelper.Load();
                             var BiliBili = cfg2.Games.Find(g => g.IconName == "Arknights");
                             if (BiliBili != null) BiliBili.RootPath = path;
                             ConfigHelper.Save(cfg2);
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
+                            if (!usedHardLink)
+                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -250,12 +250,6 @@ namespace XelLauncher.Forms
                         AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetBiliPath", "请先设置B服路径"));
                         return;
                     }
-                    string zipPath = GameLauncher.GetPayloadZipPath("BiliEndfield");
-                    if (zipPath == null || !File.Exists(zipPath))
-                    {
-                        AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.GameSetting.ZipNotFoundEndBili", "未找到B服资源包 (EndBilibili.zip)，请确认 load 文件夹中是否存在该文件"));
-                        return;
-                    }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
                         AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
@@ -271,13 +265,19 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                            bool usedHardLink = false;
+                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
+                            cfg.Refresh();
+                            await GameLauncher.KillArknightsProcesses(true);
+                            await GameLauncher.SwitchServerWithResult(path, "BiliEndfield", msg =>
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            }, true);
+                            }, true, r => usedHardLink = r);
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
+                            if (!usedHardLink)
+                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -316,12 +316,6 @@ namespace XelLauncher.Forms
                         AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetGlobalPath", "请先设置国际服路径"));
                         return;
                     }
-                    string zipPath = GameLauncher.GetPayloadZipPath("GlobalEndfield");
-                    if (zipPath == null || !File.Exists(zipPath))
-                    {
-                        AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.GameSetting.ZipNotFoundGlobal", "未找到国际服资源包 (EndGlobal.zip)，请确认 load 文件夹中是否存在该文件"));
-                        return;
-                    }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
                         AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
@@ -337,13 +331,19 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                            bool usedHardLink = false;
+                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
+                            cfg.Refresh();
+                            await GameLauncher.KillArknightsProcesses(true);
+                            await GameLauncher.SwitchServerWithResult(path, "GlobalEndfield", msg =>
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            }, true);
+                            }, true, r => usedHardLink = r);
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，国际服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
+                            if (!usedHardLink)
+                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -486,7 +486,7 @@ namespace XelLauncher.Forms
             {
                 Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
                 using var dlg = new System.Windows.Forms.FolderBrowserDialog();
-                dlg.Description = $"选择「{_game.GetLocalizedName()}」游戏根目录";
+                dlg.Description = AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName());
                 dlg.UseDescriptionForTitle = true;
                 if (!string.IsNullOrEmpty(_inputPath.Text))
                     dlg.InitialDirectory = _inputPath.Text;
@@ -506,12 +506,12 @@ namespace XelLauncher.Forms
                 System.Media.SystemSounds.Exclamation.Play();
                 var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                     FindForm() as AntdUI.BaseForm ?? null,
-                    "路径无效",
-                    $"所选文件夹中未找到 {exeName}，请重新选择正确的游戏根目录。",
+                    AntdUI.Localization.Get("App.GameSetting.PathInvalid", "路径无效"),
+                    string.Format(AntdUI.Localization.Get("App.GameSetting.PathInvalidMsg", "所选文件夹中未找到 {0}，请重新选择正确的游戏根目录。"), exeName),
                     AntdUI.TType.Warn)
                 {
-                    OkText = "重新选择",
-                    CancelText = "取消"
+                    OkText = AntdUI.Localization.Get("App.GameSetting.Reselect", "重新选择"),
+                    CancelText = AntdUI.Localization.Get("Cancel", "取消")
                 });
                 if (result != DialogResult.OK) return;
             }

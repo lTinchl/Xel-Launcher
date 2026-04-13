@@ -192,7 +192,6 @@ namespace XelLauncher.Forms
             dividerSidebarV.Thickness = 1F;
             //
 
-            BackColor = Color.White;
             ClientSize = new Size(1280, 760);
             Controls.Add(panelMain);
             Controls.Add(dividerSidebarV);

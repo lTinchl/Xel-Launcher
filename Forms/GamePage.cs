@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
 using XelLauncher.Models;
@@ -46,7 +47,7 @@ namespace XelLauncher.Forms
             {
                 IconSvg = "PlusOutlined",
                 Type = AntdUI.TTypeMini.Default,
-                BackColor = Color.White,
+                BackColor = AntdUI.Config.IsDark ? Color.FromArgb(60, 60, 60) : Color.White,
                 Size = new Size(52, 52),
                 Location = new Point(0, 0),
                 BorderWidth = 0,
@@ -274,8 +275,10 @@ namespace XelLauncher.Forms
             {
                 panelLaunch.BackExtend = "#3C3C48";
                 panelLaunch.Back = null;
+                btnArknightsWiki.BackColor = Color.FromArgb(60, 60, 60);
                 return;
             }
+            btnArknightsWiki.BackColor = Color.White;
             panelLaunch.BackExtend = "";
             var bg = _overview.BackColor;
             float brightness = (bg.R * 0.299f + bg.G * 0.587f + bg.B * 0.114f) / 255f;
@@ -401,7 +404,7 @@ namespace XelLauncher.Forms
             base.Dispose(disposing);
         }
 
-        private void GameStart_Click(object sender, EventArgs e)
+        private async void GameStart_Click(object sender, EventArgs e)
         {
             if (GameStart.Loading) return;
             var cfg = ConfigHelper.Load();
@@ -435,9 +438,7 @@ namespace XelLauncher.Forms
                 }
             }
 
-            string zipPath = isEndfield
-                ? (endfieldSameRoot ? GameLauncher.GetPayloadZipPath(_game.IconName) : null)
-                : (sameRoot ? GameLauncher.GetPayloadZipPath(_game.IconName) : null);
+            bool needSwitch = isEndfield ? endfieldSameRoot : sameRoot;
 
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
@@ -481,9 +482,12 @@ namespace XelLauncher.Forms
                     }
                 }
 
-                zipPath = isEndfield
-                    ? (endfieldSameRoot ? GameLauncher.GetPayloadZipPath(_game.IconName) : null)
-                    : (sameRoot ? GameLauncher.GetPayloadZipPath(_game.IconName) : null);
+                needSwitch = isEndfield ? endfieldSameRoot : sameRoot;
+            }
+
+            if (needSwitch)
+            {
+                await GameLauncher.KillArknightsProcesses(isEndfield);
             }
 
             GameStart.LoadingWaveValue = 0;
@@ -512,56 +516,74 @@ namespace XelLauncher.Forms
                             await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
                         }
                     }
-                    if ((sameRoot || endfieldSameRoot) && zipPath != null)
+                    if (needSwitch)
                     {
-                        await GameLauncher.ExtractAndReplace(path, zipPath, msg =>
+                        bool usedHardLink = false;
+                        await GameLauncher.SwitchServerWithResult(path, _game.IconName, msg =>
                         {
                             config.Text = msg;
                             config.Refresh();
-                        }, isEndfield);
+                        }, isEndfield, result => usedHardLink = result);
+
+                        if (!usedHardLink)
+                        {
+                            _overview.BeginInvoke(new Action(() =>
+                                AntdUI.Message.info(_overview,
+                                    AntdUI.Localization.Get("App.Game.HardLinkTip",
+                                        "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"))
+                            ));
+                        }
                     }
-                    for (int i = 0; i <= 100; i++)
+                    // 随机波浪动画（1~3 秒）
+                    var rng = new Random();
+                    int totalMs = rng.Next(1000, 3001);
+                    int steps = 100;
+                    int stepMs = totalMs / steps;
+                    for (int i = 0; i <= steps; i++)
                     {
-                        GameStart.LoadingWaveValue = i / 100F;
-                        System.Threading.Thread.Sleep(30);
+                        GameStart.LoadingWaveValue = i / (float)steps;
+                        await Task.Delay(stepMs);
                     }
+
                     GameLauncher.StartArknights(path, _game.IconName);
+
+                    // 检测到游戏进程后才显示启动成功
+                    string procName = (isEndfield) ? "Endfield" : "Arknights";
+                    config.Text = AntdUI.Localization.Get("App.Game.WaitingProcess", "等待游戏进程...");
+                    config.Refresh();
+                    System.Diagnostics.Process gameProc = null;
+                    for (int i = 0; i < 30 && gameProc == null; i++)
+                    {
+                        var procs = System.Diagnostics.Process.GetProcessesByName(procName);
+                        if (procs.Length > 0) gameProc = procs[0];
+                        else await Task.Delay(1000);
+                    }
                     config.OK(AntdUI.Localization.Get("App.Game.LaunchSuccess", "游戏启动成功"));
                     var latestCfg = ConfigHelper.Load();
                     if (latestCfg.CloseAfterLaunch)
-                        Invoke(new Action(() => Application.Exit()));
+                    {
+                        _overview.Invoke(new Action(() => Application.Exit()));
+                    }
                     else if (latestCfg.HideToTrayOnLaunch)
                     {
-                        // 先隐藏到托盘，再后台等进程退出后恢复
-                        if (IsHandleCreated)
-                            Invoke(new Action(() => _overview.HideToTray()));
+                        _overview.Invoke(new Action(() => _overview.HideToTray()));
                         var overviewRef = _overview;
-                        var iconName = _game.IconName;
+                        var capturedProc = gameProc;
                         System.Threading.Tasks.Task.Run(() =>
                         {
                             try
                             {
-                                bool isEndfield = iconName == "Endfield" || iconName == "BiliEndfield" || iconName == "GlobalEndfield";
-                                string procName = isEndfield ? "Endfield" : "Arknights";
-                                // 等待游戏进程出现（最多 30 秒）
-                                System.Diagnostics.Process gameProc = null;
-                                for (int i = 0; i < 30 && gameProc == null; i++)
-                                {
-                                    var procs = System.Diagnostics.Process.GetProcessesByName(procName);
-                                    if (procs.Length > 0) gameProc = procs[0];
-                                    else System.Threading.Thread.Sleep(1000);
-                                }
-                                if (gameProc != null)
+                                if (capturedProc != null)
                                 {
                                     try
                                     {
-                                        gameProc.EnableRaisingEvents = true;
-                                        gameProc.WaitForExit();
+                                        capturedProc.EnableRaisingEvents = true;
+                                        capturedProc.WaitForExit();
                                     }
                                     catch
                                     {
                                         // 无权监听时，改为轮询进程是否还存在
-                                        while (!gameProc.HasExited)
+                                        while (!capturedProc.HasExited)
                                             System.Threading.Thread.Sleep(3000);
                                     }
                                 }
@@ -579,10 +601,11 @@ namespace XelLauncher.Forms
                     Helpers.LogHelper.LogError(ex, "GameStart");
                     config.Error(ex.Message);
                 }
-                Invoke(new Action(() =>
-                {
-                    if (!GameStart.IsDisposed) GameStart.Loading = false;
-                }));
+                if (!GameStart.IsDisposed)
+                    _overview.Invoke(new Action(() =>
+                    {
+                        if (!GameStart.IsDisposed) GameStart.Loading = false;
+                    }));
             });
         }
     }

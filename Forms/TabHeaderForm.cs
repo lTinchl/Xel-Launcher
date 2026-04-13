@@ -24,7 +24,6 @@ namespace XelLauncher.Forms
             this.Icon = Properties.Resources.icon;        // 任务栏图标
             tabHeader1.IconSvg = "ChromeFilled";
 
-
             // 工具栏
             panelToolbar = new System.Windows.Forms.Panel
             {
@@ -85,8 +84,21 @@ namespace XelLauncher.Forms
 
             this.Controls.SetChildIndex(panelContent, 0);
             this.Controls.SetChildIndex(panelToolbar, 1);
+            ApplyTheme(AntdUI.Config.IsDark);
             this.StartPosition = FormStartPosition.CenterScreen;
             AddTab(startUrl);
+        }
+
+        private void ApplyTheme(bool dark)
+        {
+            var bg     = dark ? System.Drawing.Color.FromArgb(30, 30, 30)   : System.Drawing.Color.FromArgb(242, 242, 242);
+            var tabBg  = dark ? System.Drawing.Color.FromArgb(25, 25, 25)   : System.Drawing.Color.FromArgb(232, 232, 232);
+            var active = dark ? System.Drawing.Color.FromArgb(50, 50, 50)   : System.Drawing.Color.White;
+
+            this.BackColor          = bg;
+            panelToolbar.BackColor  = bg;
+            tabHeader1.BackColor    = tabBg;
+            tabHeader1.BackActive   = active;
         }
 
         private void TxtUrl_KeyDown(object sender, KeyEventArgs e)
@@ -146,13 +158,35 @@ namespace XelLauncher.Forms
                     .CreateAsync(null, cacheDir);
 
                 await browser.EnsureCoreWebView2Async(env);
+
+                // 让网页 prefers-color-scheme 跟随系统深色设置
+                browser.CoreWebView2.Profile.PreferredColorScheme =
+                    AntdUI.Config.IsDark
+                        ? Microsoft.Web.WebView2.Core.CoreWebView2PreferredColorScheme.Dark
+                        : Microsoft.Web.WebView2.Core.CoreWebView2PreferredColorScheme.Light;
+
                 browser.CoreWebView2.Navigate(url);
 
-                // 标题同步到标签
+                // 拦截新窗口请求（target="_blank" / window.open），在内部新标签页打开
+                browser.CoreWebView2.NewWindowRequested += (s, e) =>
+                {
+                    e.Handled = true;   // 阻止唤起外部浏览器
+                    var newUrl = e.Uri;
+                    if (this.IsHandleCreated)
+                        this.Invoke(() => AddTab(newUrl));
+                };
+
+                // 标题同步到标签，若是当前激活标签则同步到窗口标题栏
                 browser.CoreWebView2.DocumentTitleChanged += (s, e) =>
                 {
                     if (this.IsHandleCreated)
-                        this.Invoke(() => tab.Text = browser.CoreWebView2.DocumentTitle);
+                        this.Invoke(() =>
+                        {
+                            var title = browser.CoreWebView2.DocumentTitle;
+                            tab.Text = title;
+                            if (_currentTabId == tabId)
+                                this.Text = title;
+                        });
                 };
 
                 // 地址栏同步当前网址
@@ -175,9 +209,12 @@ namespace XelLauncher.Forms
             foreach (var kv in _browsers)
                 kv.Value.Visible = kv.Key == tabId;
 
-            // 同步地址栏
+            // 同步地址栏和窗口标题
             if (_browsers.TryGetValue(tabId, out var browser) && browser.CoreWebView2 != null)
+            {
                 txtUrl.Text = browser.CoreWebView2.Source;
+                this.Text = browser.CoreWebView2.DocumentTitle;
+            }
         }
 
         private void tabHeader1_TabClosing(object sender, TabCloseEventArgs e)
