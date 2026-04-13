@@ -53,6 +53,8 @@ namespace XelLauncher
             switch8 = new AntdUI.Switch();
             label9 = new AntdUI.Label();
             switch9 = new AntdUI.Switch();
+            label10 = new AntdUI.Label();
+            switch10 = new AntdUI.Switch();
             panelLeft.SuspendLayout();
             panelRight.SuspendLayout();
             scrollSoftware.SuspendLayout();
@@ -88,14 +90,6 @@ namespace XelLauncher
             btnLog.Height = 46;
             btnLog.Name = "btnLog";
             btnLog.Type = AntdUI.TTypeMini.Default;
-            //
-            // btnMaa
-            //
-            //btnMaa.Text = "路径设置";
-            //btnMaa.Dock = System.Windows.Forms.DockStyle.Top;
-            //btnMaa.Height = 46;
-            //btnMaa.Name = "btnMaa";
-            //btnMaa.Type = AntdUI.TTypeMini.Default;
             //
             // dividerV
             //
@@ -151,14 +145,6 @@ namespace XelLauncher
             tableMaa.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
             tableMaa.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tableMaa.Name = "tableMaa";
-            //
-            // labelMaaOfficial
-            //
-            //labelMaaOfficial.Dock = System.Windows.Forms.DockStyle.Fill;
-            //labelMaaOfficial.Name = "labelMaaOfficial";
-            //labelMaaOfficial.Text = "MAA 路径";
-            //labelMaaOfficial.TabIndex = 0;
-            //
             // txtMaaOfficial
             //
             txtMaaOfficial.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -232,9 +218,12 @@ namespace XelLauncher
             tableSoftware.Controls.Add(switch8, 1, 7);
             tableSoftware.Controls.Add(label9, 0, 8);
             tableSoftware.Controls.Add(switch9, 1, 8);
+            tableSoftware.Controls.Add(label10, 0, 9);
+            tableSoftware.Controls.Add(switch10, 1, 9);
             tableSoftware.Dock = System.Windows.Forms.DockStyle.Top;
             tableSoftware.AutoSize = true;
-            tableSoftware.RowCount = 10;
+            tableSoftware.RowCount = 11;
+            tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
@@ -382,6 +371,21 @@ namespace XelLauncher
             switch9.Size = new System.Drawing.Size(50, 30);
             switch9.TabIndex = 0;
             //
+            // label10
+            //
+            label10.Dock = System.Windows.Forms.DockStyle.Fill;
+            label10.Name = "label10";
+            label10.Text = "使用外部浏览器";
+            label10.LocalizationText = "App.Setting.UseExternalBrowser";
+            label10.TabIndex = 0;
+            //
+            // switch10
+            //
+            switch10.Anchor = System.Windows.Forms.AnchorStyles.None;
+            switch10.Name = "switch10";
+            switch10.Size = new System.Drawing.Size(50, 30);
+            switch10.TabIndex = 0;
+            //
             // Setting
             //
             Controls.Add(panelRight);
@@ -425,6 +429,8 @@ namespace XelLauncher
         private AntdUI.Switch switch8;
         private AntdUI.Label label9;
         private AntdUI.Switch switch9;
+        private AntdUI.Label label10;
+        private AntdUI.Switch switch10;
         private AntdUI.Button btnMaa;
         private AntdUI.Button btnLog;
         private System.Windows.Forms.Panel panelLog;

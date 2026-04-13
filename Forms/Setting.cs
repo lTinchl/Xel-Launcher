@@ -11,7 +11,7 @@ namespace XelLauncher
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser;
         public string MaaOfficial, MaaBilibili;
 
         public Setting(AntdUI.BaseForm _form)
@@ -32,6 +32,7 @@ namespace XelLauncher
             switch7.Checked = StartWithWindows = GetStartWithWindows();
             switch8.Checked = CloseAfterLaunch = ConfigHelper.Load().CloseAfterLaunch;
             switch9.Checked = HideToTrayOnLaunch = ConfigHelper.Load().HideToTrayOnLaunch;
+            switch10.Checked = UseExternalBrowser = ConfigHelper.Load().UseExternalBrowser;
 
             var cfg = ConfigHelper.Load();
             txtMaaOfficial.Text = MaaOfficial = cfg.MAA_Official ?? "";
@@ -46,6 +47,7 @@ namespace XelLauncher
             switch7.CheckedChanged += (s, e) => { StartWithWindows = e.Value; };
             switch8.CheckedChanged += (s, e) => { CloseAfterLaunch = e.Value; };
             switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
+            switch10.CheckedChanged += (s, e) => { UseExternalBrowser = e.Value; };
 
             txtMaaOfficial.TextChanged += (s, e) => { MaaOfficial = txtMaaOfficial.Text; };
             txtMaaBilibili.TextChanged += (s, e) => { MaaBilibili = txtMaaBilibili.Text; };
