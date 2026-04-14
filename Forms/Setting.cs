@@ -88,9 +88,21 @@ namespace XelLauncher
 
         private void BindUpdatePanel()
         {
-            btnCheckUpdate.Click += async (s, e) => await CheckUpdateAsync();
-            btnDownloadSetup.Click    += async (s, e) => await DownloadAsync(isSetup: true);
-            btnDownloadPortable.Click += async (s, e) => await DownloadAsync(isSetup: false);
+            btnCheckUpdate.Click += async (s, e) =>
+            {
+                try { await CheckUpdateAsync(); }
+                catch (Exception ex) { txtChangelog.Text = $"发生意外错误：{ex.Message}"; }
+            };
+            btnDownloadSetup.Click += async (s, e) =>
+            {
+                try { await DownloadAsync(isSetup: true); }
+                catch (Exception ex) { lblDownloadStatus.Text = $"错误：{ex.Message}"; }
+            };
+            btnDownloadPortable.Click += async (s, e) =>
+            {
+                try { await DownloadAsync(isSetup: false); }
+                catch (Exception ex) { lblDownloadStatus.Text = $"错误：{ex.Message}"; }
+            };
             btnFallback.Click += (s, e) =>
             {
                 if (!string.IsNullOrEmpty(UpdateHelper.FallbackUrl) &&
@@ -116,6 +128,7 @@ namespace XelLauncher
                 {
                     txtChangelog.Text = "检查失败，请检查网络连接。";
                     lblLatestVersion.Text = "—";
+                    panelUpdateButtons.Visible = false;
                     return;
                 }
 
@@ -177,6 +190,7 @@ namespace XelLauncher
                 var tmpDir = Path.Combine(Path.GetTempPath(), "XelLauncher_Update");
                 destPath = Path.Combine(tmpDir,
                     $"XelLauncher-{_updateInfo.LatestVersion}-Setup.exe");
+                Directory.CreateDirectory(tmpDir);
             }
 
             btnDownloadSetup.Enabled    = false;
