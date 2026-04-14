@@ -13,7 +13,6 @@ namespace XelLauncher.Models
             new GameEntry { Name = "终末地(B服)",     IconName = "BiliEndfield" },
             new GameEntry { Name = "终末地(国际服)",  IconName = "GlobalEndfield" },
         };
-        public List<MaaEntry> MaaList { get; set; } = new List<MaaEntry>();
 
         public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();
         public List<string> AccountOrder { get; set; } = new List<string>();
@@ -35,8 +34,6 @@ namespace XelLauncher.Models
         public string BackgroundColor { get; set; } = "#FFFFFF";              // 窗口背景色
         public bool CloseAfterLaunch { get; set; } = false;               // 启动游戏后关闭软件
         public bool HideToTrayOnLaunch { get; set; } = false;             // 启动游戏后隐藏至托盘，游戏关闭后恢复
-        public string MAA_Official { get; set; } = "";                      // MAA
-        public string MAA_Bilibili { get; set; } = "";                      // MAA B 服
         public string Language { get; set; } = "";                          // 用户选择的语言 (zh-CN / en-US)
         public bool UseExternalBrowser { get; set; } = false;              // 使用外部浏览器打开链接
         /// <summary>
