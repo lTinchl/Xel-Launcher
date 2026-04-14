@@ -13,7 +13,7 @@ namespace XelLauncher.Helpers
             "https://api.github.com/repos/lTinchl/Xel-Launcher/releases/latest";
 
         // 备用网盘链接，GitHub 下载失败时跳转
-        public const string FallbackUrl = "TODO";
+        public const string FallbackUrl = "https://pan.quark.cn/s/54cd514d4236";
 
         private static readonly HttpClient _client = new HttpClient
         {

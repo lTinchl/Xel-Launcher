@@ -106,7 +106,7 @@ namespace XelLauncher
             btnFallback.Click += (s, e) =>
             {
                 if (!string.IsNullOrEmpty(UpdateHelper.FallbackUrl) &&
-                    UpdateHelper.FallbackUrl != "TODO")
+                    UpdateHelper.FallbackUrl != "https://pan.quark.cn/s/54cd514d4236")
                 {
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                     {
@@ -120,6 +120,7 @@ namespace XelLauncher
         private async Task CheckUpdateAsync()
         {
             btnCheckUpdate.Text = "检查中...";
+
             btnCheckUpdate.Enabled = false;
             try
             {
@@ -149,7 +150,7 @@ namespace XelLauncher
                 }
                 else
                 {
-                    txtChangelog.Text = "已是最新版本 🎉";
+                    txtChangelog.Text = "已是最新版本";
                     panelUpdateButtons.Visible = false;
                 }
             }
@@ -211,7 +212,7 @@ namespace XelLauncher
                         {
                             if (pct >= 0)
                             {
-                                progressDownload.Value = pct;
+                                progressDownload.Value = pct / 100F;
                                 var dlMB    = downloaded / 1048576.0;
                                 var totalMB = total / 1048576.0;
                                 lblDownloadStatus.Text = $"{dlMB:F1} MB / {totalMB:F1} MB  {pct}%";

@@ -418,8 +418,6 @@ namespace XelLauncher.Forms
                 cfg.MinimizeToTray = setting.MinimizeToTray;
                 cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
                 cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
-                cfg.MAA_Official = setting.MaaOfficial;
-                cfg.MAA_Bilibili = setting.MaaBilibili;
                 ConfigHelper.Save(cfg);
                 Setting.ApplyStartWithWindows(setting.StartWithWindows);
             }
@@ -484,7 +482,7 @@ namespace XelLauncher.Forms
                     switch (code)
                     {
                         case "help":
-                            var browser = new TabHeaderForm("https://www.bing.com/");
+                            var browser = new TabHeaderForm("https://www.google.com/");
                             browser.Show(this);
                             break;
                         case "bilibili":

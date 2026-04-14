@@ -1074,6 +1074,8 @@ namespace XelLauncher.Helpers
                     return "Software";
                 case "App.Setting.Log":
                     return "Log";
+                case "App.Setting.Update":
+                    return "Update";
                 case "App.Setting.MinimizeToTray":
                     return "Minimize to Tray";
                 case "App.Setting.StartWithWindows":

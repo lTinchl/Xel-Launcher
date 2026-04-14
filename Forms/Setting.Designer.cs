@@ -195,6 +195,12 @@ namespace XelLauncher
             panelUpdateButtons.Name = "panelUpdateButtons";
             panelUpdateButtons.Visible = false;
 
+            // panelButtons：按钮行，停靠顶部
+            var panelButtons = new System.Windows.Forms.Panel();
+            panelButtons.Dock = System.Windows.Forms.DockStyle.Top;
+            panelButtons.Height = 42;
+            panelButtons.Name = "panelButtons";
+
             btnDownloadSetup = new AntdUI.Button();
             btnDownloadSetup.Text = "⬇ 下载安装版";
             btnDownloadSetup.Name = "btnDownloadSetup";
@@ -218,22 +224,26 @@ namespace XelLauncher
             btnFallback.Visible = false;
             btnFallback.Type = AntdUI.TTypeMini.Warn;
 
-            progressDownload = new AntdUI.Progress();
-            progressDownload.Name = "progressDownload";
-            progressDownload.Dock = System.Windows.Forms.DockStyle.Bottom;
-            progressDownload.Height = 8;
-            progressDownload.Value = 0F;
-            progressDownload.Visible = false;
+            panelButtons.Controls.Add(btnDownloadSetup);
+            panelButtons.Controls.Add(btnDownloadPortable);
+            panelButtons.Controls.Add(btnFallback);
 
+            // lblDownloadStatus：状态文字，停靠底部
             lblDownloadStatus = new AntdUI.Label();
             lblDownloadStatus.Name = "lblDownloadStatus";
             lblDownloadStatus.Dock = System.Windows.Forms.DockStyle.Bottom;
             lblDownloadStatus.Height = 20;
             lblDownloadStatus.Text = "";
 
-            panelUpdateButtons.Controls.Add(btnDownloadSetup);
-            panelUpdateButtons.Controls.Add(btnDownloadPortable);
-            panelUpdateButtons.Controls.Add(btnFallback);
+            // progressDownload：进度条，停靠底部（在 lblDownloadStatus 上方）
+            progressDownload = new AntdUI.Progress();
+            progressDownload.Name = "progressDownload";
+            progressDownload.Dock = System.Windows.Forms.DockStyle.Bottom;
+            progressDownload.Height = 10;
+            progressDownload.Value = 0F;
+            progressDownload.Visible = false;
+
+            panelUpdateButtons.Controls.Add(panelButtons);
             panelUpdateButtons.Controls.Add(progressDownload);
             panelUpdateButtons.Controls.Add(lblDownloadStatus);
 

@@ -35,39 +35,5 @@ namespace XelLauncher.Helpers
             };
             timer.Start();
         }
-
-        public static string SelectFolder(string description = "请选择 Arknights 根目录", Icon icon = null)
-        {
-            while (true)
-            {
-                if (icon != null) InjectIcon(icon);
-                using var dialog = new FolderBrowserDialog
-                {
-                    Description = description,
-                    UseDescriptionForTitle = true,
-                    ShowNewFolderButton = false
-                };
-                if (dialog.ShowDialog() != DialogResult.OK)
-                    return "";
-                string selectedPath = dialog.SelectedPath;
-                if (File.Exists(Path.Combine(selectedPath, "Arknights.exe")))
-                    return selectedPath;
-                MessageBox.Show("未找到 'Arknights.exe'，请重新选择游戏根目录", "错误");
-            }
-        }
-
-        public static string SelectExe(string title, string filterName)
-        {
-            using var dialog = new OpenFileDialog
-            {
-                Title = title,
-                Filter = "MAA.exe|MAA.exe",
-                CheckFileExists = true,
-                CheckPathExists = true,
-                Multiselect = false
-            };
-
-            return dialog.ShowDialog() == DialogResult.OK ? dialog.FileName : "";
-        }
     }
 }

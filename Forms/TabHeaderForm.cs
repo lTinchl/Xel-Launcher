@@ -18,7 +18,7 @@ namespace XelLauncher.Forms
         private string _currentTabId = null;
 
 
-        public TabHeaderForm(string startUrl = "https://bing.com")
+        public TabHeaderForm(string startUrl = "https://www.google.com/")
         {
             InitializeComponent();
             this.Icon = Properties.Resources.icon;        // 任务栏图标
@@ -116,7 +116,7 @@ namespace XelLauncher.Forms
             else if (input.Contains(".") && !input.Contains(" "))
                 url = "https://" + input;
             else
-                url = "https://www.bing.com/search?q=" + Uri.EscapeDataString(input);
+                url = "https://www.google.com/search?q=" + Uri.EscapeDataString(input);
 
             // 当前标签导航，不新建
             var browser = CurrentBrowser();
@@ -165,7 +165,10 @@ namespace XelLauncher.Forms
                         ? Microsoft.Web.WebView2.Core.CoreWebView2PreferredColorScheme.Dark
                         : Microsoft.Web.WebView2.Core.CoreWebView2PreferredColorScheme.Light;
 
-                browser.CoreWebView2.Navigate(url);
+                if (browser.CoreWebView2 != null)
+                {
+                    browser.CoreWebView2.Navigate(url);
+                }
 
                 // 拦截新窗口请求（target="_blank" / window.open），在内部新标签页打开
                 browser.CoreWebView2.NewWindowRequested += (s, e) =>
@@ -231,11 +234,7 @@ namespace XelLauncher.Forms
 
         private void tabHeader1_AddClick(object sender, EventArgs e)
         {
-            // 点 + 号新建标签，打开地址栏输入的网址或默认页
-            var url = string.IsNullOrWhiteSpace(txtUrl.Text)
-                ? "https://www.bing.com"
-                : txtUrl.Text.Trim();
-            AddTab(url);
+            AddTab("https://www.google.com/");
         }
     }
 }
