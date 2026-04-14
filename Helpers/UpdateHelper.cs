@@ -22,9 +22,10 @@ namespace XelLauncher.Helpers
 
         static UpdateHelper()
         {
-            _client.DefaultRequestHeaders.Add(
-                "User-Agent",
-                "XelLauncher/" + System.Windows.Forms.Application.ProductVersion);
+            var version = System.Reflection.Assembly
+                .GetExecutingAssembly()
+                .GetName().Version?.ToString() ?? "unknown";
+            _client.DefaultRequestHeaders.Add("User-Agent", $"XelLauncher/{version}");
             _client.DefaultRequestHeaders.Add(
                 "Accept",
                 "application/vnd.github+json");
@@ -44,7 +45,7 @@ namespace XelLauncher.Helpers
 
                 // tag_name 可能是 "v0.1.6" 或 "0.1.6"
                 var tagName = root.GetProperty("tag_name").GetString() ?? "";
-                var version = tagName.TrimStart('v');
+                var version = tagName.TrimStart('v', 'V');
                 var changelog = root.GetProperty("body").GetString() ?? "";
                 var releaseUrl = root.GetProperty("html_url").GetString() ?? "";
 
@@ -73,6 +74,11 @@ namespace XelLauncher.Helpers
                     ReleasePageUrl      = releaseUrl
                 };
             }
+            catch (TaskCanceledException ex)
+            {
+                LogHelper.LogError(ex, "UpdateHelper.CheckAsync - Timeout");
+                return null;
+            }
             catch (Exception ex)
             {
                 LogHelper.LogError(ex, "UpdateHelper.CheckAsync");
@@ -87,12 +93,13 @@ namespace XelLauncher.Helpers
         {
             try
             {
-                var current = new Version(currentVersion.TrimStart('v'));
-                var latest  = new Version(latestVersion.TrimStart('v'));
+                var current = new Version(currentVersion.TrimStart('v', 'V'));
+                var latest  = new Version(latestVersion.TrimStart('v', 'V'));
                 return latest > current;
             }
-            catch
+            catch (Exception ex)
             {
+                LogHelper.LogError(ex, $"UpdateHelper.IsNewer({currentVersion}, {latestVersion})");
                 return false;
             }
         }
