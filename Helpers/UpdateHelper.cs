@@ -20,6 +20,12 @@ namespace XelLauncher.Helpers
             Timeout = TimeSpan.FromSeconds(15)
         };
 
+        // 专用于文件下载，无超时限制（由 CancellationToken 控制）
+        private static readonly HttpClient _downloadClient = new HttpClient
+        {
+            Timeout = System.Threading.Timeout.InfiniteTimeSpan
+        };
+
         static UpdateHelper()
         {
             var version = System.Reflection.Assembly
@@ -118,7 +124,7 @@ namespace XelLauncher.Helpers
             Action<int, long, long> progress,
             System.Threading.CancellationToken ct = default)
         {
-            using var response = await _client.GetAsync(
+            using var response = await _downloadClient.GetAsync(
                 url,
                 System.Net.Http.HttpCompletionOption.ResponseHeadersRead,
                 ct);
@@ -129,19 +135,30 @@ namespace XelLauncher.Helpers
             if (!string.IsNullOrEmpty(dir))
                 System.IO.Directory.CreateDirectory(dir);
 
-            using var src  = await response.Content.ReadAsStreamAsync(ct);
-            using var dest = System.IO.File.Create(destPath);
-
-            var buffer = new byte[81920];
-            long downloaded = 0;
-            int read;
-            while ((read = await src.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
+            var tmpPath = destPath + ".download";
+            try
             {
-                await dest.WriteAsync(buffer, 0, read, ct);
-                downloaded += read;
-                int pct = total > 0 ? (int)(downloaded * 100 / total) : 0;
-                progress?.Invoke(pct, downloaded, total);
+                using var src  = await response.Content.ReadAsStreamAsync(ct);
+                using var dest = System.IO.File.Create(tmpPath);
+
+                var buffer = new byte[81920];
+                long downloaded = 0;
+                int read;
+                while ((read = await src.ReadAsync(buffer.AsMemory(), ct)) > 0)
+                {
+                    await dest.WriteAsync(buffer.AsMemory(0, read), ct);
+                    downloaded += read;
+                    int pct = total > 0 ? (int)(downloaded * 100 / total) : -1;
+                    progress?.Invoke(pct, downloaded, total);
+                }
             }
+            catch
+            {
+                try { System.IO.File.Delete(tmpPath); } catch { }
+                throw;
+            }
+
+            System.IO.File.Move(tmpPath, destPath, overwrite: true);
         }
     }
 }
