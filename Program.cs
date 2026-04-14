@@ -40,17 +40,6 @@ namespace XelLauncher
                 MessageBox.Show("检测到系统未安装 WebView2 Runtime，请安装后再运行！");
                 return;
             }
-            // 捕获 UI 线程未处理异常
-            Application.ThreadException += (s, e) =>
-                Helpers.LogHelper.LogError(e.Exception, "UI ThreadException");
-
-            // 捕获非 UI 线程未处理异常
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-            {
-                if (e.ExceptionObject is Exception ex)
-                    Helpers.LogHelper.LogError(ex, "UnhandledException");
-            };
-
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #if !NET10_0
             //ComWrappers.RegisterForMarshalling(WinFormsComInterop.WinFormsComWrappers.Instance);
@@ -86,8 +75,15 @@ namespace XelLauncher
                 var overview = new Overview(command == "t");
                 overview.Load += async (s, e) =>
                 {
-                    await Task.Delay(3000); // 等待主界面完全渲染
-                    await CheckUpdateSilentAsync(overview);
+                    try
+                    {
+                        await Task.Delay(3000); // 等待主界面完全渲染
+                        await CheckUpdateSilentAsync(overview);
+                    }
+                    catch (Exception ex)
+                    {
+                        Helpers.LogHelper.LogError(ex, "Overview.Load silent update");
+                    }
                 };
                 Application.Run(overview);
             }
