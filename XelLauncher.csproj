@@ -11,7 +11,7 @@
 		<Version>0.1.5</Version>
 		<Company>XelLauncher</Company>
 		<Product>XelLauncher</Product>
-		<AssemblyCopyright>Copyright (c) 2025 XelLauncher</AssemblyCopyright>
+		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<ApplicationIcon>icon.ico</ApplicationIcon>
 		<PublishSingleFile>true</PublishSingleFile>
