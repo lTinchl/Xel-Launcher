@@ -67,7 +67,85 @@ namespace XelLauncher.Forms
             {
                 if (!AntdUI.Config.IsDark)
                     ApplyBackgroundColor(ConfigHelper.Load().BackgroundColor);
+
+                // 定位角标并异步检查更新
+                PositionUpdateBadge();
+                _ = CheckUpdateBadgeAsync();
             };
+            windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
+        }
+
+        /// <summary>
+        /// 将角标定位到版本号文字右上角。
+        /// AntdUI PageHeader 的布局：图标在左（约40px），标题在图标右侧垂直居中，
+        /// SubText 在标题正下方（与标题左对齐），字体更小。
+        /// 所以 SubText 的 X 起点 ≈ iconAndPad，与主标题同列。
+        /// </summary>
+        private void PositionUpdateBadge()
+        {
+            if (!IsHandleCreated) return;
+
+            using var subFont = new System.Drawing.Font("Microsoft YaHei UI", 9F);
+            int iconAndPad = 134; // 图标区域宽度（含 padding）
+
+            // SubText 左对齐于 iconAndPad，测量文字宽度确定右边界
+            int subWidth = System.Windows.Forms.TextRenderer.MeasureText(
+                windowBar.SubText ?? "", subFont).Width;
+
+            // X：紧贴版本号文字右边缘，再退 4px 让角标压住末位数字
+            int badgeX = iconAndPad + subWidth + 12;
+            // Y：SubText 位于 windowBar 下半部分，约在 y=20 处，角标贴其顶部
+            int badgeY = 8;
+
+            updateBadge.Location = new System.Drawing.Point(badgeX, badgeY);
+            updateBadge.BringToFront();
+        }
+
+        private async System.Threading.Tasks.Task CheckUpdateBadgeAsync()
+        {
+            try
+            {
+                var info = await UpdateHelper.CheckAsync();
+                if (info == null) return;
+                var currentVer = System.Windows.Forms.Application.ProductVersion;
+                if (UpdateHelper.IsNewer(currentVer, info.LatestVersion))
+                {
+                    if (IsHandleCreated)
+                        Invoke(() => updateBadge.Visible = true);
+                }
+            }
+            catch { /* 静默失败 */ }
+        }
+
+        private void updateBadge_Click(object sender, EventArgs e)
+        {
+            OpenSettingOnUpdatePage();
+        }
+
+        private void OpenSettingOnUpdatePage()
+        {
+            var setting = new Setting(this);
+            setting.NavigateToUpdate(); // 直接跳到 Update 页
+            if (AntdUI.Modal.open(this, AntdUI.Localization.Get("Setting", "设置"), setting) == DialogResult.OK)
+            {
+                AntdUI.Config.Animation = setting.Animation;
+                AntdUI.Config.ShadowEnabled = setting.ShadowEnabled;
+                AntdUI.Config.ShowInWindow = setting.ShowInWindow;
+                AntdUI.Config.ScrollBarHide = setting.ScrollBarHide;
+                if (AntdUI.Config.TextRenderingHighQuality != setting.TextRenderingHighQuality)
+                {
+                    AntdUI.Config.TextRenderingHighQuality = setting.TextRenderingHighQuality;
+                    Refresh();
+                }
+                var cfg = ConfigHelper.Load();
+                cfg.MinimizeToTray = setting.MinimizeToTray;
+                cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
+                cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
+                ConfigHelper.Save(cfg);
+                Setting.ApplyStartWithWindows(setting.StartWithWindows);
+            }
+            RebuildGameButtons();
+            RebuildSidebar();
         }
 
 
@@ -389,6 +467,8 @@ namespace XelLauncher.Forms
             if (!AntdUI.Config.IsDark)
                 ApplyBackgroundColor(ConfigHelper.Load().BackgroundColor);
             _currentGamePage?.UpdateLaunchPanelColor();
+            // 主题切换后让角标用新背景色重绘描边
+            updateBadge.Invalidate();
         }
 
         private void colorTheme_ValueChanged(object sender, AntdUI.ColorEventArgs e)

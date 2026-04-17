@@ -131,10 +131,11 @@ namespace XelLauncher
             // tableUpdate：版本信息 + 检查按钮
             tableUpdate = new System.Windows.Forms.TableLayoutPanel();
             tableUpdate.SuspendLayout();
-            tableUpdate.ColumnCount = 3;
+            tableUpdate.ColumnCount = 4;
             tableUpdate.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableUpdate.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             tableUpdate.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableUpdate.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
+            tableUpdate.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 150F));
             tableUpdate.RowCount = 2;
             tableUpdate.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24F));
             tableUpdate.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
@@ -144,11 +145,13 @@ namespace XelLauncher
 
             lblCurrentVersionTitle = new AntdUI.Label();
             lblCurrentVersionTitle.Text = "当前版本";
+            lblCurrentVersionTitle.LocalizationText = "App.Update.CurrentVersion";
             lblCurrentVersionTitle.Dock = System.Windows.Forms.DockStyle.Fill;
             lblCurrentVersionTitle.Name = "lblCurrentVersionTitle";
 
             lblLatestVersionTitle = new AntdUI.Label();
             lblLatestVersionTitle.Text = "最新版本";
+            lblLatestVersionTitle.LocalizationText = "App.Update.LatestVersion";
             lblLatestVersionTitle.Dock = System.Windows.Forms.DockStyle.Fill;
             lblLatestVersionTitle.Name = "lblLatestVersionTitle";
 
@@ -157,6 +160,12 @@ namespace XelLauncher
             lblCurrentVersion.Dock = System.Windows.Forms.DockStyle.Fill;
             lblCurrentVersion.Name = "lblCurrentVersion";
 
+            var lblArrow = new AntdUI.Label();
+            lblArrow.Text = "→";
+            lblArrow.Dock = System.Windows.Forms.DockStyle.Fill;
+            lblArrow.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblArrow.Name = "lblArrow";
+
             lblLatestVersion = new AntdUI.Label();
             lblLatestVersion.Text = "—";
             lblLatestVersion.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -164,16 +173,18 @@ namespace XelLauncher
 
             btnCheckUpdate = new AntdUI.Button();
             btnCheckUpdate.Text = "检查更新";
+            btnCheckUpdate.LocalizationText = "App.Update.CheckUpdate";
             btnCheckUpdate.Name = "btnCheckUpdate";
             btnCheckUpdate.Dock = System.Windows.Forms.DockStyle.Fill;
             btnCheckUpdate.Margin = new System.Windows.Forms.Padding(4, 2, 0, 2);
 
             tableUpdate.Controls.Add(lblCurrentVersionTitle, 0, 0);
-            tableUpdate.Controls.Add(lblLatestVersionTitle, 1, 0);
+            tableUpdate.Controls.Add(lblLatestVersionTitle, 2, 0);
             tableUpdate.Controls.Add(lblCurrentVersion, 0, 1);
-            tableUpdate.Controls.Add(lblLatestVersion, 1, 1);
+            tableUpdate.Controls.Add(lblArrow, 1, 1);
+            tableUpdate.Controls.Add(lblLatestVersion, 2, 1);
             tableUpdate.SetRowSpan(btnCheckUpdate, 2);
-            tableUpdate.Controls.Add(btnCheckUpdate, 2, 0);
+            tableUpdate.Controls.Add(btnCheckUpdate, 3, 0);
 
             // txtChangelog：更新日志
             txtChangelog = new System.Windows.Forms.RichTextBox();
@@ -185,7 +196,7 @@ namespace XelLauncher
             txtChangelog.Font = new System.Drawing.Font("Consolas", 9F);
             txtChangelog.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             txtChangelog.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            txtChangelog.Text = "点击「检查更新」查看最新版本信息";
+            txtChangelog.Text = AntdUI.Localization.Get("App.Update.ChangelogHint", "点击「检查更新」查看最新版本信息");
 
             // panelUpdateButtons：下载按钮 + 进度
             panelUpdateButtons = new System.Windows.Forms.Panel();
@@ -203,22 +214,25 @@ namespace XelLauncher
 
             btnDownloadSetup = new AntdUI.Button();
             btnDownloadSetup.Text = "⬇ 下载安装版";
+            btnDownloadSetup.LocalizationText = "App.Update.DownloadSetup";
             btnDownloadSetup.Name = "btnDownloadSetup";
-            btnDownloadSetup.Width = 130;
+            btnDownloadSetup.Width = 220;
             btnDownloadSetup.Height = 34;
             btnDownloadSetup.Location = new System.Drawing.Point(0, 4);
 
             btnDownloadPortable = new AntdUI.Button();
             btnDownloadPortable.Text = "⬇ 下载便携版";
+            btnDownloadPortable.LocalizationText = "App.Update.DownloadPortable";
             btnDownloadPortable.Name = "btnDownloadPortable";
-            btnDownloadPortable.Width = 130;
+            btnDownloadPortable.Width = 220;
             btnDownloadPortable.Height = 34;
-            btnDownloadPortable.Location = new System.Drawing.Point(138, 4);
+            btnDownloadPortable.Location = new System.Drawing.Point(228, 4);
 
             btnFallback = new AntdUI.Button();
             btnFallback.Text = "打开网盘下载页";
+            btnFallback.LocalizationText = "App.Update.Fallback";
             btnFallback.Name = "btnFallback";
-            btnFallback.Width = 130;
+            btnFallback.Width = 220;
             btnFallback.Height = 34;
             btnFallback.Location = new System.Drawing.Point(0, 4);
             btnFallback.Visible = false;
@@ -239,7 +253,7 @@ namespace XelLauncher
             progressDownload = new AntdUI.Progress();
             progressDownload.Name = "progressDownload";
             progressDownload.Dock = System.Windows.Forms.DockStyle.Bottom;
-            progressDownload.Height = 10;
+            progressDownload.Height = 18;
             progressDownload.Value = 0F;
             progressDownload.Visible = false;
 
@@ -257,7 +271,7 @@ namespace XelLauncher
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
-            txtLog.ForeColor = System.Drawing.Color.FromArgb(220, 220, 220);
+            txtLog.ForeColor = System.Drawing.Color.FromArgb(200, 200, 200);
             txtLog.Font = new System.Drawing.Font("Consolas", 9F);
             txtLog.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             txtLog.BorderStyle = System.Windows.Forms.BorderStyle.None;

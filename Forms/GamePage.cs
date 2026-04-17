@@ -602,10 +602,16 @@ namespace XelLauncher.Forms
                     config.Error(ex.Message);
                 }
                 if (!GameStart.IsDisposed)
-                    _overview.Invoke(new Action(() =>
+                {
+                    try
+                    {
+                        _overview.Invoke(new Action(() => { if (!GameStart.IsDisposed) GameStart.Loading = false; }));
+                    }
+                    catch
                     {
                         if (!GameStart.IsDisposed) GameStart.Loading = false;
-                    }));
+                    }
+                }
             });
         }
     }

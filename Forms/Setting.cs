@@ -51,6 +51,11 @@ namespace XelLauncher
             switch10.CheckedChanged += (s, e) => { UseExternalBrowser = e.Value; };
 
             BindUpdatePanel();
+            Load += async (s, e) =>
+            {
+                try { await CheckUpdateAsync(); }
+                catch { /* 静默失败，不打扰用户 */ }
+            };
         }
 
         private static bool GetStartWithWindows()
@@ -79,6 +84,11 @@ namespace XelLauncher
             if (tab == 1) RefreshLog();
         }
 
+        /// <summary>
+        /// 从外部调用，直接切换到「软件更新」页。
+        /// </summary>
+        public void NavigateToUpdate() => ShowPanel(2);
+
         private void RefreshLog()
         {
             txtLog.Text = LogHelper.GetAll();
@@ -91,35 +101,41 @@ namespace XelLauncher
             btnCheckUpdate.Click += async (s, e) =>
             {
                 try { await CheckUpdateAsync(); }
-                catch (Exception ex) { txtChangelog.Text = $"发生意外错误：{ex.Message}"; }
+                catch (Exception ex) { txtChangelog.Text = AntdUI.Localization.Get("App.Update.ErrorPrefix", "发生意外错误：") + ex.Message; }
             };
             btnDownloadSetup.Click += async (s, e) =>
             {
                 try { await DownloadAsync(isSetup: true); }
-                catch (Exception ex) { lblDownloadStatus.Text = $"错误：{ex.Message}"; }
+                catch (Exception ex) { lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadErrorPrefix", "错误：") + ex.Message; }
             };
             btnDownloadPortable.Click += async (s, e) =>
             {
                 try { await DownloadAsync(isSetup: false); }
-                catch (Exception ex) { lblDownloadStatus.Text = $"错误：{ex.Message}"; }
+                catch (Exception ex) { lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadErrorPrefix", "错误：") + ex.Message; }
             };
             btnFallback.Click += (s, e) =>
             {
-                if (!string.IsNullOrEmpty(UpdateHelper.FallbackUrl) &&
-                    UpdateHelper.FallbackUrl != "https://pan.quark.cn/s/54cd514d4236")
+                if (!string.IsNullOrEmpty(UpdateHelper.FallbackUrl))
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    try
                     {
-                        FileName = UpdateHelper.FallbackUrl,
-                        UseShellExecute = true
-                    });
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = UpdateHelper.FallbackUrl,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch
+                    {
+                        System.Diagnostics.Process.Start("explorer.exe", UpdateHelper.FallbackUrl);
+                    }
                 }
             };
         }
 
         private async Task CheckUpdateAsync()
         {
-            btnCheckUpdate.Text = "检查中...";
+            btnCheckUpdate.Text = AntdUI.Localization.Get("App.Update.Checking", "检查中...");
 
             btnCheckUpdate.Enabled = false;
             try
@@ -127,7 +143,7 @@ namespace XelLauncher
                 var info = await UpdateHelper.CheckAsync();
                 if (info == null)
                 {
-                    txtChangelog.Text = "检查失败，请检查网络连接。";
+                    txtChangelog.Text = AntdUI.Localization.Get("App.Update.CheckFailed", "检查失败，请检查网络连接。");
                     lblLatestVersion.Text = "—";
                     panelUpdateButtons.Visible = false;
                     return;
@@ -150,13 +166,13 @@ namespace XelLauncher
                 }
                 else
                 {
-                    txtChangelog.Text = "已是最新版本";
+                    txtChangelog.Text = AntdUI.Localization.Get("App.Update.AlreadyLatest", "已是最新版本");
                     panelUpdateButtons.Visible = false;
                 }
             }
             finally
             {
-                btnCheckUpdate.Text    = "检查更新";
+                btnCheckUpdate.Text    = AntdUI.Localization.Get("App.Update.CheckUpdate", "检查更新");
                 btnCheckUpdate.Enabled = true;
             }
         }
@@ -177,9 +193,9 @@ namespace XelLauncher
             {
                 var sfd = new System.Windows.Forms.SaveFileDialog
                 {
-                    Title            = "保存便携版",
+                    Title            = AntdUI.Localization.Get("App.Update.SavePortableTitle", "保存便携版"),
                     FileName         = $"XelLauncher.v{_updateInfo.LatestVersion}-Portable.zip",
-                    Filter           = "ZIP 压缩包|*.zip",
+                    Filter           = AntdUI.Localization.Get("App.Update.SavePortableFilter", "ZIP 压缩包|*.zip"),
                     DefaultExt       = "zip",
                     RestoreDirectory = true
                 };
@@ -198,7 +214,7 @@ namespace XelLauncher
             btnDownloadPortable.Enabled = false;
             progressDownload.Visible    = true;
             progressDownload.Value      = 0F;
-            lblDownloadStatus.Text      = "准备下载...";
+            lblDownloadStatus.Text      = AntdUI.Localization.Get("App.Update.Preparing", "准备下载...");
 
             _downloadCts = new CancellationTokenSource();
 
@@ -220,7 +236,7 @@ namespace XelLauncher
                             else
                             {
                                 var dlMB = downloaded / 1048576.0;
-                                lblDownloadStatus.Text = $"{dlMB:F1} MB 已下载";
+                                lblDownloadStatus.Text = string.Format(AntdUI.Localization.Get("App.Update.DownloadedMB", "{0:F1} MB 已下载"), dlMB);
                             }
                         });
                     },
@@ -247,18 +263,18 @@ namespace XelLauncher
                 }
                 else
                 {
-                    lblDownloadStatus.Text = "下载完成！";
+                    lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadDone", "下载完成！");
                     System.Diagnostics.Process.Start("explorer.exe",
                         $"/select,\"{destPath}\"");
                 }
             }
             catch (OperationCanceledException)
             {
-                lblDownloadStatus.Text = "已取消";
+                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadCanceled", "已取消");
             }
             catch (Exception)
             {
-                lblDownloadStatus.Text = "下载失败";
+                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadFailed", "下载失败");
                 ShowFallback();
             }
             finally

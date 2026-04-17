@@ -20,6 +20,7 @@ namespace XelLauncher.Forms
             btn_setting = new AntdUI.Button();
             windowBar = new AntdUI.PageHeader();
             colorTheme = new AntdUI.ColorPicker();
+            updateBadge = new UpdateBadgeControl();
             panelSidebar = new System.Windows.Forms.Panel();
             panelSidebarItems = new System.Windows.Forms.FlowLayoutPanel();
             btnSidebarManage = new AntdUI.Button();
@@ -120,6 +121,7 @@ namespace XelLauncher.Forms
             windowBar.Controls.Add(btn_global);
             windowBar.Controls.Add(btn_setting);
             windowBar.Controls.Add(btn_more);
+            windowBar.Controls.Add(updateBadge);
             windowBar.DividerMargin = 3;
             windowBar.DividerShow = true;
             windowBar.Dock = DockStyle.Top;
@@ -134,6 +136,15 @@ namespace XelLauncher.Forms
             windowBar.Text = "Xel Launcher";
             windowBar.TabIndex = 0;
             windowBar.BackClick += btn_back_Click;
+            //
+            // updateBadge
+            //
+            updateBadge.Name = "updateBadge";
+            updateBadge.Size = new Size(10, 10);
+            updateBadge.Location = new Point(0, 0); // 由代码动态定位
+            updateBadge.Visible = false;
+            updateBadge.Cursor = Cursors.Hand;
+            updateBadge.Click += updateBadge_Click;
 
             //
             // panelSidebar
@@ -217,6 +228,7 @@ namespace XelLauncher.Forms
         private AntdUI.Button btn_setting;
         private AntdUI.PageHeader windowBar;
         private AntdUI.ColorPicker colorTheme;
+        private UpdateBadgeControl updateBadge;
         private System.Windows.Forms.Panel panelSidebar;
         private System.Windows.Forms.FlowLayoutPanel panelSidebarItems;
         private AntdUI.Button btnSidebarManage;
