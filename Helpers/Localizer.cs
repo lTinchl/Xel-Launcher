@@ -993,7 +993,7 @@ namespace XelLauncher.Helpers
 
                 // GameSettingForm
                 case "App.GameSetting.VersionEndfield":
-                    return "Version: v1.1.9";
+                    return "Version: v1.2.4";
                 case "App.GameSetting.VersionArknights":
                     return "Version: v72.0.0";
                 case "App.GameSetting.InstallPath":

@@ -227,75 +227,75 @@ namespace XelLauncher.Helpers
             catch (Exception ex) { LogHelper.LogError(ex, "GetParentPid"); return -1; }
         }
 
-        public static async Task BackupAccount(string accountId)
-        {
-            string sdkPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData", "LocalLow", "Hypergryph", "Arknights"
-            );
+        //public static async Task BackupAccount(string accountId)
+        //{
+        //    string sdkPath = Path.Combine(
+        //        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        //        "AppData", "LocalLow", "Hypergryph", "Arknights"
+        //    );
 
-            string target = Path.Combine(ConfigHelper.AccountBackupDir, accountId);
+        //    string target = Path.Combine(ConfigHelper.AccountBackupDir, accountId);
 
-            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
-            if (sdkDir == null) return;
+        //    var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+        //    if (sdkDir == null) return;
 
-            if (Directory.Exists(target)) Directory.Delete(target, true);
-            await CopyDirectory(sdkDir, target);
-        }
+        //    if (Directory.Exists(target)) Directory.Delete(target, true);
+        //    await CopyDirectory(sdkDir, target);
+        //}
 
-        public static async Task RestoreAccount(string accountId)
-        {
-            string backupDir = Path.Combine(ConfigHelper.AccountBackupDir, accountId);
-            if (!Directory.Exists(backupDir))
-                throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
+        //public static async Task RestoreAccount(string accountId)
+        //{
+        //    string backupDir = Path.Combine(ConfigHelper.AccountBackupDir, accountId);
+        //    if (!Directory.Exists(backupDir))
+        //        throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
 
-            string sdkPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData", "LocalLow", "Hypergryph", "Arknights"
-            );
+        //    string sdkPath = Path.Combine(
+        //        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        //        "AppData", "LocalLow", "Hypergryph", "Arknights"
+        //    );
 
-            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
-            if (sdkDir == null)
-                throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
+        //    var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+        //    if (sdkDir == null)
+        //        throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
 
-            if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
-            await CopyDirectory(backupDir, sdkDir);
-        }
+        //    if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
+        //    await CopyDirectory(backupDir, sdkDir);
+        //}
 
-        public static async Task BackupEndfieldAccount(string accountId)
-        {
-            string sdkPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData", "LocalLow", "Hypergryph", "Endfield"
-            );
+        //public static async Task BackupEndfieldAccount(string accountId)
+        //{
+        //    string sdkPath = Path.Combine(
+        //        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        //        "AppData", "LocalLow", "Hypergryph", "Endfield"
+        //    );
 
-            string target = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
+        //    string target = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
 
-            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
-            if (sdkDir == null) return;
+        //    var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+        //    if (sdkDir == null) return;
 
-            if (Directory.Exists(target)) Directory.Delete(target, true);
-            await CopyDirectory(sdkDir, target);
-        }
+        //    if (Directory.Exists(target)) Directory.Delete(target, true);
+        //    await CopyDirectory(sdkDir, target);
+        //}
 
-        public static async Task RestoreEndfieldAccount(string accountId)
-        {
-            string backupDir = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
-            if (!Directory.Exists(backupDir))
-                throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
+        //public static async Task RestoreEndfieldAccount(string accountId)
+        //{
+        //    string backupDir = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
+        //    if (!Directory.Exists(backupDir))
+        //        throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
 
-            string sdkPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData", "LocalLow", "Hypergryph", "Endfield"
-            );
+        //    string sdkPath = Path.Combine(
+        //        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        //        "AppData", "LocalLow", "Hypergryph", "Endfield"
+        //    );
 
-            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
-            if (sdkDir == null)
-                throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
+        //    var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+        //    if (sdkDir == null)
+        //        throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
 
-            if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
-            await CopyDirectory(backupDir, sdkDir);
-        }
+        //    if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
+        //    await CopyDirectory(backupDir, sdkDir);
+        //}
 
         public static async Task CopyDirectory(string sourceDir, string targetDir, int maxRetries = 5)
         {

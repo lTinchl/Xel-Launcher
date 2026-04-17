@@ -126,10 +126,10 @@ namespace XelLauncher
                 owner.Invoke(() =>
                 {
                     AntdUI.Notification.open(new AntdUI.Notification.Config(new AntdUI.Target(owner),
-                        "发现新版本",
+                        AntdUI.Localization.Get("App.Update.NewVersionTitle", "发现新版本"),
                         "v" + info.LatestVersion,
                         AntdUI.TType.Info,
-                        AntdUI.TAlignFrom.TR)
+                        AntdUI.TAlignFrom.TL)
                     {
                         AutoClose = 6
                     });
