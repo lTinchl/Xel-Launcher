@@ -950,6 +950,8 @@ namespace XelLauncher.Helpers
                     return "Start Game";
                 case "App.Game.Setting":
                     return "Game Settings";
+                case "App.Game.Deledwonload":
+                    return "Clear Download cache";
                 case "App.Game.AccountManage":
                     return "Account Management";
                 case "App.Game.Toolbox":
@@ -968,6 +970,26 @@ namespace XelLauncher.Helpers
                     return "Game launched successfully";
                 case "App.Game.HardLinkTip":
                     return "Tip: Install the launcher on the same drive as your game to enable hard links for instant server switching";
+                case "App.Game.Install":
+                    return "Install Game";
+                case "App.Game.Update":
+                    return "Update Game";
+                case "App.Game.Pause":
+                    return "Pause";
+                case "App.Game.Resume":
+                    return "Continue";
+                case "App.Game.Install.Init":
+                    return "Install Init···";
+                case "App.Game.Install.Paused":
+                    return "Paused";
+                case "App.Game.Install.Success":
+                    return "InstallUpdate Success";
+                case "App.Game.ClearCacheSuccess":
+                    return "Clear Cache Success";
+                case "App.Game.ClearCacheFailed":
+                    return "Clear Cache Failed";
+                case "App.Game.NoCache":
+                    return "No cache files found to delete";
 
                 // Switch progress
                 case "App.Switch.ConfirmTitle":
