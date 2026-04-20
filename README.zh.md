@@ -12,7 +12,7 @@
 ![Stars](https://img.shields.io/github/stars/lTinchl/XelLauncher)
 ![Downloads](https://img.shields.io/github/downloads/lTinchl/XelLauncher/total)
 
-基于 [AntdUI](https://github.com/AntdUI/AntdUI) 构建，支持明日方舟、终末地多服切换，提供账号管理、MAA 集成等功能
+基于 [AntdUI](https://github.com/AntdUI/AntdUI) 构建，支持明日方舟、终末地多服切换，提供账号管理等功能
 
 </div>
 
@@ -23,12 +23,13 @@
 ├── Models/                  # 数据模型
 ├── Properties/              # 资源与发布配置
 ├── Resources/               # 图标、图片等静态资源
-├── load/                    # 切服用 payload 压缩包
-│   ├── ArkBilibili          # 方舟 B 服差异文件
+├── load/                    # 切服用 load 文件
+│   ├── ArkBilibili          # 方舟 Bili 服差异文件
 │   ├── ArkOffiicial         # 方舟官服差异文件
-│   ├── EndBilibili          # 终末地 B 服差异文件
+│   ├── EndBilibili          # 终末地 Bili 服差异文件
 │   ├── EndGlobal            # 终末地国际服差异文件
 │   └── EndOfficial          # 终末地官服差异文件
+│   └── EndPlay	             # 终末地GooglePlay服差异文件
 ├── Program.cs               # 程序入口
 └── XelLauncher.csproj
 ```
@@ -42,12 +43,17 @@
 在 [Releases](https://github.com/lTinchl/Xel-Launcher/releases) 下载最新版本安装包，安装后打开软件，按照提示添加游戏路径，即可使用切服功能。
 
 ## 已支持功能
-- [x] 明日方舟官服 / B 服双服切换
-- [x] 终末地官服 / B 服 / 国际服三服切换
-- [x] 终末地、方舟官服多账号无感切换
+- 服务器切换
+	- [x] 明日方舟官服  
+	- [x] 明日方舟Bilibili服
+	- [x] 终末地官服 	
+	- [x] 终末地Bilibili服
+	- [x] 终末地国际服 
+	- [x] 终末地国际服(GooglePlay)
+- [x] 终末地、方舟多账号无感切换
+- [x] 支持游戏下载、更新和版本检测
 - [x] 联动软件启动
-- [x] 明日方舟Wiki
-- [x] 终末地Wiki
+- [x] 自定义参数启动
 
 ## 截图
 <img width="1280" height="760" alt="QQ_1775213815782" src="https://github.com/user-attachments/assets/b2f3b2e0-d0ac-480d-aaba-f7fee556baab" />
@@ -57,6 +63,7 @@
 - UI 框架：[AntdUI](https://github.com/AntdUI/AntdUI)
 - 思路来源:[▶️2分钟教会你明日方舟PC端官服-B服互转](https://www.bilibili.com/video/BV1VHFRzoE7T/?spm_id_from=333.337.search-card.all.click&vd_source=ec94b95a235413f9ad5d2ccb4597ac9f)
 - 账号无感切换:[▶️明日方舟PC端多账号无感切换教程](https://www.bilibili.com/video/BV1dgcsz1EjM/?share_source=copy_web&vd_source=5d993adf522c16219536a4e8a61f8484)
+- 游戏下载更新相关:[[Hi3Helper.Plugin.Arknights](https://github.com/misaka10843/Hi3Helper.Plugin.Arknights)] - [[Hi3Helper.Plugin.Endfield](https://github.com/misaka10843/Hi3Helper.Plugin.Endfield)]
 - [Prts Wiki](https://prts.wiki/id/1) - [明日方舟工具箱](https://arkntools.app/) - [明日方舟一图流](https://ark.yituliu.cn/)
 - [华法林 Wiki](https://endfieldtools.dev/) - [Endfield Tools](https://endfieldtools.dev/) - [终末地一图流](https://ef.yituliu.cn/)
 ## 免责声明

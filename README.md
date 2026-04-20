@@ -12,7 +12,7 @@ English | [中文](./README.zh.md)
 ![Stars](https://img.shields.io/github/stars/lTinchl/XelLauncher)
 ![Downloads](https://img.shields.io/github/downloads/lTinchl/XelLauncher/total)
 
-Built on [AntdUI](https://github.com/AntdUI/AntdUI), supporting multi-server switching for Arknights and Arknights: Endfield, with account management, MAA integration, and more.
+Built on [AntdUI](https://github.com/AntdUI/AntdUI), supporting multi-server switching for Arknights and Arknights: Endfield, with account management and more.
 
 </div>
 
@@ -29,6 +29,7 @@ Built on [AntdUI](https://github.com/AntdUI/AntdUI), supporting multi-server swi
 │   ├── EndBilibili          # Endfield Bilibili server
 │   ├── EndGlobal            # Endfield global server
 │   └── EndOfficial          # Endfield official server
+│   └── EndPlay              # Endfield Google Play server
 ├── Program.cs               # Entry point
 └── XelLauncher.csproj
 ```
@@ -42,12 +43,17 @@ Built on [AntdUI](https://github.com/AntdUI/AntdUI), supporting multi-server swi
 Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Launcher/releases), install and open the application, then follow the on-screen prompts to add your game path. Server switching will then be available.
 
 ## Supported Features
-- [x] Arknights Official / Bilibili server switching
-- [x] Arknights: Endfield Official / Bilibili / Global server switching
-- [x] Seamless multi-account switching for Endfield and Arknights official servers
+- Server switching
+  - [x] Arknights official server
+  - [x] Arknights Bilibili server
+  - [x] Arknights: Endfield official server
+  - [x] Arknights: Endfield Bilibili server
+  - [x] Arknights: Endfield global server
+  - [x] Arknights: Endfield global server (Google Play)
+- [x] Seamless multi-account switching for Endfield and Arknights
+- [x] Game download, update, and version detection
 - [x] Companion app launching
-- [x] Arknights Wiki integration
-- [x] Arknights: Endfield Wiki integration
+- [x] Custom launch parameters
 
 ## Screenshots
 <img width="1280" height="760" alt="QQ_1775213815782" src="https://github.com/user-attachments/assets/b2f3b2e0-d0ac-480d-aaba-f7fee556baab" />
@@ -57,6 +63,7 @@ Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Lau
 - UI Framework: [AntdUI](https://github.com/AntdUI/AntdUI)
 - Concept reference: [▶️2分钟教会你明日方舟PC端官服-B服互转](https://www.bilibili.com/video/BV1VHFRzoE7T/?spm_id_from=333.337.search-card.all.click&vd_source=ec94b95a235413f9ad5d2ccb4597ac9f)
 - Seamless account switching: [▶️明日方舟PC端多账号无感切换教程](https://www.bilibili.com/video/BV1dgcsz1EjM/?share_source=copy_web&vd_source=5d993adf522c16219536a4e8a61f8484)
+- Game download & update: [[Hi3Helper.Plugin.Arknights](https://github.com/misaka10843/Hi3Helper.Plugin.Arknights)] · [[Hi3Helper.Plugin.Endfield](https://github.com/misaka10843/Hi3Helper.Plugin.Endfield)]
 - [Prts Wiki](https://prts.wiki/id/1) · [明日方舟工具箱](https://arkntools.app/) · [明日方舟一图流](https://ark.yituliu.cn/)
 - [Warfarin Wiki](https://endfieldtools.dev/) · [Endfield Tools](https://endfieldtools.dev/) · [终末地一图流](https://ef.yituliu.cn/)
 
