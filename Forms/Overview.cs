@@ -182,7 +182,7 @@ namespace XelLauncher.Forms
                         using var g2 = System.Drawing.Graphics.FromImage(dst);
                         g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                         g2.DrawImage(src, 0, 0, 44, 44);
-                        btn.GameIcon = g.IconName == "GlobalEndfield" ? ApplyRoundedCorners(dst, 10) : dst;
+                        btn.GameIcon = (g.IconName == "GlobalEndfield" || g.IconName == "PlayEndfield") ? ApplyRoundedCorners(dst, 10) : dst;
                     }
                 }
                 catch { }
@@ -308,6 +308,7 @@ namespace XelLauncher.Forms
                     "Endfield"       => "Endfield.ico",
                     "BiliEndfield"   => "BiliEndfield.ico",
                     "GlobalEndfield" => "GlobalEndfield.ico",
+                    "PlayEndfield" => "PlayEndfield.ico",
                     "official"       => "official.ico",
                     _ => null
                 };

@@ -1014,6 +1014,8 @@ namespace XelLauncher.Helpers
                     return "Replace files with Bilibili server";
                 case "App.GameSetting.ReplaceGlobal":
                     return "Replace files with Global server";
+                case "App.GameSetting.ReplacePlay":
+                    return "Replace files with GooglePlay server";
                 case "App.GameSetting.BiliWebsite":
                     return "Arknights BiliBili Website";
                 case "App.GameSetting.EndfieldWebsite":
@@ -1022,16 +1024,20 @@ namespace XelLauncher.Helpers
                     return "Endfield BiliBili Website";
                 case "App.GameSetting.EndfieldGlobalWebsite":
                     return "Endfield Global Website";
+                case "App.GameSetting.EndfieldPlayWebsite":
+                    return "Endfield GooglePlay Website";
                 case "App.GameSetting.ArknightsWebsite":
                     return "Arknights Official Website";
                 case "App.GameSetting.SyncToBili":
                     return "Sync path to Bilibili server";
                 case "App.GameSetting.SyncToAll":
-                    return "Sync path to Bilibili / Global server";
+                    return "Sync path to Bilibili / Global / GooglePlay server";
                 case "App.GameSetting.WarnSetBiliPath":
                     return "Please set the Bilibili server path first";
                 case "App.GameSetting.WarnSetGlobalPath":
                     return "Please set the Global server path first";
+                case "App.GameSetting.WarnSetPlayPath":
+                    return "Please set the GooglePlay server path first";
                 case "App.GameSetting.WarnSetOfficialPath":
                     return "Please set the Official server path first";
                 case "App.GameSetting.ZipNotFoundBili":
@@ -1040,6 +1046,8 @@ namespace XelLauncher.Helpers
                     return "Bilibili server resource package (EndBilibili.zip) not found. Check the load folder.";
                 case "App.GameSetting.ZipNotFoundGlobal":
                     return "Global server resource package (EndGlobal.zip) not found. Check the load folder.";
+                case "App.GameSetting.ZipNotFoundPlay":
+                    return "GooglePlay server resource package (EndPlay.zip) not found. Check the load folder.";
                 case "App.GameSetting.ConfirmReplace":
                     return "Confirm Replace";
                 case "App.GameSetting.ConfirmReplaceArkBili":
@@ -1048,6 +1056,8 @@ namespace XelLauncher.Helpers
                     return "Replace the current directory with Bilibili server files? This will overwrite game files.";
                 case "App.GameSetting.ConfirmReplaceGlobal":
                     return "Replace the current directory with Global server files? This will overwrite game files.";
+                case "App.GameSetting.ConfirmReplacePlay":
+                    return "Replace the current directory with GooglePlay server files? This will overwrite game files.";
                 case "App.GameSetting.Replacing":
                     return "Replacing...";
                 case "App.GameSetting.ReplaceSuccess":
@@ -1057,7 +1067,7 @@ namespace XelLauncher.Helpers
                 case "App.GameSetting.SyncSuccess":
                     return "Path synced to Bilibili server.";
                 case "App.GameSetting.SyncSuccessAll":
-                    return "Path synced to Bilibili and Global servers.";
+                    return "Path synced to Bilibili, Global and GooglePlay servers.";
                 case "App.GameSetting.PathInvalid":
                     return "Invalid Path";
                 case "App.GameSetting.PathInvalidMsg":
@@ -1068,6 +1078,16 @@ namespace XelLauncher.Helpers
                     return "Custom Launch Sync";
                 case "App.GameSetting.ManageSync":
                     return "Manage Sync Apps";
+                case "App.GameSetting.SessionToken":
+                    return "Session Token";
+                case "App.GameSetting.AutoGetToken":
+                    return "Auto Get Token";
+                case "App.GameSetting.TokenPlaceholder":
+                    return "No Token Set";
+                case "App.GameSetting.TokenSuccess":
+                    return "Token Retrieved";
+                case "App.GameSetting.TokenNotFound":
+                    return "Token not found, please ensure the game is running";
 
                 // Setting panel
                 case "App.Setting.Software":

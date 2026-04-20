@@ -12,6 +12,7 @@ namespace XelLauncher.Models
             new GameEntry { Name = "终末地",          IconName = "Endfield" },
             new GameEntry { Name = "终末地(B服)",     IconName = "BiliEndfield" },
             new GameEntry { Name = "终末地(国际服)",  IconName = "GlobalEndfield" },
+            new GameEntry { Name = "终末地(GooglePlay)", IconName = "PlayEndfield" },
         };
 
         public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();

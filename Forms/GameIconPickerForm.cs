@@ -18,6 +18,7 @@ namespace XelLauncher.Forms
             ("Endfield",       "终末地",           "终末地",          "Endfield (Official)"),
             ("BiliEndfield",   "终末地(B服)",     "终末地(B服)",     "Endfield (Bilibili)"),
             ("GlobalEndfield", "终末地(国际服)",  "终末地(国际服)",  "Endfield (Global)"),
+            ("PlayEndfield",   "终末地(GooglePlay)", "终末地(GooglePlay)", "Endfield (GooglePlay)"),
         };
 
         private readonly System.Collections.Generic.List<CardPanel> _cards = new();
@@ -187,6 +188,7 @@ namespace XelLauncher.Forms
                         "Endfield"       => "Endfield.ico",
                         "BiliEndfield"   => "BiliEndfield.ico",
                         "GlobalEndfield" => "GlobalEndfield.ico",
+                        "PlayEndfield" => "PlayEndfield.ico",
                         _ => null
                     };
                     if (file == null) return null;
@@ -198,7 +200,7 @@ namespace XelLauncher.Forms
                     using var g = Graphics.FromImage(dst);
                     g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     g.DrawImage(src, 0, 0, 56, 56);
-                    return key == "GlobalEndfield" ? ApplyRoundedCorners(dst, 12) : dst;
+                    return (key == "GlobalEndfield" || key == "PlayEndfield") ? ApplyRoundedCorners(dst, 12) : dst;
                 }
                 catch { return null; }
             }

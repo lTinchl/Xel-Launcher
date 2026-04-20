@@ -22,6 +22,7 @@ namespace XelLauncher.Helpers
                 "Arknights"      => "ArkOfficial",
                 "BiliEndfield"   => "EndBilibili",
                 "GlobalEndfield" => "EndGlobal",
+                "PlayEndfield" => "EndPlay",
                 "Endfield"       => "EndOfficial",
                 _ => null
             };
@@ -136,14 +137,25 @@ namespace XelLauncher.Helpers
                 }
             }
 
-            bool isEndfield = iconName == "Endfield" || iconName == "BiliEndfield" || iconName == "GlobalEndfield";
+            bool isEndfield = iconName == "Endfield" || iconName == "BiliEndfield" || iconName == "GlobalEndfield" || iconName == "PlayEndfield";
             string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
             string exePath = Path.Combine(rootPath, exeName);
             if (!File.Exists(exePath)) throw new Exception($"未找到 {exeName}");
 
+            string launchArgs = "";
+            if (iconName == "PlayEndfield")
+            {
+                var cfgToken = ConfigHelper.Load();
+                var tokenEntry = cfgToken.Games.Find(g => g.IconName == iconName);
+                string token = tokenEntry?.SessionToken;
+                if (!string.IsNullOrEmpty(token))
+                    launchArgs = $"-launcher_sub_channel=802 --g_session_token={token}";
+            }
+
             Process.Start(new ProcessStartInfo
             {
                 FileName = exePath,
+                Arguments = launchArgs,
                 WorkingDirectory = rootPath,
                 UseShellExecute = true
             });
