@@ -53,12 +53,12 @@ namespace XelLauncher.Helpers
 
         // 用硬链接（或复制）将 sourceDir 的文件部署到 targetDir
         // 返回 true 表示使用了硬链接，false 表示使用了文件复制
-        public static async Task<bool> HardLinkOrCopyDirectory(string sourceDir, string targetDir, int maxRetries = 5, bool tryHardLink = true)
+        public static async Task<bool> HardLinkOrCopyDirectory(string sourceDir, string targetDir, int maxRetries = 5)
         {
             sourceDir = Path.GetFullPath(sourceDir).TrimEnd(Path.DirectorySeparatorChar);
             targetDir = Path.GetFullPath(targetDir).TrimEnd(Path.DirectorySeparatorChar);
 
-            bool sameVolume = tryHardLink && OnSameVolume(sourceDir, targetDir);
+            bool sameVolume = OnSameVolume(sourceDir, targetDir);
 
             await Task.Run(() =>
             {
@@ -94,11 +94,8 @@ namespace XelLauncher.Helpers
             if (payloadDir == null || !Directory.Exists(payloadDir))
                 throw new FileNotFoundException(AntdUI.Localization.Get("App.Switch.NoPayload", "未找到切服资源（文件夹或 ZIP 均不存在）"));
 
-            bool useHardLink = ConfigHelper.Load().UseHardLink;
-            onProgress(useHardLink
-                ? AntdUI.Localization.Get("App.Switch.Linking", "切服中（硬链接）...")
-                : AntdUI.Localization.Get("App.Switch.Copying", "切服中（文件复制）..."));
-            bool usedHardLink = await HardLinkOrCopyDirectory(payloadDir, rootPath, tryHardLink: useHardLink);
+            onProgress(AntdUI.Localization.Get("App.Switch.Linking", "切服中（硬链接）..."));
+            bool usedHardLink = await HardLinkOrCopyDirectory(payloadDir, rootPath);
             onResult(usedHardLink);
 
             string doneMsg = usedHardLink
@@ -144,14 +141,9 @@ namespace XelLauncher.Helpers
             string exePath = Path.Combine(rootPath, exeName);
             if (!File.Exists(exePath)) throw new Exception($"未找到 {exeName}");
 
-            string launchArgs = (entry?.CustomLaunchArgsEnabled == true && !string.IsNullOrEmpty(entry?.CustomLaunchArgs))
-                ? entry.CustomLaunchArgs
-                : "";
-
             Process.Start(new ProcessStartInfo
             {
                 FileName = exePath,
-                Arguments = launchArgs,
                 WorkingDirectory = rootPath,
                 UseShellExecute = true
             });
@@ -235,15 +227,6 @@ namespace XelLauncher.Helpers
             catch (Exception ex) { LogHelper.LogError(ex, "GetParentPid"); return -1; }
         }
 
-        // sdk_data_* 文件夹名由 SDK channel ID 决定，各服固定不变
-        private static string GetEndfieldSdkDirName(string iconName) => iconName == "GlobalEndfield"
-            ? "sdk_data_e64e200fc9f5ea3996533c6a5d5c026e"
-            : "sdk_data_f57244c3e8fff8b61b2b009154a0f4";
-
-        private static string GetEndfieldBackupDir(string iconName) => iconName == "GlobalEndfield"
-            ? ConfigHelper.GlobalEndAccountBackupDir
-            : ConfigHelper.EndAccountBackupDir;
-
         public static async Task BackupAccount(string accountId)
         {
             string sdkPath = Path.Combine(
@@ -279,25 +262,25 @@ namespace XelLauncher.Helpers
             await CopyDirectory(backupDir, sdkDir);
         }
 
-        public static async Task BackupEndfieldAccount(string accountId, string iconName = "Endfield")
+        public static async Task BackupEndfieldAccount(string accountId)
         {
             string sdkPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "AppData", "LocalLow", "Hypergryph", "Endfield"
             );
 
-            string target = Path.Combine(GetEndfieldBackupDir(iconName), accountId);
+            string target = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
 
-            string sdkDir = Path.Combine(sdkPath, GetEndfieldSdkDirName(iconName));
-            if (!Directory.Exists(sdkDir)) return;
+            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+            if (sdkDir == null) return;
 
             if (Directory.Exists(target)) Directory.Delete(target, true);
             await CopyDirectory(sdkDir, target);
         }
 
-        public static async Task RestoreEndfieldAccount(string accountId, string iconName = "Endfield")
+        public static async Task RestoreEndfieldAccount(string accountId)
         {
-            string backupDir = Path.Combine(GetEndfieldBackupDir(iconName), accountId);
+            string backupDir = Path.Combine(ConfigHelper.EndAccountBackupDir, accountId);
             if (!Directory.Exists(backupDir))
                 throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
 
@@ -306,8 +289,41 @@ namespace XelLauncher.Helpers
                 "AppData", "LocalLow", "Hypergryph", "Endfield"
             );
 
-            string sdkDir = Path.Combine(sdkPath, GetEndfieldSdkDirName(iconName));
+            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+            if (sdkDir == null)
+                throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
 
+            if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
+            await CopyDirectory(backupDir, sdkDir);
+        }
+
+        public static async Task BackupGlobalEndfieldAccount(string accountId)
+        {
+            string sdkPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "AppData", "LocalLow", "Hypergryph", "Endfield"
+            );
+
+            string sdkDir = Path.Combine(sdkPath, "sdk_data_e64e200fc9f5ea3996533c6a5d5c026e");
+            if (!Directory.Exists(sdkDir)) return;
+
+            string target = Path.Combine(ConfigHelper.GlobalEndAccountBackupDir, accountId);
+            if (Directory.Exists(target)) Directory.Delete(target, true);
+            await CopyDirectory(sdkDir, target);
+        }
+
+        public static async Task RestoreGlobalEndfieldAccount(string accountId)
+        {
+            string backupDir = Path.Combine(ConfigHelper.GlobalEndAccountBackupDir, accountId);
+            if (!Directory.Exists(backupDir))
+                throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
+
+            string sdkPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "AppData", "LocalLow", "Hypergryph", "Endfield"
+            );
+
+            string sdkDir = Path.Combine(sdkPath, "sdk_data_e64e200fc9f5ea3996533c6a5d5c026e");
             if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
             await CopyDirectory(backupDir, sdkDir);
         }
