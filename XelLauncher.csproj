@@ -2,7 +2,7 @@
 	
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0-windows</TargetFramework>
+		<TargetFramework>net10.0-windows</TargetFramework>
 		<UseWindowsForms>true</UseWindowsForms>
 		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -68,6 +68,9 @@
 
 	<ItemGroup>
 		<ProjectReference Include="H:\Vs Project\111\AntdUI\AntdUI.csproj" />
+		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Arknights\Hi3Helper.Plugin.Arknights\Hi3Helper.Plugin.Arknights.csproj" />
+		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Core\Hi3Helper.Plugin.Core.csproj" />
+		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Endfield.csproj" />
 		<PackageReference Include="AntdUI.EmojiFluentFlat" Version="*" />
 	</ItemGroup>
 
