@@ -48,6 +48,8 @@ namespace XelLauncher
             switch9 = new AntdUI.Switch();
             label10 = new AntdUI.Label();
             switch10 = new AntdUI.Switch();
+            label11 = new AntdUI.Label();
+            switch11 = new AntdUI.Switch();
             panelLeft.SuspendLayout();
             panelRight.SuspendLayout();
             scrollSoftware.SuspendLayout();
@@ -301,9 +303,12 @@ namespace XelLauncher
             tableSoftware.Controls.Add(switch9, 1, 8);
             tableSoftware.Controls.Add(label10, 0, 9);
             tableSoftware.Controls.Add(switch10, 1, 9);
+            tableSoftware.Controls.Add(label11, 0, 10);
+            tableSoftware.Controls.Add(switch11, 1, 10);
             tableSoftware.Dock = System.Windows.Forms.DockStyle.Top;
             tableSoftware.AutoSize = true;
-            tableSoftware.RowCount = 11;
+            tableSoftware.RowCount = 12;
+            tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
             tableSoftware.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
@@ -467,6 +472,21 @@ namespace XelLauncher
             switch10.Size = new System.Drawing.Size(50, 30);
             switch10.TabIndex = 0;
             //
+            // label11
+            //
+            label11.Dock = System.Windows.Forms.DockStyle.Fill;
+            label11.Name = "label11";
+            label11.Text = "使用硬链接切服";
+            label11.LocalizationText = "App.Setting.UseHardLink";
+            label11.TabIndex = 0;
+            //
+            // switch11
+            //
+            switch11.Anchor = System.Windows.Forms.AnchorStyles.None;
+            switch11.Name = "switch11";
+            switch11.Size = new System.Drawing.Size(50, 30);
+            switch11.TabIndex = 0;
+            //
             // Setting
             //
             Controls.Add(panelRight);
@@ -513,6 +533,8 @@ namespace XelLauncher
         private AntdUI.Switch switch9;
         private AntdUI.Label label10;
         private AntdUI.Switch switch10;
+        private AntdUI.Label label11;
+        private AntdUI.Switch switch11;
         private AntdUI.Button btnLog;
         private AntdUI.Button btnUpdate;
         private System.Windows.Forms.Panel panelLog;
