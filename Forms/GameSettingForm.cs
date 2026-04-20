@@ -15,11 +15,13 @@ namespace XelLauncher.Forms
         private readonly GameEntry _game;
         private readonly Overview _overview;
         private AntdUI.Input _inputPath;
+        private readonly Action _onPathChanged;
 
-        public GameSettingForm(GameEntry game, Overview overview)
+        public GameSettingForm(GameEntry game, Overview overview, Action onAccountSwitchChanged = null, Action onPathChanged = null)
         {
             _game = game;
             _overview = overview;
+            _onPathChanged = onPathChanged;
             var cfg = ConfigHelper.Load();
             var latest = cfg.Games.Find(g => g.Name == game.Name && g.IconName == game.IconName);
             string currentPath = latest?.RootPath ?? game.RootPath;
@@ -189,7 +191,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btnBili.Click += (s, e) =>
-                    new TabHeaderForm("https://www.biligame.com/detail/?id=117664").Show();
+                    TabHeaderForm.Open("https://www.biligame.com/detail/?id=117664");
                 Controls.Add(btnBili);
                 Size = new Size(360, 386);
             }
@@ -203,7 +205,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
-                    new TabHeaderForm("https://endfield.hypergryph.com/").Show();
+                    TabHeaderForm.Open("https://endfield.hypergryph.com/");
                 Controls.Add(btn);
 
                 var btnSync = new AntdUI.Button
@@ -295,7 +297,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
-                    new TabHeaderForm("https://www.biligame.com/detail/?id=108422").Show();
+                    TabHeaderForm.Open("https://www.biligame.com/detail/?id=108422");
                 Controls.Add(btn);
                 Size = new Size(360, 386);
             }
@@ -361,7 +363,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btn.Click += (s, e) =>
-                    new TabHeaderForm("https://endfield.hypergryph.com/en-US/").Show();
+                    TabHeaderForm.Open("https://endfield.hypergryph.com/en-US/");
                 Controls.Add(btn);
                 Size = new Size(360, 386);
             }
@@ -375,7 +377,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 btnguan.Click += (s, e) =>
-                    new TabHeaderForm("https://ak.hypergryph.com/").Show();
+                    TabHeaderForm.Open("https://ak.hypergryph.com/");
                 Controls.Add(btnguan);
 
                 var btnSync = new AntdUI.Button
@@ -407,6 +409,8 @@ namespace XelLauncher.Forms
             var cfgNow = ConfigHelper.Load();
             var entryNow = cfgNow.Games.Find(g => g.IconName == game.IconName);
             bool syncEnabled = entryNow?.SyncLaunchEnabled ?? false;
+            bool accountSwitchEnabled = entryNow?.AccountSwitchEnabled ?? false;
+            bool launchArgsEnabled = entryNow?.CustomLaunchArgsEnabled ?? false;
 
             var divider2 = new AntdUI.Divider
             {
@@ -458,6 +462,98 @@ namespace XelLauncher.Forms
 
             Size = new Size(360, syncEnabled ? 458 : 410);
 
+            // ── 启用账号切换 ──
+            bool showAccountSwitch = game.IconName != "BiliArknights" && game.IconName != "BiliEndfield";
+            AntdUI.Divider divider3 = null;
+            AntdUI.Switch swacmg = null;
+            if (showAccountSwitch)
+            {
+                divider3 = new AntdUI.Divider
+                {
+                    Location = new Point(20, 530),
+                    Size = new Size(264, 20),
+                    Thickness = 1F,
+                    Text = AntdUI.Localization.Get("App.GameSetting.AccountSwitch", "启用账号切换"),
+                    Orientation = AntdUI.TOrientation.Left,
+                    OrientationMargin = 0
+                };
+
+                swacmg = new AntdUI.Switch
+                {
+                    Location = new Point(304, 530),
+                    Size = new Size(36, 20),
+                    Checked = accountSwitchEnabled,
+                };
+                swacmg.CheckedChanged += (s, e) =>
+                {
+                    var cfg = ConfigHelper.Load();
+                    var entry = cfg.Games.Find(g => g.IconName == game.IconName);
+                    if (entry != null)
+                    {
+                        entry.AccountSwitchEnabled = swacmg.Checked;
+                        ConfigHelper.Save(cfg);
+                    }
+                    onAccountSwitchChanged?.Invoke();
+                };
+            }
+
+            // ── 自定义启动参数 ──
+            var dividerArgs = new AntdUI.Divider
+            {
+                Location = new Point(20, 560),
+                Size = new Size(270, 20),
+                Thickness = 1F,
+                Text = AntdUI.Localization.Get("App.GameSetting.CustomLaunchArgs", "自定义启动参数"),
+                Orientation = AntdUI.TOrientation.Left,
+                OrientationMargin = 0
+            };
+
+            var swArgs = new AntdUI.Switch
+            {
+                Location = new Point(304, 560),
+                Size = new Size(36, 20),
+                Checked = launchArgsEnabled,
+            };
+
+            var inputArgs = new AntdUI.Input
+            {
+                Location = new Point(18, 584),
+                Size = new Size(320, 36),
+                Text = entryNow?.CustomLaunchArgs ?? "",
+                ReadOnly = !launchArgsEnabled,
+                PlaceholderText = AntdUI.Localization.Get("App.GameSetting.CustomLaunchArgsPlaceholder", "输入启动参数"),
+            };
+            inputArgs.TextChanged += (s, e) =>
+            {
+                var cfg = ConfigHelper.Load();
+                var entry = cfg.Games.Find(g => g.IconName == game.IconName);
+                if (entry != null)
+                {
+                    entry.CustomLaunchArgs = inputArgs.Text;
+                    ConfigHelper.Save(cfg);
+                }
+            };
+            swArgs.CheckedChanged += (s, e) =>
+            {
+                bool on = swArgs.Checked;
+                inputArgs.ReadOnly = !on;
+                var cfg = ConfigHelper.Load();
+                var entry = cfg.Games.Find(g => g.IconName == game.IconName);
+                if (entry != null)
+                {
+                    entry.CustomLaunchArgsEnabled = on;
+                    ConfigHelper.Save(cfg);
+                }
+            };
+
+            if (showAccountSwitch)
+            {
+                Controls.Add(divider3);
+                Controls.Add(swacmg);
+            }
+            Controls.Add(dividerArgs);
+            Controls.Add(swArgs);
+            Controls.Add(inputArgs);
             Controls.Add(divider2);
             Controls.Add(swExtra);
             Controls.Add(btnManage);
@@ -482,39 +578,19 @@ namespace XelLauncher.Forms
 
         private void BrowsePath()
         {
-            while (true)
-            {
-                Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
-                using var dlg = new System.Windows.Forms.FolderBrowserDialog();
-                dlg.Description = AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName());
-                dlg.UseDescriptionForTitle = true;
-                if (!string.IsNullOrEmpty(_inputPath.Text))
-                    dlg.InitialDirectory = _inputPath.Text;
+            Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
+            using var dlg = new System.Windows.Forms.FolderBrowserDialog();
+            dlg.Description = AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName());
+            dlg.UseDescriptionForTitle = true;
+            if (!string.IsNullOrEmpty(_inputPath.Text))
+                dlg.InitialDirectory = _inputPath.Text;
 
-                var form = FindForm();
-                if (dlg.ShowDialog(form) != DialogResult.OK) return;
+            var form = FindForm();
+            if (dlg.ShowDialog(form) != DialogResult.OK) return;
 
-                string selected = dlg.SelectedPath;
-                bool isEndfield = _game.IconName == "Endfield" || _game.IconName == "BiliEndfield" || _game.IconName == "GlobalEndfield";
-                string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
-                if (File.Exists(Path.Combine(selected, exeName)))
-                {
-                    _inputPath.Text = selected;
-                    AutoSave(selected);
-                    return;
-                }
-                System.Media.SystemSounds.Exclamation.Play();
-                var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
-                    FindForm() as AntdUI.BaseForm ?? null,
-                    AntdUI.Localization.Get("App.GameSetting.PathInvalid", "路径无效"),
-                    string.Format(AntdUI.Localization.Get("App.GameSetting.PathInvalidMsg", "所选文件夹中未找到 {0}，请重新选择正确的游戏根目录。"), exeName),
-                    AntdUI.TType.Warn)
-                {
-                    OkText = AntdUI.Localization.Get("App.GameSetting.Reselect", "重新选择"),
-                    CancelText = AntdUI.Localization.Get("Cancel", "取消")
-                });
-                if (result != DialogResult.OK) return;
-            }
+            _inputPath.Text = dlg.SelectedPath;
+            AutoSave(dlg.SelectedPath);
+            _onPathChanged?.Invoke();
         }
 
         private static System.Drawing.Icon LoadIcon(string iconName)
