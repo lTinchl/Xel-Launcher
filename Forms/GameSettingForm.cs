@@ -470,16 +470,12 @@ namespace XelLauncher.Forms
                 {
                     try
                     {
-                        // 1. 定义你的原始 PowerShell 命令（在 C# 字符串里怎么写舒服就怎么写）
                         string rawCommand = "(Get-CimInstance Win32_Process -Filter \"Name = 'Games.exe'\").CommandLine";
-
-                        // 2. 转换成 PowerShell 要求的 Base64 格式 (必须是 Unicode/UTF-16LE)
                         byte[] commandBytes = System.Text.Encoding.Unicode.GetBytes(rawCommand);
                         string encodedCommand = Convert.ToBase64String(commandBytes);
 
                         var psi = new ProcessStartInfo("powershell")
                         {
-                            // 3. 使用 -EncodedCommand 参数
                             Arguments = $"-NoProfile -ExecutionPolicy Bypass -EncodedCommand {encodedCommand}",
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
