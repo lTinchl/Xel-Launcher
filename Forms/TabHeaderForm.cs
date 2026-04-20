@@ -2,13 +2,22 @@ using AntdUI;
 using Microsoft.Web.WebView2.WinForms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
+using XelLauncher.Helpers;
 
 
 namespace XelLauncher.Forms
 {
     public partial class TabHeaderForm : AntdUI.Window
     {
+        public static void Open(string url)
+        {
+            if (ConfigHelper.Load().UseExternalBrowser)
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            else
+                new TabHeaderForm(url).Show();
+        }
         private readonly Dictionary<string, WebView2> _browsers = new();
         private System.Windows.Forms.Panel panelContent;
         private System.Windows.Forms.Panel panelToolbar;

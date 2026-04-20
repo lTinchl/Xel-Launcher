@@ -134,6 +134,36 @@ namespace XelLauncher.Forms
                 }
             };
             floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Deledwonload", "清理下载缓存"), "Deledwonload").SetIcon("DeleteOutlined"));
+            floatMenu.SelectedValueChanged += (s, e) =>
+            {
+                if (e.Value is string v && v == "Deledwonload")
+                {
+                    BeginInvoke(() =>
+                    {
+                        floatMenu.SelectedValue = null;
+                        var cfg = ConfigHelper.Load();
+                        var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
+                        string path = entry?.RootPath ?? _game.RootPath;
+                        string cachePath = Path.Combine(path, "Diffs");
+                        if (Directory.Exists(cachePath))
+                        {
+                            try
+                            {
+                                Directory.Delete(cachePath, true);
+                                AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.Game.ClearCacheSuccess", "下载缓存已清理"));
+                            }
+                            catch (Exception ex)
+                            {
+                                AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Game.ClearCacheFailed", "清理下载缓存失败: {0}"), ex.Message));
+                            }
+                        }
+                        else
+                        {
+                            AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.NoCache", "未找到下载缓存"));
+                        }
+                    });
+                }
+            };
 
             panelLaunch = new AntdUI.Panel
             {

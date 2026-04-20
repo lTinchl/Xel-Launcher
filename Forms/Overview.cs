@@ -142,6 +142,7 @@ namespace XelLauncher.Forms
                 cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
                 cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
                 cfg.UseHardLink = setting.UseHardLink;
+                cfg.UseExternalBrowser = setting.UseExternalBrowser;
                 ConfigHelper.Save(cfg);
                 Setting.ApplyStartWithWindows(setting.StartWithWindows);
             }
@@ -500,6 +501,7 @@ namespace XelLauncher.Forms
                 cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
                 cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
                 cfg.UseHardLink = setting.UseHardLink;
+                cfg.UseExternalBrowser = setting.UseExternalBrowser;
                 ConfigHelper.Save(cfg);
                 Setting.ApplyStartWithWindows(setting.StartWithWindows);
             }
