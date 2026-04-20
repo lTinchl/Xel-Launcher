@@ -141,6 +141,7 @@ namespace XelLauncher.Forms
                 cfg.MinimizeToTray = setting.MinimizeToTray;
                 cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
                 cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
+                cfg.UseHardLink = setting.UseHardLink;
                 ConfigHelper.Save(cfg);
                 Setting.ApplyStartWithWindows(setting.StartWithWindows);
             }
@@ -498,6 +499,7 @@ namespace XelLauncher.Forms
                 cfg.MinimizeToTray = setting.MinimizeToTray;
                 cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
                 cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
+                cfg.UseHardLink = setting.UseHardLink;
                 ConfigHelper.Save(cfg);
                 Setting.ApplyStartWithWindows(setting.StartWithWindows);
             }
