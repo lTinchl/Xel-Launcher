@@ -7,6 +7,9 @@ public class GameEntry
     public string RootPath { get; set; }
     public bool SyncLaunchEnabled { get; set; } = false;          // Switch 状态
     public List<SyncApp> SyncApps { get; set; } = new();          // 联动列表
+    public bool AccountSwitchEnabled { get; set; } = false;       // 账号切换开关
+    public bool CustomLaunchArgsEnabled { get; set; } = false;    // 自定义启动参数开关
+    public string CustomLaunchArgs { get; set; } = "";             // 自定义启动参数
 
     /// <summary>Returns the localized display name based on current language.</summary>
     public string GetLocalizedName()
