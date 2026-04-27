@@ -151,6 +151,14 @@ namespace XelLauncher.Helpers
                     launchArgs = $"-launcher_sub_channel=802 --g_session_token={token}";
             }
 
+            // ── 自定义启动参数 ──
+            if (entry?.CustomLaunchArgsEnabled == true && !string.IsNullOrWhiteSpace(entry.CustomLaunchArgs))
+            {
+                launchArgs = string.IsNullOrEmpty(launchArgs)
+                    ? entry.CustomLaunchArgs.Trim()
+                    : launchArgs + " " + entry.CustomLaunchArgs.Trim();
+            }
+
             Process.Start(new ProcessStartInfo
             {
                 FileName = exePath,
