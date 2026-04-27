@@ -8,7 +8,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyName>XelLauncher</AssemblyName>
 		<RootNamespace>XelLauncher</RootNamespace>
-		<Version>0.1.6</Version>
+		<Version>0.1.6-Beta2</Version>
 		<Company>XelLauncher</Company>
 		<Product>XelLauncher</Product>
 		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
@@ -29,24 +29,15 @@
 		<OptimizationPreference>Size</OptimizationPreference>
 	</PropertyGroup>
 
-<ItemGroup>
-	  <EmbeddedResource Include="Resources\Arknights_Toolbox.ico" />
-	  <EmbeddedResource Include="Resources\Arknights_Yituliu.ico" />
-	</ItemGroup>
-
 	<ItemGroup>
-	  <Content Include="Resources\Arknights.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-  <Content Include="Resources\Arknights.jpg"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\BiliArknights.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\Endfield.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\BiliEndfield.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\GlobalEndfield.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\End.jpg"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\Popucom.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\BiliPopucom.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
-	  <Content Include="Resources\official.ico"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content>
+		<Content Remove="Resources\**\*" />
+		<Content Include="Resources\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
 	</ItemGroup>
-
+	
 	<ItemGroup>
 		<Content Include="load\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
