@@ -47,7 +47,31 @@ namespace XelLauncher.Forms
 
             LoadAccountSelect();
             UpdateAccountControlsVisibility();
+
+            // Apply cached game status before network check
+            ApplyCachedGameStatus();
+
             _ = CheckGameStatusAsync();
+        }
+
+        private void ApplyCachedGameStatus()
+        {
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                if (cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached))
+                {
+                    _gameState = !cached.IsInstalled ? GameState.NotInstalled
+                               : cached.HasUpdate    ? GameState.HasUpdate
+                                                     : GameState.Ready;
+
+                    if (IsHandleCreated)
+                        RefreshGameStartButton();
+                    else
+                        HandleCreated += (s, e) => RefreshGameStartButton();
+                }
+            }
+            catch { }
         }
 
         private void BuildLaunchPanel()
@@ -479,6 +503,17 @@ namespace XelLauncher.Forms
                 _gameState = !status.IsInstalled ? GameState.NotInstalled
                            : status.HasUpdate    ? GameState.HasUpdate
                                                  : GameState.Ready;
+
+                // Write cache after live check completes
+                var cfgToUpdate = ConfigHelper.Load();
+                cfgToUpdate.GameStatusCache[_game.IconName] = new CachedGameStatus
+                {
+                    IsInstalled = status.IsInstalled,
+                    HasUpdate = status.HasUpdate,
+                    LocalVersion = status.LocalVersion ?? "",
+                    RemoteVersion = status.RemoteVersion ?? ""
+                };
+                ConfigHelper.Save(cfgToUpdate);
 
                 if (IsHandleCreated)
                     BeginInvoke(() => RefreshGameStartButton());

@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace XelLauncher.Models
 {
+    public class CachedGameStatus
+    {
+        public bool IsInstalled { get; set; }
+        public bool HasUpdate { get; set; }
+        public string LocalVersion { get; set; } = "";
+        public string RemoteVersion { get; set; } = "";
+    }
+
     public class AppConfig
     {
         public List<GameEntry> Games { get; set; } = new List<GameEntry>
@@ -48,6 +56,7 @@ namespace XelLauncher.Models
         /// </summary>
         public string ThemeMode { get; set; } = "system";
         public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
+        public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
 
     }
 }
