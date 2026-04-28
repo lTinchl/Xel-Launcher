@@ -521,14 +521,10 @@ namespace XelLauncher.Forms
 
             if (string.IsNullOrEmpty(path))
             {
-                Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
-                using var dlg = new FolderBrowserDialog
-                {
-                    Description = AntdUI.Localization.Get("App.Game.SelectInstallDir", "选择游戏安装目录"),
-                    UseDescriptionForTitle = true,
-                };
-                if (dlg.ShowDialog(_overview) != DialogResult.OK) return;
-                path = dlg.SelectedPath;
+                path = Helpers.DialogHelper.BrowseFolder(
+                    _overview?.IsHandleCreated == true ? _overview.Handle : IntPtr.Zero,
+                    AntdUI.Localization.Get("App.Game.SelectInstallDir", "选择游戏安装目录"));
+                if (path == null) return;
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
                 if (e2 != null) { e2.RootPath = path; ConfigHelper.Save(cfg2); }
@@ -661,10 +657,10 @@ namespace XelLauncher.Forms
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
                 AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
-                Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
-                using var dlg = new FolderBrowserDialog { Description = $"{AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName())}", UseDescriptionForTitle = true };
-                if (dlg.ShowDialog(_overview) != DialogResult.OK) return;
-                path = dlg.SelectedPath;
+                path = Helpers.DialogHelper.BrowseFolder(
+                    _overview?.IsHandleCreated == true ? _overview.Handle : IntPtr.Zero,
+                    AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName()));
+                if (path == null) return;
                 string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
                 if (!File.Exists(Path.Combine(path, exeName)))
                 {

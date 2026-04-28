@@ -125,9 +125,10 @@ namespace XelLauncher.Forms
                 Text = currentPath,
                 Location = new Point(20, 124),
                 Size = new Size(320, 36),
-                ReadOnly = true,
                 PlaceholderText = AntdUI.Localization.Get("App.GameSetting.PathPlaceholder", "未设置路径"),
             };
+            _inputPath.TextChanged += (s, e) => AutoSave(_inputPath.Text.Trim());
+            _inputPath.Leave += (s, e) => _onPathChanged?.Invoke();
 
             // ── 更改路径 ──
             var btnBrowse = new AntdUI.Button
@@ -791,18 +792,16 @@ namespace XelLauncher.Forms
 
         private void BrowsePath()
         {
-            Helpers.DialogHelper.InjectIcon(Properties.Resources.icon);
-            using var dlg = new System.Windows.Forms.FolderBrowserDialog();
-            dlg.Description = AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName());
-            dlg.UseDescriptionForTitle = true;
-            if (!string.IsNullOrEmpty(_inputPath.Text))
-                dlg.InitialDirectory = _inputPath.Text;
-
             var form = FindForm();
-            if (dlg.ShowDialog(form) != DialogResult.OK) return;
+            IntPtr ownerHandle = form?.IsHandleCreated == true ? form.Handle : IntPtr.Zero;
+            string path = Helpers.DialogHelper.BrowseFolder(
+                ownerHandle,
+                AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName()),
+                _inputPath.Text);
+            if (path == null) return;
 
-            _inputPath.Text = dlg.SelectedPath;
-            AutoSave(dlg.SelectedPath);
+            _inputPath.Text = path;
+            AutoSave(path);
             _onPathChanged?.Invoke();
         }
 
