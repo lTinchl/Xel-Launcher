@@ -115,8 +115,9 @@ namespace XelLauncher.Forms
             // windowBar
             //
             windowBar.BackgroundImageLayout = ImageLayout.Stretch;
-            windowBar.Controls.Add(colorTheme);
-            windowBar.Controls.Add(btn_bgcolor);
+            // 暂时隐藏颜色修改入口
+            // windowBar.Controls.Add(colorTheme);
+            // windowBar.Controls.Add(btn_bgcolor);
             windowBar.Controls.Add(btn_mode);
             windowBar.Controls.Add(btn_global);
             windowBar.Controls.Add(btn_setting);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -26,13 +27,15 @@ namespace XelLauncher.Forms
 
         private AntdUI.FormFloatButton? _floatBtn;
         private bool _floatExpanded = false;
-        private System.Windows.Forms.Panel _bottomBar;
+        private AntdUI.Panel _toolSidebar;
+        private AntdUI.TooltipComponent _toolTooltip;
         private CoverPictureBox _coverPictureBox;
+        private NoticeCarouselPanel _noticePanel;
         private Image _coverImage;
         private readonly CancellationTokenSource _coverCts = new();
 
         private bool _accountExpanded = false;
-        private readonly List<AntdUI.Button> _subBtns = new();
+        private readonly List<AntdUI.Avatar> _subBtns = new();
 
         private EndfieldService _service;
         private enum GameState { Unknown, NotInstalled, HasUpdate, Ready, Downloading, Paused }
@@ -207,7 +210,6 @@ namespace XelLauncher.Forms
             panelLaunch.Controls.Add(GameStart);
             panelLaunch.Controls.Add(floatMenu);
 
-            Controls.Add(panelLaunch);
         }
 
         private void BuildCoverImage()
@@ -228,57 +230,52 @@ namespace XelLauncher.Forms
                 Image = img,
             };
             _coverPictureBox = pb;
-            // 搴曢儴鐣欏嚭鎸夐挳琛岄珮搴?
-            var bottomBar = new System.Windows.Forms.Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 72,
-                BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : _overview.BackColor,
-            };
-            _bottomBar = bottomBar;
-
-            // 灏嗘寜閽帶浠朵粠 panelLaunch 绉诲埌 bottomBar
-            // 瀛愭寜閽揣闈?btnArknightsWiki 鍙充晶灞曞紑锛屾斁鍦?bottomBar 閲?
             switch (_game.IconName)
             {
                 case "Arknights":
                 case "BiliArknights":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click, "Arkntools"));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click, "PRTS Wiki"));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click, "一图流"));
                     break;
                 case "Endfield":
                 case "BiliEndfield":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click, "终末地一图流"));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click, "Warfarin Wiki"));
                     break;
                 case "GlobalEndfield":
                 case "PlayEndfield":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click, "Endfield Tools"));
                     break;
                 default:
-                    btnArknightsWiki.Visible = false;
                     break;
             }
 
-            bottomBar.Controls.Add(panelLaunch);
-            bottomBar.Controls.Add(btnArknightsWiki);
-            foreach (var btn in _subBtns)
-                bottomBar.Controls.Add(btn);
             Controls.Add(pb);
-            Controls.Add(bottomBar);
+            _coverPictureBox.Controls.Add(panelLaunch);
+            BuildToolSidebar();
+            _noticePanel = new NoticeCarouselPanel(CreateFallbackBanners(img), CreateFallbackNotices())
+            {
+                Anchor = AnchorStyles.Left | AnchorStyles.Bottom,
+            };
+            _noticePanel.NoticeClick += NoticePanel_NoticeClick;
+            ApplyCachedLauncherNotice();
+            _coverPictureBox.Controls.Add(_noticePanel);
             HandleCreated += (s, e) => {
-                PositionLaunchInBar(bottomBar);
-                PositionAddBtnInBar(bottomBar);
-                PositionSubButtons();
+                PositionLaunchPanel();
+                PositionToolSidebar();
+                PositionNoticePanel();
                 UpdateLaunchPanelColor();
                 };
-            bottomBar.SizeChanged += (s, e) =>
+            SizeChanged += (s, e) =>
             {
-                PositionLaunchInBar(bottomBar);
-                PositionAddBtnInBar(bottomBar);
-                PositionSubButtons();
+                PositionLaunchPanel();
+                PositionNoticePanel();
+                PositionToolSidebar();
             };
+            PositionLaunchPanel();
+            PositionNoticePanel();
+            PositionToolSidebar();
         }
 
         private Image LoadCoverImage(string fallbackPath)
@@ -349,14 +346,151 @@ namespace XelLauncher.Forms
             var oldImage = _coverImage;
             _coverImage = image;
             _coverPictureBox.Image = image;
+            _noticePanel?.UpdateFallbackImage(image);
             _coverPictureBox.Invalidate();
             oldImage?.Dispose();
             LogHelper.Log($"Client cover applied: {_game.IconName} -> {imagePath}");
         }
 
-        private void PositionLaunchInBar(System.Windows.Forms.Panel bar)
+        private void PositionLaunchPanel()
         {
-            panelLaunch.Location = new Point(bar.Width - panelLaunch.Width - 16, (bar.Height - panelLaunch.Height) / 2);
+            if (panelLaunch == null || _coverPictureBox == null) return;
+
+            int x = _coverPictureBox.Width - panelLaunch.Width - 16;
+            int y = _coverPictureBox.Height - panelLaunch.Height - 12;
+            panelLaunch.Location = new Point(Math.Max(0, x), Math.Max(0, y));
+            panelLaunch.BringToFront();
+        }
+
+        private void PositionNoticePanel()
+        {
+            if (_noticePanel == null || panelLaunch == null) return;
+
+            int maxWidth = Width - panelLaunch.Width - 96;
+            int noticeWidth = Math.Min(660, Math.Max(420, maxWidth));
+            if (Width < 760) noticeWidth = Math.Max(320, Width - 56);
+
+            int noticeHeight = Width < 760 ? 132 : 150;
+            int y = panelLaunch.Bottom - noticeHeight;
+            if (y < 24) y = 24;
+
+            _noticePanel.Bounds = new Rectangle(28, y, noticeWidth, noticeHeight);
+            _noticePanel.BringToFront();
+        }
+
+        private List<NoticeBannerItem> CreateFallbackBanners(Image image)
+        {
+            return new List<NoticeBannerItem>
+            {
+                new NoticeBannerItem(image, "", false)
+            };
+        }
+
+        private List<NoticeItem> CreateFallbackNotices()
+        {
+            bool endfield = _game.IconName is "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield";
+            if (endfield)
+            {
+                return new List<NoticeItem>
+                {
+                    new NoticeItem("公告", "《明日方舟：终末地》最新资讯", "05/01", "https://endfield.hypergryph.com/"),
+                    new NoticeItem("活动", "技术测试与招募信息请以官方公告为准", "04/25", "https://endfield.hypergryph.com/"),
+                    new NoticeItem("资讯", "多平台版本与启动配置持续适配中", "04/20", "https://endfield.hypergryph.com/")
+                };
+            }
+
+            return new List<NoticeItem>
+            {
+                new NoticeItem("公告", "《明日方舟》七周年庆典即将开启", "04/25", "https://ak.hypergryph.com/news"),
+                new NoticeItem("活动", "限时寻访·庆典【承诺】限时寻访即将开启", "04/25", "https://ak.hypergryph.com/news"),
+                new NoticeItem("通知", "公开招募标签强制刷新通知", "04/25", "https://ak.hypergryph.com/news")
+            };
+        }
+
+        private async Task RefreshLauncherNoticeAsync()
+        {
+            var service = _service;
+            if (service == null || _noticePanel == null) return;
+
+            try
+            {
+                var token = _coverCts.Token;
+                var content = await service.GetLauncherNoticeContentAsync(token).ConfigureAwait(false);
+                if ((content.Banners?.Count ?? 0) == 0 && (content.Notices?.Count ?? 0) == 0)
+                    return;
+
+                await GameCoverCache.SaveLauncherNoticeContentAsync(_game.IconName, content, token).ConfigureAwait(false);
+
+                var remoteBanners = content.Banners ?? Array.Empty<LauncherBannerItem>();
+                var banners = new List<NoticeBannerItem>();
+                foreach (var banner in remoteBanners.Take(6))
+                {
+                    var imagePath = GameCoverCache.GetCachedNoticeBannerPath(_game.IconName, banner.ImageUrl);
+                    if (string.IsNullOrEmpty(imagePath))
+                        imagePath = await GameCoverCache.UpdateNoticeBannerAsync(_game.IconName, banner.ImageUrl, token).ConfigureAwait(false);
+
+                    var image = GameCoverCache.TryLoadImage(imagePath);
+                    if (image != null)
+                        banners.Add(new NoticeBannerItem(image, banner.JumpUrl ?? "", true));
+                }
+
+                GameCoverCache.CleanupNoticeBanners(_game.IconName, remoteBanners.Take(6).Select(x => x.ImageUrl));
+                var notices = CreateNoticeItems(content.Notices);
+
+                if (!IsHandleCreated || IsDisposed || token.IsCancellationRequested) return;
+                BeginInvoke(() =>
+                {
+                    if (_noticePanel == null || _noticePanel.IsDisposed) return;
+                    _noticePanel.SetContent(banners, notices);
+                });
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GamePage.RefreshLauncherNoticeAsync({_game.IconName})");
+            }
+        }
+
+        private void ApplyCachedLauncherNotice()
+        {
+            if (_noticePanel == null) return;
+
+            try
+            {
+                var content = GameCoverCache.GetCachedLauncherNoticeContent(_game.IconName);
+                if (content == null) return;
+
+                var banners = new List<NoticeBannerItem>();
+                foreach (var banner in (content.Banners ?? Array.Empty<LauncherBannerItem>()).Take(6))
+                {
+                    var imagePath = GameCoverCache.GetCachedNoticeBannerPath(_game.IconName, banner.ImageUrl);
+                    var image = GameCoverCache.TryLoadImage(imagePath);
+                    if (image != null)
+                        banners.Add(new NoticeBannerItem(image, banner.JumpUrl ?? "", true));
+                }
+
+                var notices = CreateNoticeItems(content.Notices);
+                _noticePanel.SetContent(banners, notices);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GamePage.ApplyCachedLauncherNotice({_game.IconName})");
+            }
+        }
+
+        private static List<NoticeItem> CreateNoticeItems(IEnumerable<LauncherNoticeItem> notices)
+        {
+            return (notices ?? Array.Empty<LauncherNoticeItem>())
+                .Where(x => !string.IsNullOrWhiteSpace(x.Title))
+                .Take(30)
+                .Select(x => new NoticeItem(x.Category, x.Title, x.Date, x.JumpUrl))
+                .ToList();
+        }
+
+        private void NoticePanel_NoticeClick(object sender, NoticeItem e)
+        {
+            if (!string.IsNullOrWhiteSpace(e?.Url))
+                TabHeaderForm.Open(e.Url);
         }
 
         private bool IsAccountGame => _game?.IconName is "Arknights" or "Endfield" or "GlobalEndfield";
@@ -375,8 +509,8 @@ namespace XelLauncher.Forms
             panelLaunch.Width = targetWidth;
             GameStart.Location = new Point(targetGS, 0);
             floatMenu.Location = new Point(targetFM, 0);
-            if (_bottomBar != null)
-                PositionLaunchInBar(_bottomBar);
+            PositionLaunchPanel();
+            PositionNoticePanel();
         }
 
         public void LoadAccountSelect()
@@ -427,29 +561,30 @@ namespace XelLauncher.Forms
 
         public void UpdateLaunchPanelColor()
         {
+            panelLaunch.BackExtend = "";
+            panelLaunch.Back = Color.Transparent;
+            panelLaunch.BackColor = Color.Transparent;
+
             if (AntdUI.Config.IsDark)
             {
-                panelLaunch.BackExtend = AppTheme.DarkLaunchPanel;
-                panelLaunch.Back = null;
-                btnArknightsWiki.BackColor = AppTheme.DarkSurfaceActive;
-                if (_bottomBar != null) _bottomBar.BackColor = AppTheme.DarkBackground;
+                if (_toolSidebar != null) _toolSidebar.Back = Color.FromArgb(188, 34, 37, 43);
                 return;
             }
-            btnArknightsWiki.BackColor = Color.White;
-            if (_bottomBar != null) _bottomBar.BackColor = _overview.BackColor;
-            panelLaunch.BackExtend = "";
-            var bg = _overview.BackColor;
-            float brightness = (bg.R * 0.299f + bg.G * 0.587f + bg.B * 0.114f) / 255f;
-            if (brightness < 0.5f)
-                panelLaunch.Back = Color.FromArgb(40, 255, 255, 255);
-            else
-            {
-                int r = Math.Max(0, bg.R - 20);
-                int g = Math.Max(0, bg.G - 20);
-                int b = Math.Max(0, bg.B - 20);
-                panelLaunch.Back = Color.FromArgb(80, r, g, b);
-            }
+            if (_toolSidebar != null) _toolSidebar.Back = Color.FromArgb(188, 34, 37, 43);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                try { _coverCts.Cancel(); } catch { }
+                _coverCts.Dispose();
+                _downloadCts?.Dispose();
+                _toolTooltip?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         //璐﹀彿绠＄悊鎸夐挳璋冪敤閫昏緫
         private void btnAccountManage_Click(object sender, EventArgs e)
         {
@@ -493,28 +628,85 @@ namespace XelLauncher.Forms
             TabHeaderForm.Open("https://endfieldtools.dev/");
         }
 
-        private AntdUI.Button CreateSubButton(System.Drawing.Icon icon, EventHandler clickHandler)
+        private AntdUI.Avatar CreateSubButton(System.Drawing.Icon icon, EventHandler clickHandler, string tip)
         {
-            var bmp = new Bitmap(32, 32);
+            var bmp = new Bitmap(42, 42);
             using (var g = Graphics.FromImage(bmp))
             {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.DrawImage(icon.ToBitmap(), 0, 0, 32, 32);
+                g.DrawImage(icon.ToBitmap(), 5, 5, 32, 32);
             }
-            var btn = new AntdUI.Button
+            var btn = new AntdUI.Avatar
             {
-                Icon = bmp,
-                IconSize = new Size(32, 32),
-                Type = AntdUI.TTypeMini.Default,
+                Image = bmp,
+                ImageFit = AntdUI.TFit.Cover,
                 BackColor = Color.Transparent,
                 BorderWidth = 0,
-                Size = new Size(32, 32),
-                Radius = 22,
-                WaveSize = 4,
-                Visible = false,
+                Size = new Size(42, 42),
+                Radius = 21,
+                Round = true,
+                Cursor = Cursors.Hand,
+                Visible = true,
             };
             btn.Click += clickHandler;
+            EnsureToolTooltip().SetTip(btn, tip);
             return btn;
+        }
+
+        private AntdUI.TooltipComponent EnsureToolTooltip()
+        {
+            return _toolTooltip ??= new AntdUI.TooltipComponent
+            {
+                ArrowAlign = AntdUI.TAlign.Left,
+                Delay = 300,
+                Radius = 8,
+            };
+        }
+
+        private void BuildToolSidebar()
+        {
+            if (_subBtns.Count == 0 || _coverPictureBox == null) return;
+
+            int item = 42;
+            int pad = 8;
+            _toolSidebar = new AntdUI.Panel
+            {
+                Size = new Size(56, pad * 2 + _subBtns.Count * item),
+                Radius = 24,
+                Shadow = 0,
+                ShadowOpacity = 0F,
+                BackColor = Color.Transparent,
+                Back = Color.FromArgb(188, 34, 37, 43),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            };
+
+            for (int i = 0; i < _subBtns.Count; i++)
+            {
+                var btn = _subBtns[i];
+                btn.Visible = true;
+                btn.Size = new Size(42, 42);
+                btn.Radius = 21;
+                btn.Round = true;
+                btn.BackColor = Color.Transparent;
+                btn.Location = new Point(7, pad + i * item);
+                _toolSidebar.Controls.Add(btn);
+            }
+
+            _coverPictureBox.Controls.Add(_toolSidebar);
+            _toolSidebar.BringToFront();
+        }
+
+        private void PositionToolSidebar()
+        {
+            if (_toolSidebar == null || _coverPictureBox == null) return;
+
+            int availableHeight = Math.Max(1, _coverPictureBox.Height);
+            int x = _coverPictureBox.Width - _toolSidebar.Width - 22;
+            int y = Math.Max(76, (availableHeight - _toolSidebar.Height) / 2);
+            _toolSidebar.Location = new Point(Math.Max(0, x), Math.Max(0, y));
+            _toolSidebar.BringToFront();
         }
 
         private void PositionSubButtons()
@@ -558,6 +750,7 @@ namespace XelLauncher.Forms
             catch { return false; }
 
             _ = RefreshRemoteCoverAsync();
+            _ = RefreshLauncherNoticeAsync();
 
             try
             {

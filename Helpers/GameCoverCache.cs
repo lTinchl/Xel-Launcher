@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.Formats.Png;
@@ -17,6 +19,8 @@ namespace XelLauncher.Helpers
     internal static class GameCoverCache
     {
         private const string ClientCoverPattern = "client-cover-*";
+        private const string NoticeBannerPattern = "notice-banner-*";
+        private const string NoticeContentFileName = "launcher-notice.json";
 
         private static readonly HttpClient Client = new()
         {
@@ -25,6 +29,11 @@ namespace XelLauncher.Helpers
 
         private static readonly string[] ImageExtensions =
             [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"];
+
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            WriteIndented = true
+        };
 
         public static string GetCachedCoverPath(string iconName)
         {
@@ -35,6 +44,62 @@ namespace XelLauncher.Helpers
                 .Where(IsLikelyImagePath)
                 .OrderByDescending(File.GetLastWriteTimeUtc)
                 .FirstOrDefault(IsLoadableImage);
+        }
+
+        public static LauncherNoticeContent GetCachedLauncherNoticeContent(string iconName)
+        {
+            try
+            {
+                var path = GetNoticeContentPath(iconName);
+                if (!File.Exists(path)) return null;
+
+                var json = File.ReadAllText(path, Encoding.UTF8);
+                var dto = JsonSerializer.Deserialize<LauncherNoticeCacheDto>(json, JsonOptions);
+                if (dto == null) return null;
+
+                return new LauncherNoticeContent(
+                    dto.Banners ?? new List<LauncherBannerItem>(),
+                    dto.Notices ?? new List<LauncherNoticeItem>());
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static async Task SaveLauncherNoticeContentAsync(string iconName, LauncherNoticeContent content, CancellationToken ct = default)
+        {
+            if (content == null) return;
+
+            try
+            {
+                var dir = GetGameCoverDir(iconName);
+                Directory.CreateDirectory(dir);
+
+                var dto = new LauncherNoticeCacheDto
+                {
+                    Banners = content.Banners?.ToList() ?? new List<LauncherBannerItem>(),
+                    Notices = content.Notices?.ToList() ?? new List<LauncherNoticeItem>()
+                };
+
+                var json = JsonSerializer.Serialize(dto, JsonOptions);
+                await File.WriteAllTextAsync(GetNoticeContentPath(iconName), json, Encoding.UTF8, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GameCoverCache.SaveLauncherNoticeContentAsync({iconName})");
+            }
+        }
+
+        public static string GetCachedNoticeBannerPath(string iconName, string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+
+            var dir = GetGameCoverDir(iconName);
+            if (!Directory.Exists(dir)) return null;
+
+            var baseTarget = Path.Combine(dir, $"notice-banner-{HashUrl(imageUrl)}");
+            return TryGetCachedPath(baseTarget, GetImageExtension(imageUrl));
         }
 
         public static System.Drawing.Image TryLoadImage(string path)
@@ -145,6 +210,106 @@ namespace XelLauncher.Helpers
             }
         }
 
+        public static async Task<string> UpdateNoticeBannerAsync(string iconName, string imageUrl, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+
+            var dir = GetGameCoverDir(iconName);
+            Directory.CreateDirectory(dir);
+
+            var urlExtension = GetImageExtension(imageUrl);
+            var baseTarget = Path.Combine(dir, $"notice-banner-{HashUrl(imageUrl)}");
+            var cachedPath = TryGetCachedPath(baseTarget, urlExtension);
+            if (cachedPath != null) return cachedPath;
+
+            var temp = baseTarget + ".download.tmp";
+            try
+            {
+                using var response = await Client.GetAsync(imageUrl, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+
+                await using (var source = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
+                await using (var dest = File.Create(temp))
+                {
+                    await source.CopyToAsync(dest, ct).ConfigureAwait(false);
+                }
+
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                var extension = GetImageExtensionFromContentType(contentType);
+                if (string.IsNullOrEmpty(extension) && IsSupportedImageExtension(urlExtension))
+                    extension = urlExtension;
+                if (string.IsNullOrEmpty(extension))
+                    extension = ".jpg";
+
+                if (IsWebpFile(extension, temp))
+                {
+                    var pngPath = baseTarget + ".png";
+                    if (TryConvertImageToPng(temp, pngPath))
+                    {
+                        TryDelete(temp);
+                        LogHelper.Log($"Notice banner cached: {iconName} -> {pngPath}");
+                        return pngPath;
+                    }
+
+                    var webpPath = baseTarget + ".webp";
+                    MoveReplacing(temp, webpPath);
+                    LogHelper.Log($"Notice banner cached (WebP fallback): {iconName} -> {webpPath}");
+                    return webpPath;
+                }
+
+                var target = baseTarget + NormalizeImageExtension(extension);
+                if (!IsLoadableImage(temp))
+                {
+                    var pngPath = baseTarget + ".png";
+                    if (TryConvertImageToPng(temp, pngPath))
+                    {
+                        TryDelete(temp);
+                        LogHelper.Log($"Notice banner cached: {iconName} -> {pngPath}");
+                        return pngPath;
+                    }
+
+                    TryDelete(temp);
+                    return null;
+                }
+
+                MoveReplacing(temp, target);
+                LogHelper.Log($"Notice banner cached: {iconName} -> {target}");
+                return target;
+            }
+            catch (Exception ex)
+            {
+                TryDelete(temp);
+                LogHelper.LogError(ex, $"GameCoverCache.UpdateNoticeBannerAsync({iconName})");
+                return null;
+            }
+        }
+
+        public static void CleanupNoticeBanners(string iconName, IEnumerable<string> keepImageUrls)
+        {
+            try
+            {
+                var dir = GetGameCoverDir(iconName);
+                if (!Directory.Exists(dir)) return;
+
+                var keepHashes = new HashSet<string>(
+                    (keepImageUrls ?? Array.Empty<string>())
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Select(HashUrl),
+                    StringComparer.OrdinalIgnoreCase);
+
+                foreach (var file in Directory.GetFiles(dir, NoticeBannerPattern))
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(file);
+                    var hash = fileName.StartsWith("notice-banner-", StringComparison.OrdinalIgnoreCase)
+                        ? fileName["notice-banner-".Length..]
+                        : "";
+                    if (!keepHashes.Contains(hash))
+                        TryDelete(file);
+                }
+            }
+            catch { }
+        }
+
         private static bool IsLoadableImage(string path)
         {
             using var image = TryLoadImage(path);
@@ -222,6 +387,11 @@ namespace XelLauncher.Helpers
                 _ => iconName
             };
             return Path.Combine(ConfigHelper.ConfigDir, "GameCovers", SanitizeFileName(normalizedName));
+        }
+
+        private static string GetNoticeContentPath(string iconName)
+        {
+            return Path.Combine(GetGameCoverDir(iconName), NoticeContentFileName);
         }
 
         private static bool IsLikelyImagePath(string pathOrUrl)
@@ -305,6 +475,12 @@ namespace XelLauncher.Helpers
                 if (File.Exists(path)) File.Delete(path);
             }
             catch { }
+        }
+
+        private sealed class LauncherNoticeCacheDto
+        {
+            public List<LauncherBannerItem> Banners { get; set; } = new();
+            public List<LauncherNoticeItem> Notices { get; set; } = new();
         }
     }
 }
