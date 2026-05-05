@@ -9,8 +9,8 @@ English | [中文](./README.zh.md)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 [![License](https://img.shields.io/badge/license-Apache%202.0-4EB1BA.svg?style=flat-square)](http://www.apache.org/licenses/LICENSE-2.0)
 [![NuGet](https://img.shields.io/nuget/v/AntdUI.svg?style=flat-square&label=AntdUI&logo=nuget)](https://www.nuget.org/packages/AntdUI)<br>
-![Stars](https://img.shields.io/github/stars/lTinchl/XelLauncher)
-![Downloads](https://img.shields.io/github/downloads/lTinchl/XelLauncher/total)
+![Stars](https://img.shields.io/github/stars/lTinchl/Xel-Launcher)
+![Downloads](https://img.shields.io/github/downloads/lTinchl/Xel-Launcher/total)
 
 Built on [AntdUI](https://github.com/AntdUI/AntdUI), supporting multi-server switching for Arknights and Arknights: Endfield, with account management and more.
 
@@ -68,4 +68,5 @@ Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Lau
 - [Warfarin Wiki](https://endfieldtools.dev/) · [Endfield Tools](https://endfieldtools.dev/) · [终末地一图流](https://ef.yituliu.cn/)
 
 ## Disclaimer
-This tool does not upload your account files to the internet — it is used solely for local file replacement. Please use at your own discretion if you have concerns about account security. The developer bears no responsibility for any consequences resulting from the use of this tool.
+- This project is an unofficial tool and has no affiliation with Hypergryph or any of its affiliated organizations/groups/studios. Game images and data copyrights belong to their respective owners.
+- This tool will not upload your account files or login credentials to the internet; it only works on the local client. Please use it with caution if you are concerned about account security. Users are solely responsible for any consequences arising from the use of this tool.

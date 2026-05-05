@@ -9,8 +9,8 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 [![License](https://img.shields.io/badge/license-Apache%202.0-4EB1BA.svg?style=flat-square)](http://www.apache.org/licenses/LICENSE-2.0)
 [![NuGet](https://img.shields.io/nuget/v/AntdUI.svg?style=flat-square&label=AntdUI&logo=nuget)](https://www.nuget.org/packages/AntdUI)<br>
-![Stars](https://img.shields.io/github/stars/lTinchl/XelLauncher)
-![Downloads](https://img.shields.io/github/downloads/lTinchl/XelLauncher/total)
+![Stars](https://img.shields.io/github/stars/lTinchl/Xel-Launcher)
+![Downloads](https://img.shields.io/github/downloads/lTinchl/Xel-Launcher/total)
 
 基于 [AntdUI](https://github.com/AntdUI/AntdUI) 构建，支持明日方舟、终末地多服切换，提供账号管理等功能
 
@@ -67,4 +67,5 @@
 - [Prts Wiki](https://prts.wiki/id/1) - [明日方舟工具箱](https://arkntools.app/) - [明日方舟一图流](https://ark.yituliu.cn/)
 - [华法林 Wiki](https://endfieldtools.dev/) - [Endfield Tools](https://endfieldtools.dev/) - [终末地一图流](https://ef.yituliu.cn/)
 ## 免责声明
-此工具不会将您的账号文件上传至互联网，仅用于本地替换。如担心账号安全请酌情使用，使用本工具造成的任何后果由使用者自行承担。
+- 本项目为非官方工具，与鹰角网络 (Hypergryph) 及其旗下组织/团体/工作室没有任何关联。游戏图片与数据版权归各自权利人所有。
+- 同时此工具不会将您的账号文件与登录凭证上传至互联网，仅用于本地客户端。如担心账号安全请酌情使用，使用本工具造成的任何后果由使用者自行承担
