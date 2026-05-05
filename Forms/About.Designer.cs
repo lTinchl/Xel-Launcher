@@ -15,7 +15,7 @@ namespace XelLauncher
 
         private void InitializeComponent()
         {
-            mainPanel = new FlowLayoutPanel();
+            mainPanel = new TableLayoutPanel();
             shieldPanel = new FlowLayoutPanel();
             avatar = new AntdUI.Avatar();
             labelName = new AntdUI.Label();
@@ -32,27 +32,30 @@ namespace XelLauncher
             // avatar
             //
             avatar.Image = new System.Drawing.Icon(Properties.Resources.icon, 64, 64).ToBitmap();
+            avatar.Anchor = AnchorStyles.None;
             avatar.Name = "avatar";
             avatar.Size = new Size(64, 64);
             avatar.Radius = 8;
-            avatar.Margin = new Padding(178, 10, 0, 0);
+            avatar.Margin = new Padding(0, 10, 0, 0);
             avatar.TabIndex = 0;
             //
             // labelName
             //
+            labelName.Anchor = AnchorStyles.None;
             labelName.Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold);
             labelName.Name = "labelName";
             labelName.Size = new Size(252, 36);
-            labelName.Margin = new Padding(84, 6, 0, 0);
+            labelName.Margin = new Padding(0);
             labelName.TabIndex = 1;
             labelName.Text = "Xel Launcher";
             labelName.TextAlign = ContentAlignment.TopCenter;
             //
             // labelAuthor
             //
+            labelAuthor.Anchor = AnchorStyles.None;
             labelAuthor.Name = "labelAuthor";
             labelAuthor.Size = new Size(252, 26);
-            labelAuthor.Margin = new Padding(84, 2, 0, 0);
+            labelAuthor.Margin = new Padding(0);
             labelAuthor.TabIndex = 3;
             labelAuthor.Text = "By\uff1aTinch";
             labelAuthor.TextAlign = ContentAlignment.TopCenter;
@@ -105,7 +108,7 @@ namespace XelLauncher
             shieldDownloads.LogoSvg = "DownloadOutlined";
             shieldDownloads.Text = "...";
             shieldDownloads.Radius = 4;
-            shieldDownloads.Size = new Size(100, 22);
+            shieldDownloads.Size = new Size(130, 22);
             shieldDownloads.Font = new Font("Microsoft YaHei UI", 8F);
             shieldDownloads.Margin = new Padding(6, 0, 0, 0);
             shieldDownloads.Name = "shieldDownloads";
@@ -117,19 +120,21 @@ namespace XelLauncher
             shieldPanel.Controls.Add(shieldLicense);
             shieldPanel.Controls.Add(shieldStars);
             shieldPanel.Controls.Add(shieldDownloads);
+            shieldPanel.Anchor = AnchorStyles.None;
             shieldPanel.FlowDirection = FlowDirection.LeftToRight;
             shieldPanel.WrapContents = false;
             shieldPanel.AutoSize = true;
-            shieldPanel.Margin = new Padding(46, 6, 0, 0);
+            shieldPanel.Margin = new Padding(0, 6, 0, 0);
             shieldPanel.Name = "shieldPanel";
             shieldPanel.TabIndex = 7;
             //
             // btnClose
             //
+            btnClose.Anchor = AnchorStyles.None;
             btnClose.Type = AntdUI.TTypeMini.Primary;
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(80, 32);
-            btnClose.Margin = new Padding(170, 8, 0, 8);
+            btnClose.Margin = new Padding(0, 8, 0, 8);
             btnClose.TabIndex = 4;
             btnClose.Text = "关闭";
             btnClose.LocalizationText = "Cancel";
@@ -137,13 +142,19 @@ namespace XelLauncher
             //
             // mainPanel
             //
-            mainPanel.Controls.Add(avatar);
-            mainPanel.Controls.Add(labelName);
-            mainPanel.Controls.Add(labelAuthor);
-            mainPanel.Controls.Add(shieldPanel);
-            mainPanel.Controls.Add(btnClose);
-            mainPanel.FlowDirection = FlowDirection.TopDown;
-            mainPanel.WrapContents = false;
+            mainPanel.ColumnCount = 1;
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            mainPanel.RowCount = 5;
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 80F));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            mainPanel.Controls.Add(avatar, 0, 0);
+            mainPanel.Controls.Add(labelName, 0, 1);
+            mainPanel.Controls.Add(labelAuthor, 0, 2);
+            mainPanel.Controls.Add(shieldPanel, 0, 3);
+            mainPanel.Controls.Add(btnClose, 0, 4);
             mainPanel.Dock = DockStyle.Fill;
             mainPanel.Name = "mainPanel";
             mainPanel.TabIndex = 8;
@@ -152,14 +163,14 @@ namespace XelLauncher
             //
             Controls.Add(mainPanel);
             Name = "About";
-            Size = new Size(410, 220);
+            Size = new Size(470, 220);
             BackColor = Color.Transparent;
             shieldPanel.ResumeLayout(false);
             mainPanel.ResumeLayout(false);
             ResumeLayout(false);
         }
 
-        private FlowLayoutPanel mainPanel;
+        private TableLayoutPanel mainPanel;
         private FlowLayoutPanel shieldPanel;
         private AntdUI.Avatar avatar;
         private AntdUI.Label labelName;

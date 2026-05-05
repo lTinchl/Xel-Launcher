@@ -12,11 +12,6 @@ namespace XelLauncher
         public About()
         {
             InitializeComponent();
-            shieldPanel.SizeChanged += (s, e) =>
-            {
-                int left = (Width - shieldPanel.Width) / 2;
-                shieldPanel.Margin = new System.Windows.Forms.Padding(left > 0 ? left : 0, 6, 0, 0);
-            };
             _ = LoadGitHubDataAsync();
         }
 
