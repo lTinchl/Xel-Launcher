@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -228,7 +228,7 @@ namespace XelLauncher.Forms
                 Image = img,
             };
             _coverPictureBox = pb;
-            // 底部留出按钮行高度
+            // 搴曢儴鐣欏嚭鎸夐挳琛岄珮搴?
             var bottomBar = new System.Windows.Forms.Panel
             {
                 Dock = DockStyle.Bottom,
@@ -237,8 +237,8 @@ namespace XelLauncher.Forms
             };
             _bottomBar = bottomBar;
 
-            // 将按钮控件从 panelLaunch 移到 bottomBar
-            // 子按钮紧靠 btnArknightsWiki 右侧展开，放在 bottomBar 里
+            // 灏嗘寜閽帶浠朵粠 panelLaunch 绉诲埌 bottomBar
+            // 瀛愭寜閽揣闈?btnArknightsWiki 鍙充晶灞曞紑锛屾斁鍦?bottomBar 閲?
             switch (_game.IconName)
             {
                 case "Arknights":
@@ -450,7 +450,7 @@ namespace XelLauncher.Forms
                 panelLaunch.Back = Color.FromArgb(80, r, g, b);
             }
         }
-        //账号管理按钮调用逻辑
+        //璐﹀彿绠＄悊鎸夐挳璋冪敤閫昏緫
         private void btnAccountManage_Click(object sender, EventArgs e)
         {
             var form = new AccountManagerForm(_overview, this, _game.IconName);
@@ -526,7 +526,7 @@ namespace XelLauncher.Forms
             for (int i = 0; i < _subBtns.Count; i++)
                 _subBtns[i].Location = new Point(x + i * (btnH + 4), cy);
         }
-        //+号按钮展开/收起子按钮
+        //+鍙锋寜閽睍寮€/鏀惰捣瀛愭寜閽?
         private void btnArknightsWiki_Click(object sender, EventArgs e)
         {
             _accountExpanded = !_accountExpanded;
@@ -546,16 +546,16 @@ namespace XelLauncher.Forms
             }
         }
 
-        //wiki悬浮按钮定位
+        //wiki鎮诞鎸夐挳瀹氫綅
         private void PositionAddBtnInBar(System.Windows.Forms.Panel bar)
         {
             btnArknightsWiki.Location = new Point(16, (bar.Height - btnArknightsWiki.Height) / 2);
         }
 
-        private async Task CheckGameStatusAsync()
+        private async Task<bool> CheckGameStatusAsync()
         {
             try { _service = new EndfieldService(_game.IconName); }
-            catch { return; }
+            catch { return false; }
 
             _ = RefreshRemoteCoverAsync();
 
@@ -564,13 +564,17 @@ namespace XelLauncher.Forms
                 var cfg = ConfigHelper.Load();
                 var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
                 string path = entry?.RootPath ?? _game.RootPath;
-                if (string.IsNullOrEmpty(path)) return;
+                if (string.IsNullOrEmpty(path)) return false;
 
                 var status = await _service.CheckStatusAsync(path);
-                if (status == null) return;
+                if (status == null) return false;
+
+                var hasUpdate = status.HasUpdate &&
+                                !string.Equals(status.LocalVersion, status.RemoteVersion,
+                                    StringComparison.OrdinalIgnoreCase);
 
                 _gameState = !status.IsInstalled ? GameState.NotInstalled
-                           : status.HasUpdate    ? GameState.HasUpdate
+                           : hasUpdate           ? GameState.HasUpdate
                                                  : GameState.Ready;
 
                 // Write cache after live check completes
@@ -578,17 +582,21 @@ namespace XelLauncher.Forms
                 cfgToUpdate.GameStatusCache[_game.IconName] = new CachedGameStatus
                 {
                     IsInstalled = status.IsInstalled,
-                    HasUpdate = status.HasUpdate,
+                    HasUpdate = hasUpdate,
                     LocalVersion = status.LocalVersion ?? "",
                     RemoteVersion = status.RemoteVersion ?? ""
                 };
+                var entryToUpdate = cfgToUpdate.Games.Find(g => g.IconName == _game.IconName);
+                if (entryToUpdate != null && !string.IsNullOrEmpty(status.LocalVersion))
+                    entryToUpdate.LocalVersion = status.LocalVersion;
                 ConfigHelper.Save(cfgToUpdate);
 
                 if (IsHandleCreated)
                     BeginInvoke(() => RefreshGameStartButton());
 
+                return true;
             }
-            catch { }
+            catch { return false; }
         }
 
         private void RefreshGameStartButton()
@@ -664,6 +672,14 @@ namespace XelLauncher.Forms
                         else
                             return;
 
+                        if ((state.HasFlag(InstallProgressState.Install) ||
+                             state.HasFlag(InstallProgressState.Updating) ||
+                             state.HasFlag(InstallProgressState.Verify)) &&
+                            total > 0)
+                        {
+                            label = FormatStageProgress(label, downloaded, total);
+                        }
+
                         long now = Environment.TickCount64;
                         if (now - lastTick < 800) return;
                         lastTick = now;
@@ -671,8 +687,8 @@ namespace XelLauncher.Forms
                         config.Refresh();
                     }, _downloadCts.Token);
 
-                    _gameState = GameState.Unknown;
-                    _ = CheckGameStatusAsync();
+                    MarkGameReadyAfterInstall(capturedPath);
+                    await CheckGameStatusAsync();
                     config.OK(AntdUI.Localization.Get("App.Game.Install.Success", "安装/更新完成"));
                 }
                 catch (Exception ex) when (IsCancellation(ex))
@@ -701,6 +717,43 @@ namespace XelLauncher.Forms
             (ex is AggregateException aex && aex.InnerExceptions.Count > 0 &&
              aex.InnerExceptions[0] is OperationCanceledException);
 
+        private void MarkGameReadyAfterInstall(string installPath)
+        {
+            _gameState = GameState.Ready;
+
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached);
+
+                cfg.GameStatusCache[_game.IconName] = new CachedGameStatus
+                {
+                    IsInstalled = true,
+                    HasUpdate = false,
+                    LocalVersion = cached?.RemoteVersion ?? cached?.LocalVersion ?? "",
+                    RemoteVersion = cached?.RemoteVersion ?? ""
+                };
+
+                var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
+                if (entry != null)
+                {
+                    if (!string.IsNullOrEmpty(installPath))
+                        entry.RootPath = installPath;
+                    if (!string.IsNullOrEmpty(cached?.RemoteVersion))
+                        entry.LocalVersion = cached.RemoteVersion;
+                }
+
+                ConfigHelper.Save(cfg);
+            }
+            catch { }
+
+            if (IsHandleCreated && !IsDisposed)
+                BeginInvoke(() =>
+                {
+                    if (!GameStart.IsDisposed) RefreshGameStartButton();
+                });
+        }
+
         private static string FormatDownloadProgress(long downloaded, long total)
         {
             if (total <= 0) return null;
@@ -708,6 +761,12 @@ namespace XelLauncher.Forms
             double dlMB  = downloaded / 1048576.0;
             double totMB = total / 1048576.0;
             return $"{dlMB:F1} / {totMB:F1} MB  ({pct:F0}%)";
+        }
+
+        private static string FormatStageProgress(string stage, long current, long total)
+        {
+            var progress = FormatDownloadProgress(current, total);
+            return string.IsNullOrWhiteSpace(progress) ? stage : $"{stage} {progress}";
         }
 
         private async void GameStart_Click(object sender, EventArgs e)
@@ -738,7 +797,7 @@ namespace XelLauncher.Forms
                     Path.GetFullPath(bilibili.RootPath),
                     StringComparison.OrdinalIgnoreCase);
 
-            // Endfield 三服：只要当前游戏与任意另一个 Endfield 服路径相同就执行替换
+            // Endfield 涓夋湇锛氬彧瑕佸綋鍓嶆父鎴忎笌浠绘剰鍙︿竴涓?Endfield 鏈嶈矾寰勭浉鍚屽氨鎵ц鏇挎崲
             bool isEndfield = _game.IconName == "Endfield" || _game.IconName == "BiliEndfield" || _game.IconName == "GlobalEndfield" || _game.IconName == "PlayEndfield";
             bool endfieldSameRoot = false;
             if (isEndfield && !string.IsNullOrEmpty(path))
@@ -776,7 +835,7 @@ namespace XelLauncher.Forms
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
                 if (e2 != null) { e2.RootPath = path; ConfigHelper.Save(cfg2); }
 
-                // 路径刚被更新，重新计算 sameRoot / endfieldSameRoot / zipPath
+                // 璺緞鍒氳鏇存柊锛岄噸鏂拌绠?sameRoot / endfieldSameRoot / zipPath
                 var cfg3 = ConfigHelper.Load();
                 official = cfg3.Games.Find(g => g.IconName == "Arknights");
                 bilibili = cfg3.Games.Find(g => g.IconName == "BiliArknights");
@@ -863,7 +922,7 @@ namespace XelLauncher.Forms
                             ));
                         }
                     }
-                    // 随机波浪动画（1~3 秒）
+                    // 闅忔満娉㈡氮鍔ㄧ敾锛?~3 绉掞級
                     if (needSwitch && _game.IconName == "Arknights")
                     {
                         string selectedAccountId = accountSelect.SelectedValue as string;
@@ -887,7 +946,7 @@ namespace XelLauncher.Forms
 
                     GameLauncher.StartArknights(path, _game.IconName);
 
-                    // 检测到游戏进程后才显示启动成功
+                    // 妫€娴嬪埌娓告垙杩涚▼鍚庢墠鏄剧ず鍚姩鎴愬姛
                     string procName = (isEndfield) ? "Endfield" : "Arknights";
                     config.Text = AntdUI.Localization.Get("App.Game.WaitingProcess", "等待游戏进程...");
                     config.Refresh();
@@ -922,7 +981,7 @@ namespace XelLauncher.Forms
                                     }
                                     catch
                                     {
-                                        // 无权监听时，改为轮询进程是否还存在
+                                        // 鏃犳潈鐩戝惉鏃讹紝鏀逛负杞杩涚▼鏄惁杩樺瓨鍦?
                                         while (!capturedProc.HasExited)
                                             System.Threading.Thread.Sleep(3000);
                                     }
@@ -983,7 +1042,7 @@ namespace XelLauncher.Forms
             var g = e.Graphics;
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 
-            // cover 模式：铺满控件，居中裁剪
+            // cover 妯″紡锛氶摵婊℃帶浠讹紝灞呬腑瑁佸壀
             float srcRatio = (float)Image.Width / Image.Height;
             float dstRatio = (float)Width / Height;
             RectangleF src;
