@@ -27,6 +27,9 @@ namespace XelLauncher.Forms
         private AntdUI.FormFloatButton? _floatBtn;
         private bool _floatExpanded = false;
         private System.Windows.Forms.Panel _bottomBar;
+        private CoverPictureBox _coverPictureBox;
+        private Image _coverImage;
+        private readonly CancellationTokenSource _coverCts = new();
 
         private bool _accountExpanded = false;
         private readonly List<AntdUI.Button> _subBtns = new();
@@ -80,7 +83,7 @@ namespace XelLauncher.Forms
             {
                 IconSvg = "PlusOutlined",
                 Type = AntdUI.TTypeMini.Default,
-                BackColor = AntdUI.Config.IsDark ? Color.FromArgb(60, 60, 60) : Color.White,
+                BackColor = AntdUI.Config.IsDark ? AppTheme.DarkSurfaceActive : Color.White,
                 Size = new Size(52, 52),
                 Location = new Point(0, 0),
                 BorderWidth = 0,
@@ -214,20 +217,23 @@ namespace XelLauncher.Forms
                 "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield" => "End.jpg",
                 _ => "Arknights.jpg",
             };
-            string imgPath = Path.Combine(AppContext.BaseDirectory, "Resources", imgFile);
-            if (!File.Exists(imgPath)) return;
+            string fallbackPath = Path.Combine(AppContext.BaseDirectory, "Resources", imgFile);
 
-            var img = Image.FromFile(imgPath);
+            var img = LoadCoverImage(fallbackPath);
+            if (img == null) return;
+            _coverImage = img;
             var pb = new CoverPictureBox
             {
                 Dock = DockStyle.Fill,
                 Image = img,
             };
+            _coverPictureBox = pb;
             // 底部留出按钮行高度
             var bottomBar = new System.Windows.Forms.Panel
             {
                 Dock = DockStyle.Bottom,
                 Height = 72,
+                BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : _overview.BackColor,
             };
             _bottomBar = bottomBar;
 
@@ -273,6 +279,79 @@ namespace XelLauncher.Forms
                 PositionAddBtnInBar(bottomBar);
                 PositionSubButtons();
             };
+        }
+
+        private Image LoadCoverImage(string fallbackPath)
+        {
+            var cachedPath = GameCoverCache.GetCachedCoverPath(_game.IconName);
+            if (!string.IsNullOrEmpty(cachedPath))
+            {
+                var cached = GameCoverCache.TryLoadImage(cachedPath);
+                if (cached != null) return cached;
+            }
+
+            return File.Exists(fallbackPath) ? GameCoverCache.TryLoadImage(fallbackPath) : null;
+        }
+
+        private async Task RefreshRemoteCoverAsync()
+        {
+            try
+            {
+                var cachedPath = GameCoverCache.GetCachedCoverPath(_game.IconName);
+                if (!string.IsNullOrEmpty(cachedPath))
+                {
+                    LogHelper.Log($"Client cover cache hit, skip refresh: {_game.IconName} -> {cachedPath}");
+                    return;
+                }
+
+                var service = _service;
+                if (service == null) return;
+
+                LogHelper.Log($"Refreshing client cover: {_game.IconName}");
+                var token = _coverCts.Token;
+                var imageUrl = await service.GetClientCoverImageUrlAsync(token);
+                if (string.IsNullOrEmpty(imageUrl))
+                {
+                    LogHelper.Log($"Client cover URL empty: {_game.IconName}");
+                    return;
+                }
+
+                LogHelper.Log($"Client cover URL: {_game.IconName} -> {imageUrl}");
+
+                var imagePath = await GameCoverCache.UpdateAsync(_game.IconName, imageUrl, token);
+                if (string.IsNullOrEmpty(imagePath) || _coverCts.IsCancellationRequested)
+                {
+                    LogHelper.Log($"Client cover cache skipped: {_game.IconName}");
+                    return;
+                }
+                if (!IsHandleCreated || IsDisposed) return;
+
+                BeginInvoke(() => ApplyCoverImage(imagePath));
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GamePage.RefreshRemoteCoverAsync({_game.IconName})");
+            }
+        }
+
+        private void ApplyCoverImage(string imagePath)
+        {
+            if (_coverPictureBox == null || _coverPictureBox.IsDisposed) return;
+
+            var image = GameCoverCache.TryLoadImage(imagePath);
+            if (image == null)
+            {
+                LogHelper.Log($"Client cover load failed: {_game.IconName} -> {imagePath}");
+                return;
+            }
+
+            var oldImage = _coverImage;
+            _coverImage = image;
+            _coverPictureBox.Image = image;
+            _coverPictureBox.Invalidate();
+            oldImage?.Dispose();
+            LogHelper.Log($"Client cover applied: {_game.IconName} -> {imagePath}");
         }
 
         private void PositionLaunchInBar(System.Windows.Forms.Panel bar)
@@ -350,12 +429,14 @@ namespace XelLauncher.Forms
         {
             if (AntdUI.Config.IsDark)
             {
-                panelLaunch.BackExtend = "#3C3C48";
+                panelLaunch.BackExtend = AppTheme.DarkLaunchPanel;
                 panelLaunch.Back = null;
-                btnArknightsWiki.BackColor = Color.FromArgb(60, 60, 60);
+                btnArknightsWiki.BackColor = AppTheme.DarkSurfaceActive;
+                if (_bottomBar != null) _bottomBar.BackColor = AppTheme.DarkBackground;
                 return;
             }
             btnArknightsWiki.BackColor = Color.White;
+            if (_bottomBar != null) _bottomBar.BackColor = _overview.BackColor;
             panelLaunch.BackExtend = "";
             var bg = _overview.BackColor;
             float brightness = (bg.R * 0.299f + bg.G * 0.587f + bg.B * 0.114f) / 255f;
@@ -460,7 +541,7 @@ namespace XelLauncher.Forms
             else
             {
                 btnArknightsWiki.Type = AntdUI.TTypeMini.Default;
-                btnArknightsWiki.BackColor = Color.White;
+                btnArknightsWiki.BackColor = AntdUI.Config.IsDark ? AppTheme.DarkSurfaceActive : Color.White;
                 foreach (var btn in _subBtns) btn.Visible = false;
             }
         }
@@ -471,24 +552,12 @@ namespace XelLauncher.Forms
             btnArknightsWiki.Location = new Point(16, (bar.Height - btnArknightsWiki.Height) / 2);
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _floatBtn?.Close();
-                _floatBtn = null;
-                _downloadCts?.Dispose();
-                _downloadCts = null;
-                _service?.Dispose();
-                _service = null;
-            }
-            base.Dispose(disposing);
-        }
-
         private async Task CheckGameStatusAsync()
         {
             try { _service = new EndfieldService(_game.IconName); }
             catch { return; }
+
+            _ = RefreshRemoteCoverAsync();
 
             try
             {
@@ -517,6 +586,7 @@ namespace XelLauncher.Forms
 
                 if (IsHandleCreated)
                     BeginInvoke(() => RefreshGameStartButton());
+
             }
             catch { }
         }
@@ -794,6 +864,17 @@ namespace XelLauncher.Forms
                         }
                     }
                     // 随机波浪动画（1~3 秒）
+                    if (needSwitch && _game.IconName == "Arknights")
+                    {
+                        string selectedAccountId = accountSelect.SelectedValue as string;
+                        if (!string.IsNullOrEmpty(selectedAccountId))
+                        {
+                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "Switching account...");
+                            config.Refresh();
+                            await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
+                        }
+                    }
+
                     var rng = new Random();
                     int totalMs = rng.Next(1000, 3001);
                     int steps = 100;
@@ -877,8 +958,18 @@ namespace XelLauncher.Forms
 
     class CoverPictureBox : Control
     {
+        private Image _image;
+
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public Image Image { get; set; }
+        public Image Image
+        {
+            get => _image;
+            set
+            {
+                _image = value;
+                Invalidate();
+            }
+        }
 
         public CoverPictureBox()
         {

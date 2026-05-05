@@ -10,6 +10,8 @@ namespace XelLauncher.Helpers
 {
     public static class GameLauncher
     {
+        private const string ArknightsOfficialSdkDataDirName = "sdk_data_70613ebd03f0610da8808f16040ee1b3";
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
@@ -248,14 +250,9 @@ namespace XelLauncher.Helpers
 
         public static async Task BackupAccount(string accountId)
         {
-            string sdkPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData", "LocalLow", "Hypergryph", "Arknights"
-            );
-
             string target = Path.Combine(ConfigHelper.AccountBackupDir, accountId);
 
-            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+            var sdkDir = GetArknightsOfficialSdkDataDirectory(createIfMissing: false);
             if (sdkDir == null) return;
 
             if (Directory.Exists(target)) Directory.Delete(target, true);
@@ -268,17 +265,26 @@ namespace XelLauncher.Helpers
             if (!Directory.Exists(backupDir))
                 throw new Exception($"账号备份不存在，请先点击「保存账号」记录该账号。");
 
-            string sdkPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData", "LocalLow", "Hypergryph", "Arknights"
-            );
-
-            var sdkDir = Directory.GetDirectories(sdkPath, "sdk_data_*").FirstOrDefault();
+            var sdkDir = GetArknightsOfficialSdkDataDirectory(createIfMissing: true);
             if (sdkDir == null)
                 throw new Exception("未找到 sdk_data_* 目录，请先启动一次游戏。");
 
             if (Directory.Exists(sdkDir)) Directory.Delete(sdkDir, true);
             await CopyDirectory(backupDir, sdkDir);
+        }
+
+        private static string GetArknightsOfficialSdkDataDirectory(bool createIfMissing)
+        {
+            string sdkPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "AppData", "LocalLow", "Hypergryph", "Arknights"
+            );
+
+            string officialDir = Path.Combine(sdkPath, ArknightsOfficialSdkDataDirName);
+            if (Directory.Exists(officialDir) || createIfMissing)
+                return officialDir;
+
+            return null;
         }
 
         public static async Task BackupEndfieldAccount(string accountId)

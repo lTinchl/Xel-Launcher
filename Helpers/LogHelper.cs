@@ -22,7 +22,7 @@ namespace XelLauncher.Helpers
             string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
             lock (_entries) _entries.Add(line);
             WriteToFile(line);
-            OnLog?.Invoke();
+            NotifyChanged();
         }
 
         public static void LogError(Exception ex, string context = null)
@@ -33,7 +33,7 @@ namespace XelLauncher.Helpers
             string fullLine = $"[{DateTime.Now:HH:mm:ss}] {header}{Environment.NewLine}{ex}";
             lock (_entries) _entries.Add($"[{DateTime.Now:HH:mm:ss}] {header}");
             WriteToFile(fullLine);
-            OnLog?.Invoke();
+            NotifyChanged();
         }
 
         public static string GetAll()
@@ -54,6 +54,18 @@ namespace XelLauncher.Helpers
                 }
             }
             catch { /* 文件写入失败不抛异常，避免死循环 */ }
+        }
+
+        private static void NotifyChanged()
+        {
+            var handlers = OnLog;
+            if (handlers == null) return;
+
+            foreach (Action handler in handlers.GetInvocationList())
+            {
+                try { handler(); }
+                catch { }
+            }
         }
     }
 }

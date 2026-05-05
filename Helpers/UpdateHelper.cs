@@ -99,8 +99,9 @@ namespace XelLauncher.Helpers
         {
             try
             {
-                var current = new Version(currentVersion.TrimStart('v', 'V'));
-                var latest  = new Version(latestVersion.TrimStart('v', 'V'));
+                var current = NormalizeVersion(currentVersion);
+                var latest  = NormalizeVersion(latestVersion);
+                if (current == null || latest == null) return false;
                 return latest > current;
             }
             catch (Exception ex)
@@ -108,6 +109,22 @@ namespace XelLauncher.Helpers
                 LogHelper.LogError(ex, $"UpdateHelper.IsNewer({currentVersion}, {latestVersion})");
                 return false;
             }
+        }
+
+        private static Version NormalizeVersion(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version)) return null;
+
+            var core = version.Trim().TrimStart('v', 'V');
+            var prereleaseIndex = core.IndexOf('-');
+            if (prereleaseIndex >= 0)
+                core = core[..prereleaseIndex];
+
+            var metadataIndex = core.IndexOf('+');
+            if (metadataIndex >= 0)
+                core = core[..metadataIndex];
+
+            return Version.TryParse(core, out var parsed) ? parsed : null;
         }
 
         /// <summary>
