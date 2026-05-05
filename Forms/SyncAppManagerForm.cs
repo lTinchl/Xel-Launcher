@@ -23,13 +23,13 @@ namespace XelLauncher.Forms
 
             Font = new Font("Microsoft YaHei UI", 10F);
             Size = new Size(360, 428);
-            BackColor = Color.White;
+            BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White;
 
             var pnlHeader = new Panel
             {
                 Location = new Point(0, 0),
                 Size = new Size(360, 56),
-                BackColor = Color.White,
+                BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White,
             };
 
             var lblTitle = new AntdUI.Label
@@ -64,7 +64,7 @@ namespace XelLauncher.Forms
                 Location = new Point(0, 64),
                 Size = new Size(360, 300),
                 AutoScroll = true,
-                BackColor = Color.White,
+                BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White,
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 Padding = new Padding(0, 8, 0, 8),
             };
@@ -109,7 +109,7 @@ namespace XelLauncher.Forms
                 {
                     Location = new Point(0, 80),
                     Size = new Size(328, 80),
-                    BackColor = Color.White,
+                    BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White,
                 };
 
                 var lblEmpty = new AntdUI.Label
@@ -118,7 +118,7 @@ namespace XelLauncher.Forms
                     Location = new Point(0, 0),
                     Size = new Size(328, 28),
                     Font = new Font("Microsoft YaHei UI", 10F),
-                    ForeColor = Color.FromArgb(180, 180, 180),
+                    ForeColor = AntdUI.Config.IsDark ? AppTheme.DarkForegroundSecondary : Color.FromArgb(180, 180, 180),
                     TextAlign = ContentAlignment.MiddleCenter,
                 };
 
@@ -127,7 +127,7 @@ namespace XelLauncher.Forms
                     Text = AntdUI.Localization.Get("App.Sync.EmptySub", "点击右上角「+ 添加」来添加软件"),
                     Location = new Point(0, 28),
                     Size = new Size(328, 24),
-                    ForeColor = Color.FromArgb(200, 200, 200),
+                    ForeColor = AntdUI.Config.IsDark ? AppTheme.DarkForegroundSecondary : Color.FromArgb(200, 200, 200),
                     TextAlign = ContentAlignment.MiddleCenter,
                 };
 
@@ -146,14 +146,14 @@ namespace XelLauncher.Forms
                 {
                     Location = new Point(16, y),
                     Size = new Size(316, 56),
-                    BackColor = Color.FromArgb(250, 250, 250),
+                    BackColor = AntdUI.Config.IsDark ? AppTheme.DarkSurface : Color.FromArgb(250, 250, 250),
                 };
 
                 card.Paint += (s, e) =>
                 {
                     var g = e.Graphics;
                     g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                    using var pen = new Pen(Color.FromArgb(235, 235, 235), 1);
+                    using var pen = new Pen(AntdUI.Config.IsDark ? AppTheme.DarkBorder : Color.FromArgb(235, 235, 235), 1);
                     var rect = new Rectangle(0, 0, card.Width - 1, card.Height - 1);
                     int r = 8;
                     var path = new System.Drawing.Drawing2D.GraphicsPath();
@@ -185,7 +185,7 @@ namespace XelLauncher.Forms
                     Location = new Point(52, 10),
                     Size = new Size(196, 20),
                     Font = new Font("Microsoft YaHei UI", 9.5F),
-                    ForeColor = Color.FromArgb(30, 30, 30),
+                    ForeColor = AntdUI.Config.IsDark ? AppTheme.DarkForeground : Color.FromArgb(30, 30, 30),
                     BackColor = Color.Transparent,
                     AutoEllipsis = true,
                 };
@@ -196,7 +196,7 @@ namespace XelLauncher.Forms
                     Location = new Point(52, 30),
                     Size = new Size(196, 18),
                     Font = new Font("Microsoft YaHei UI", 7.5F),
-                    ForeColor = Color.FromArgb(160, 160, 160),
+                    ForeColor = AntdUI.Config.IsDark ? AppTheme.DarkForegroundSecondary : Color.FromArgb(160, 160, 160),
                     BackColor = Color.Transparent,
                     AutoEllipsis = true,
                 };

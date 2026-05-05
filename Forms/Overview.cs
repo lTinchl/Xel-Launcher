@@ -67,6 +67,8 @@ namespace XelLauncher.Forms
             {
                 if (!AntdUI.Config.IsDark)
                     ApplyBackgroundColor(ConfigHelper.Load().BackgroundColor);
+                else
+                    ApplyThemeSurfaces();
 
                 // 定位角标并异步检查更新
                 PositionUpdateBadge();
@@ -453,9 +455,24 @@ namespace XelLauncher.Forms
             {
                 var color = System.Drawing.ColorTranslator.FromHtml(hex);
                 BackColor = color;
+                ApplyThemeSurfaces();
                 _currentGamePage?.UpdateLaunchPanelColor();
             }
             catch { }
+        }
+
+        private void ApplyThemeSurfaces()
+        {
+            var background = AntdUI.Config.IsDark ? AppTheme.DarkBackground : BackColor;
+            var header = AntdUI.Config.IsDark ? AppTheme.DarkHeader : BackColor;
+
+            BackColor = background;
+            ForeColor = AntdUI.Config.IsDark ? AppTheme.DarkForeground : AppTheme.LightForeground;
+            windowBar.BackColor = header;
+            panelSidebar.BackColor = background;
+            panelSidebarItems.BackColor = background;
+            sidebarBottomPad.BackColor = background;
+            panelMain.BackColor = background;
         }
 
         private void btn_mode_Click(object sender, EventArgs e)
@@ -465,10 +482,12 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             cfg.ThemeMode = AntdUI.Config.IsDark ? "dark" : "light";
             ConfigHelper.Save(cfg);
-            // AntdUI ThemeConfig 已经在 Config.IsDark 切换时自动设置了 BackColor（深色=#000，浅色=#fff）
+            // AntdUI ThemeConfig 会在 Config.IsDark 切换时自动设置基础 BackColor。
             // 浅色模式下，如果用户有自定义背景色，再叠加覆盖一次
             if (!AntdUI.Config.IsDark)
                 ApplyBackgroundColor(ConfigHelper.Load().BackgroundColor);
+            else
+                ApplyThemeSurfaces();
             _currentGamePage?.UpdateLaunchPanelColor();
             // 主题切换后让角标用新背景色重绘描边
             updateBadge.Invalidate();

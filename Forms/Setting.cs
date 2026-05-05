@@ -23,10 +23,12 @@ namespace XelLauncher
         {
             form = _form;
             InitializeComponent();
+            ApplyThemeColors();
             btnSoftware.Click += (s, e) => ShowPanel(0);
             btnLog.Click += (s, e) => ShowPanel(1);
             btnUpdate.Click += (s, e) => ShowPanel(2);
-            LogHelper.OnLog += () => Invoke(new Action(RefreshLog));
+            LogHelper.OnLog += RefreshLogFromLogger;
+            Disposed += (s, e) => LogHelper.OnLog -= RefreshLogFromLogger;
 
             switch1.Checked = Animation = AntdUI.Config.Animation;
             switch2.Checked = ShadowEnabled = AntdUI.Config.ShadowEnabled;
@@ -58,6 +60,25 @@ namespace XelLauncher
                 try { await CheckUpdateAsync(); }
                 catch { /* 静默失败，不打扰用户 */ }
             };
+        }
+
+        private void ApplyThemeColors()
+        {
+            if (!AntdUI.Config.IsDark) return;
+
+            BackColor = AppTheme.DarkBackground;
+            ForeColor = AppTheme.DarkForeground;
+            panelLeft.BackColor = AppTheme.DarkBackground;
+            panelRight.BackColor = AppTheme.DarkBackground;
+            scrollSoftware.BackColor = AppTheme.DarkBackground;
+            panelLog.BackColor = AppTheme.DarkBackground;
+            panelUpdate.BackColor = AppTheme.DarkBackground;
+            tableSoftware.BackColor = AppTheme.DarkBackground;
+
+            txtLog.BackColor = AppTheme.DarkSurface;
+            txtLog.ForeColor = AppTheme.DarkForegroundSecondary;
+            txtChangelog.BackColor = AppTheme.DarkSurface;
+            txtChangelog.ForeColor = AppTheme.DarkForeground;
         }
 
         private static bool GetStartWithWindows()
@@ -96,6 +117,20 @@ namespace XelLauncher
             txtLog.Text = LogHelper.GetAll();
             txtLog.SelectionStart = txtLog.Text.Length;
             txtLog.ScrollToCaret();
+        }
+
+        private void RefreshLogFromLogger()
+        {
+            if (IsDisposed || !IsHandleCreated) return;
+
+            try
+            {
+                if (InvokeRequired)
+                    BeginInvoke(new Action(RefreshLog));
+                else
+                    RefreshLog();
+            }
+            catch (InvalidOperationException) { }
         }
 
         private void BindUpdatePanel()

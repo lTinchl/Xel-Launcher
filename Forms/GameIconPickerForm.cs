@@ -109,10 +109,10 @@ namespace XelLauncher.Forms
             {
                 if (dark)
                 {
-                    _bgNormal = Color.FromArgb(36, 36, 36);
-                    _bgHover  = Color.FromArgb(55, 55, 55);
-                    _border   = Color.FromArgb(60, 60, 60);
-                    _fore     = Color.FromArgb(220, 220, 220);
+                    _bgNormal = AppTheme.DarkSurface;
+                    _bgHover  = AppTheme.DarkSurfaceHover;
+                    _border   = AppTheme.DarkBorder;
+                    _fore     = AppTheme.DarkForeground;
                 }
                 else
                 {

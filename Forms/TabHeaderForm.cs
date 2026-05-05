@@ -100,9 +100,9 @@ namespace XelLauncher.Forms
 
         private void ApplyTheme(bool dark)
         {
-            var bg     = dark ? System.Drawing.Color.FromArgb(30, 30, 30)   : System.Drawing.Color.FromArgb(242, 242, 242);
-            var tabBg  = dark ? System.Drawing.Color.FromArgb(25, 25, 25)   : System.Drawing.Color.FromArgb(232, 232, 232);
-            var active = dark ? System.Drawing.Color.FromArgb(50, 50, 50)   : System.Drawing.Color.White;
+            var bg     = dark ? AppTheme.DarkBackground : System.Drawing.Color.FromArgb(242, 242, 242);
+            var tabBg  = dark ? AppTheme.DarkHeader     : System.Drawing.Color.FromArgb(232, 232, 232);
+            var active = dark ? AppTheme.DarkSurface    : System.Drawing.Color.White;
 
             this.BackColor          = bg;
             panelToolbar.BackColor  = bg;
