@@ -1,6 +1,5 @@
 using Microsoft.Win32;
 using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using XelLauncher.Forms;
@@ -37,7 +36,11 @@ namespace XelLauncher
             }
             catch
             {
-                MessageBox.Show("检测到系统未安装 WebView2 Runtime，请安装后再运行！");
+                MessageBox.Show(
+                    "未检测到 Microsoft Edge WebView2 Runtime。\r\n\r\n请安装 WebView2 Runtime 后再运行 XelLauncher。",
+                    "缺少 WebView2 Runtime",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return;
             }
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
