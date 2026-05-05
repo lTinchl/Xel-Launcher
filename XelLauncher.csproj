@@ -47,6 +47,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Include="H:\Vs Project\Hi3Helper.Plugin.Endfield\SevenZipExtractor\SevenZipExtractor\Lib\7z.dll">
+			<Link>Lib\7z.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+	</ItemGroup>
+
+	<Target Name="CopySevenZipNativeLibraryToPublish" AfterTargets="Publish">
+		<MakeDir Directories="$(PublishDir)Lib" />
+		<Copy SourceFiles="H:\Vs Project\Hi3Helper.Plugin.Endfield\SevenZipExtractor\SevenZipExtractor\Lib\7z.dll"
+		      DestinationFiles="$(PublishDir)Lib\7z.dll"
+		      SkipUnchangedFiles="true" />
+	</Target>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3856.49" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
 		<PackageReference Include="VC-LTL" Version="5.3.1" />
