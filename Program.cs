@@ -53,7 +53,10 @@ namespace XelLauncher
                 : AntdUI.Localization.CurrentLanguage;
             if (lang.StartsWith("en")) AntdUI.Localization.Provider = new Localizer();
             AntdUI.Localization.SetLanguage(lang);
-            AntdUI.Config.Theme().Dark("#000", "#fff").Light("#fff", "#000").FormBorderColor();
+            AntdUI.Config.Theme()
+                .Dark(AppTheme.DarkBackground, AppTheme.DarkForeground)
+                .Light(AppTheme.LightBackground, AppTheme.LightForeground)
+                .FormBorderColor(AppTheme.LightBorder, AppTheme.DarkBorder);
             // 根据用户保存的主题模式决定深色/浅色，"system" 则跟随系统注册表
             AntdUI.Config.IsDark = cfg.ThemeMode switch
             {
