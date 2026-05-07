@@ -8,8 +8,8 @@ namespace XelLauncher.Helpers
         public static readonly Color LightForeground = Color.FromArgb(24, 28, 34);
         public static readonly Color LightBorder = Color.FromArgb(218, 224, 231);
 
-        public static readonly Color DarkBackground = Color.FromArgb(23, 26, 31);
-        public static readonly Color DarkHeader = Color.FromArgb(27, 31, 37);
+        public static readonly Color DarkBackground = Color.FromArgb(30, 30, 30);
+        public static readonly Color DarkHeader = Color.FromArgb(30, 30, 30);
         public static readonly Color DarkSurface = Color.FromArgb(31, 36, 43);
         public static readonly Color DarkSurfaceHover = Color.FromArgb(42, 48, 57);
         public static readonly Color DarkSurfaceActive = Color.FromArgb(48, 55, 65);

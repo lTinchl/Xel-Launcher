@@ -1014,10 +1014,8 @@ namespace XelLauncher.Helpers
                     return "Server resources not found (no folder or ZIP in load directory)";
 
                 // GameSettingForm
-                case "App.GameSetting.VersionEndfield":
-                    return "Version: v1.2.4";
-                case "App.GameSetting.VersionArknights":
-                    return "Version: v72.0.0";
+                case "App.GameSetting.Version":
+                    return "Version:";
                 case "App.GameSetting.InstallPath":
                     return "Game Install Path";
                 case "App.GameSetting.PathPlaceholder":
