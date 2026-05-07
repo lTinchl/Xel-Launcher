@@ -14,15 +14,17 @@ namespace XelLauncher.Forms
         private readonly Overview _overview;
         private readonly GamePage _gamePage;
         private readonly string _iconName;
-        private AntdUI.Table table;
         private readonly HashSet<string> _pendingDelete = new();
-
+        private readonly (Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) _theme;
+        private AntdUI.Table table;
 
         public AccountManagerForm(Overview overview, GamePage gamePage, string iconName = "Arknights")
         {
             _overview = overview;
             _gamePage = gamePage;
             _iconName = iconName;
+            _theme = gamePage.GetCoverAccentPalette();
+
             Font = new Font("Microsoft YaHei UI", 10F);
             Size = new Size(720, 560);
             BackColor = Color.Transparent;
@@ -45,18 +47,18 @@ namespace XelLauncher.Forms
             };
             table.Columns = new AntdUI.ColumnCollection
             {
-                new AntdUI.ColumnSort() { Fixed = true },
+                new AntdUI.ColumnSort { Fixed = true },
                 new AntdUI.Column("name", AntdUI.Localization.Get("App.Account.ColName", "账号名称"), AntdUI.ColumnAlign.Center),
                 new AntdUI.Column("isDefault", AntdUI.Localization.Get("App.Account.ColDefault", "默认"), AntdUI.ColumnAlign.Center).SetWidth("80"),
                 new AntdUI.Column("isEnabled", AntdUI.Localization.Get("App.Account.ColStatus", "状态"), AntdUI.ColumnAlign.Center).SetWidth("80"),
-                new AntdUI.ColumnSwitch("enabledSwitch", AntdUI.Localization.Get("App.Account.ColEnabled", "启用"), AntdUI.ColumnAlign.Center).SetWidth("80"),
+                new AntdUI.Column("enabledSwitch", AntdUI.Localization.Get("App.Account.ColEnabled", "启用"), AntdUI.ColumnAlign.Center).SetWidth("80"),
                 new AntdUI.Column("action", AntdUI.Localization.Get("App.Account.ColAction", "操作"), AntdUI.ColumnAlign.Center).SetWidth("320"),
             };
             table.CellButtonClick += Table_CellButtonClick;
             table.SortRows += Table_SortRows;
             table.CheckedChanged += Table_CheckedChanged;
 
-            var btndune = new AntdUI.Button
+            var btnDone = new AntdUI.Button
             {
                 Text = AntdUI.Localization.Get("App.Account.BtnDone", "完成"),
                 Dock = DockStyle.Bottom,
@@ -64,8 +66,16 @@ namespace XelLauncher.Forms
                 Type = AntdUI.TTypeMini.Primary,
                 Radius = 6,
                 Margin = new Padding(12, 4, 12, 12),
+                BackExtend = $"135, {ToHex(_theme.Primary)}, {ToHex(_theme.PrimaryHover)}",
+                BackHover = _theme.PrimaryHover,
+                BackActive = _theme.PrimaryActive,
+                ForeColor = _theme.Text,
             };
-            btndune.Click += (s, e) => { var f = FindForm(); if (f != null) f.DialogResult = DialogResult.OK; };
+            btnDone.Click += (s, e) =>
+            {
+                var form = FindForm();
+                if (form != null) form.DialogResult = DialogResult.OK;
+            };
 
             var btnAdd = new AntdUI.Button
             {
@@ -75,12 +85,15 @@ namespace XelLauncher.Forms
                 Ghost = true,
                 Radius = 6,
                 Margin = new Padding(12, 4, 12, 12),
+                ForeColor = _theme.Text,
+                BackHover = Color.FromArgb(82, _theme.PrimaryHover),
+                BackActive = Color.FromArgb(120, _theme.PrimaryActive),
             };
             btnAdd.Click += (s, e) => ShowAddDialog();
 
             Controls.Add(table);
             Controls.Add(btnAdd);
-            Controls.Add(btndune);
+            Controls.Add(btnDone);
             Controls.Add(lblTitle);
 
             RefreshTable();
@@ -90,9 +103,9 @@ namespace XelLauncher.Forms
         {
             return _iconName switch
             {
-                "Endfield"       => (cfg.EndfieldAccounts, cfg.EndfieldAccountOrder, cfg.EndfieldDefaultAccount, cfg.EndfieldDisabledAccounts),
+                "Endfield" => (cfg.EndfieldAccounts, cfg.EndfieldAccountOrder, cfg.EndfieldDefaultAccount, cfg.EndfieldDisabledAccounts),
                 "GlobalEndfield" => (cfg.GlobalEndfieldAccounts, cfg.GlobalEndfieldAccountOrder, cfg.GlobalEndfieldDefaultAccount, cfg.GlobalEndfieldDisabledAccounts),
-                _                => (cfg.Accounts, cfg.AccountOrder, cfg.DefaultAccount, cfg.DisabledAccounts),
+                _ => (cfg.Accounts, cfg.AccountOrder, cfg.DefaultAccount, cfg.DisabledAccounts),
             };
         }
 
@@ -112,33 +125,77 @@ namespace XelLauncher.Forms
             var (accounts, _, defaultId, disabled) = GetAccountData(cfg);
             var rows = new List<AccountRow>();
             var ordered = GetOrderedIds();
+
             for (int i = 0; i < ordered.Count; i++)
             {
                 var id = ordered[i];
                 if (!accounts.TryGetValue(id, out var name)) continue;
+
                 bool isDef = id == defaultId;
                 bool isDisabled = disabled.Contains(id);
                 rows.Add(new AccountRow
                 {
                     id = id,
                     name = name,
-                    isDefault = isDef ? new AntdUI.CellTag(AntdUI.Localization.Get("App.Account.TagDefault", "默认"), AntdUI.TTypeMini.Primary) : null,
+                    isDefault = isDef ? StyleDefaultTag(new AntdUI.CellTag(AntdUI.Localization.Get("App.Account.TagDefault", "默认"), AntdUI.TTypeMini.Primary)) : null,
                     isEnabled = isDisabled
                         ? new AntdUI.CellBadge(AntdUI.TState.Default, AntdUI.Localization.Get("App.Account.BadgeDisabled", "禁用"))
                         : new AntdUI.CellBadge(AntdUI.TState.Processing, AntdUI.Localization.Get("App.Account.BadgeEnabled", "启用")),
-                    enabledSwitch = !isDisabled,
+                    enabledSwitch = CreateEnabledSwitch(id, !isDisabled),
                     action = new AntdUI.CellLink[]
                     {
-                        new AntdUI.CellButton("record",    AntdUI.Localization.Get("App.Account.BtnRecord",     "保存账号"), AntdUI.TTypeMini.Info),
-                        new AntdUI.CellButton("setDefault",AntdUI.Localization.Get("App.Account.BtnSetDefault", "设为默认"), AntdUI.TTypeMini.Success),
-                        new AntdUI.CellButton("rename",    AntdUI.Localization.Get("App.Account.BtnRename",     "重命名"),   AntdUI.TTypeMini.Default),
+                        StyleActionButton(new AntdUI.CellButton("record", AntdUI.Localization.Get("App.Account.BtnRecord", "保存账号"), AntdUI.TTypeMini.Primary), "primary"),
+                        new AntdUI.CellButton("setDefault", AntdUI.Localization.Get("App.Account.BtnSetDefault", "设为默认"), AntdUI.TTypeMini.Success).SetRadius(5),
+                        StyleActionButton(new AntdUI.CellButton("rename", AntdUI.Localization.Get("App.Account.BtnRename", "重命名"), AntdUI.TTypeMini.Default), "muted"),
                         _pendingDelete.Contains(id)
-                            ? new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnConfirmDelete", "确认删除"), AntdUI.TTypeMini.Error)
-                            : new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnDelete",        "删除"),    AntdUI.TTypeMini.Primary).SetBack(System.Drawing.Color.Orange),
+                            ? new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnConfirmDelete", "确认删除"), AntdUI.TTypeMini.Error).SetRadius(5)
+                            : new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnDelete", "删除"), AntdUI.TTypeMini.Primary).SetBack(Color.Orange).SetRadius(5),
                     }
                 });
             }
+
             table.DataSource = rows;
+        }
+
+        private AntdUI.CellTag StyleDefaultTag(AntdUI.CellTag tag)
+        {
+            return tag.SetBack(_theme.MutedHover).SetFore(_theme.Text).SetBorderWidth(0);
+        }
+
+        private AntdUI.CellButton StyleActionButton(AntdUI.CellButton button, string kind)
+        {
+            return kind switch
+            {
+                "danger" => button.SetBack(_theme.Danger, _theme.DangerHover, _theme.PrimaryActive).SetFore(_theme.Text).SetRadius(5),
+                "muted" => button.SetBack(_theme.Muted, _theme.MutedHover, _theme.MutedActive).SetFore(_theme.Text).SetRadius(5),
+                _ => button.SetBack(_theme.Primary, _theme.PrimaryHover, _theme.PrimaryActive).SetFore(_theme.Text).SetRadius(5),
+            };
+        }
+
+        private AntdUI.CellSwitch CreateEnabledSwitch(string id, bool enabled)
+        {
+            var cell = new AntdUI.CellSwitch(enabled)
+                .SetFill(_theme.Primary)
+                .SetFillHover(_theme.PrimaryHover)
+                .SetFore(_theme.Text);
+            cell.CheckedChanged += (s, e) => UpdateAccountEnabled(id, e.Value);
+            return cell;
+        }
+
+        private void UpdateAccountEnabled(string id, bool enabled)
+        {
+            var cfg = ConfigHelper.Load();
+            var disabledSet = _iconName switch
+            {
+                "Endfield" => cfg.EndfieldDisabledAccounts,
+                "GlobalEndfield" => cfg.GlobalEndfieldDisabledAccounts,
+                _ => cfg.DisabledAccounts,
+            };
+            if (enabled) disabledSet.Remove(id);
+            else disabledSet.Add(id);
+            ConfigHelper.Save(cfg);
+            _gamePage.LoadAccountSelect();
+            RefreshTable();
         }
 
         private void Table_SortRows(object sender, AntdUI.IntEventArgs e)
@@ -159,9 +216,9 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             var disabledSet = _iconName switch
             {
-                "Endfield"       => cfg.EndfieldDisabledAccounts,
+                "Endfield" => cfg.EndfieldDisabledAccounts,
                 "GlobalEndfield" => cfg.GlobalEndfieldDisabledAccounts,
-                _                => cfg.DisabledAccounts,
+                _ => cfg.DisabledAccounts,
             };
             if (e.Value) disabledSet.Remove(row.id);
             else disabledSet.Add(row.id);
@@ -193,6 +250,7 @@ namespace XelLauncher.Forms
                         }
                     });
                     break;
+
                 case "setDefault":
                     var cfg = ConfigHelper.Load();
                     if (_iconName == "Endfield") cfg.EndfieldDefaultAccount = row.id;
@@ -202,9 +260,11 @@ namespace XelLauncher.Forms
                     _gamePage.LoadAccountSelect();
                     RefreshTable();
                     break;
+
                 case "rename":
                     ShowRenameDialog(row.id, row.name);
                     break;
+
                 case "delete":
                     if (!_pendingDelete.Contains(row.id))
                     {
@@ -212,6 +272,7 @@ namespace XelLauncher.Forms
                         RefreshTable();
                         break;
                     }
+
                     _pendingDelete.Remove(row.id);
                     var cfg2 = ConfigHelper.Load();
                     if (_iconName == "Endfield")
@@ -233,13 +294,15 @@ namespace XelLauncher.Forms
                         if (cfg2.DefaultAccount == row.id) cfg2.DefaultAccount = "";
                     }
                     ConfigHelper.Save(cfg2);
+
                     string backupDir = System.IO.Path.Combine(
-                        _iconName == "Endfield"       ? ConfigHelper.EndAccountBackupDir :
+                        _iconName == "Endfield" ? ConfigHelper.EndAccountBackupDir :
                         _iconName == "GlobalEndfield" ? ConfigHelper.GlobalEndAccountBackupDir :
-                                                        ConfigHelper.AccountBackupDir,
+                        ConfigHelper.AccountBackupDir,
                         row.id);
                     if (System.IO.Directory.Exists(backupDir))
                         System.IO.Directory.Delete(backupDir, true);
+
                     _gamePage.LoadAccountSelect();
                     RefreshTable();
                     break;
@@ -254,9 +317,9 @@ namespace XelLauncher.Forms
                 PlaceholderText = AntdUI.Localization.Get("App.Account.AddPlaceholder", "输入账号名称"),
                 Dock = DockStyle.Fill,
             };
-            var panel = new System.Windows.Forms.Panel { Height = 40, Dock = DockStyle.Top };
+            var panel = new Panel { Height = 40, Dock = DockStyle.Top };
             panel.Controls.Add(input);
-            var wrap = new System.Windows.Forms.Panel { Size = new Size(260, 40) };
+            var wrap = new Panel { Size = new Size(260, 40) };
             wrap.Controls.Add(panel);
 
             var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Account.AddTitle", "添加账号"), wrap)
@@ -303,9 +366,9 @@ namespace XelLauncher.Forms
                 PlaceholderText = AntdUI.Localization.Get("App.Account.RenamePlaceholder", "输入新名称"),
                 Dock = DockStyle.Fill,
             };
-            var panel = new System.Windows.Forms.Panel { Height = 40, Dock = DockStyle.Top };
+            var panel = new Panel { Height = 40, Dock = DockStyle.Top };
             panel.Controls.Add(input);
-            var wrap = new System.Windows.Forms.Panel { Size = new Size(260, 40) };
+            var wrap = new Panel { Size = new Size(260, 40) };
             wrap.Controls.Add(panel);
 
             var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Account.RenameTitle", "重命名账号"), wrap)
@@ -327,13 +390,18 @@ namespace XelLauncher.Forms
             RefreshTable();
         }
 
+        private static string ToHex(Color color)
+        {
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
         private class AccountRow
         {
-            public string id { get; set; }
-            public string name { get; set; }
+            public string id { get; set; } = "";
+            public string name { get; set; } = "";
             public AntdUI.CellTag isDefault { get; set; }
             public AntdUI.CellBadge isEnabled { get; set; }
-            public bool enabledSwitch { get; set; }
+            public AntdUI.CellSwitch enabledSwitch { get; set; }
             public AntdUI.CellLink[] action { get; set; }
         }
     }

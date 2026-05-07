@@ -14,20 +14,20 @@ namespace XelLauncher.Forms
         private void InitializeComponent()
         {
             btn_bgcolor = new AntdUI.Dropdown();
-            btn_mode = new AntdUI.Button();
+            btn_mode = new AnimatedThemeButton();
             btn_more = new AntdUI.Dropdown();
             btn_global = new AntdUI.Dropdown();
             btn_setting = new AntdUI.Button();
             windowBar = new AntdUI.PageHeader();
             colorTheme = new AntdUI.ColorPicker();
             updateBadge = new UpdateBadgeControl();
-            panelSidebar = new System.Windows.Forms.Panel();
-            panelSidebarItems = new System.Windows.Forms.FlowLayoutPanel();
+            panelSidebar = new ThemeSurfacePanel();
+            panelSidebarItems = new ThemeSurfacePanel();
             btnSidebarManage = new AntdUI.Button();
             dividerSidebar = new AntdUI.Divider();
             dividerSidebarV = new AntdUI.Divider();
-            sidebarBottomPad = new System.Windows.Forms.Panel();
-            panelMain = new System.Windows.Forms.Panel();
+            sidebarBottomPad = new ThemeSurfacePanel();
+            panelMain = new ThemeSurfacePanel();
             windowBar.SuspendLayout();
             SuspendLayout();
             //
@@ -49,13 +49,11 @@ namespace XelLauncher.Forms
             //
             btn_mode.Dock = DockStyle.Right;
             btn_mode.Ghost = true;
-            btn_mode.IconSvg = "SunOutlined";
             btn_mode.Location = new Point(972, 0);
             btn_mode.Name = "btn_mode";
             btn_mode.Radius = 0;
-            btn_mode.Size = new Size(46, 40);
+            btn_mode.Size = new Size(76, 40);
             btn_mode.TabIndex = 6;
-            btn_mode.ToggleIconSvg = "MoonOutlined";
             btn_mode.WaveSize = 0;
             btn_mode.Click += btn_mode_Click;
             //
@@ -161,8 +159,6 @@ namespace XelLauncher.Forms
             // panelSidebarItems
             //
             panelSidebarItems.Dock = DockStyle.Fill;
-            panelSidebarItems.FlowDirection = FlowDirection.TopDown;
-            panelSidebarItems.WrapContents = false;
             panelSidebarItems.AutoScroll = true;
             panelSidebarItems.Name = "panelSidebarItems";
             panelSidebarItems.Padding = new Padding(4, 4, 4, 4);
@@ -173,6 +169,8 @@ namespace XelLauncher.Forms
             btnSidebarManage.Height = 40;
             btnSidebarManage.IconSvg = "AppstoreOutlined";
             btnSidebarManage.Ghost = true;
+            btnSidebarManage.BorderWidth = 0F;
+            btnSidebarManage.WaveSize = 0;
             btnSidebarManage.Name = "btnSidebarManage";
             btnSidebarManage.Click += new System.EventHandler(this.btnSidebarManage_Click);
             //
@@ -222,7 +220,7 @@ namespace XelLauncher.Forms
 
         #endregion
 
-        private AntdUI.Button btn_mode;
+        private AnimatedThemeButton btn_mode;
         private AntdUI.Dropdown btn_bgcolor;
         private AntdUI.Dropdown btn_more;
         private AntdUI.Dropdown btn_global;
@@ -230,12 +228,12 @@ namespace XelLauncher.Forms
         private AntdUI.PageHeader windowBar;
         private AntdUI.ColorPicker colorTheme;
         private UpdateBadgeControl updateBadge;
-        private System.Windows.Forms.Panel panelSidebar;
-        private System.Windows.Forms.FlowLayoutPanel panelSidebarItems;
+        private ThemeSurfacePanel panelSidebar;
+        private ThemeSurfacePanel panelSidebarItems;
         private AntdUI.Button btnSidebarManage;
-        private System.Windows.Forms.Panel sidebarBottomPad;
+        private ThemeSurfacePanel sidebarBottomPad;
         private AntdUI.Divider dividerSidebar;
         private AntdUI.Divider dividerSidebarV;
-        private System.Windows.Forms.Panel panelMain;
+        private ThemeSurfacePanel panelMain;
     }
 }

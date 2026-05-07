@@ -93,7 +93,7 @@ namespace XelLauncher.Forms
             private readonly string _label;
             private Bitmap _icon;
             private bool _hovered;
-            private Color _bgNormal, _bgHover, _border, _fore;
+            private Color _bgNormal, _bgHover, _border, _fore, _accent;
 
             public CardPanel(string iconName, string label)
             {
@@ -102,6 +102,7 @@ namespace XelLauncher.Forms
                 DoubleBuffered = true;
                 SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
                 _icon = LoadIcon(iconName);
+                _accent = GameTheme.GetAccent(iconName);
                 UpdateTheme(AntdUI.Config.IsDark);
             }
 
@@ -140,7 +141,7 @@ namespace XelLauncher.Forms
                 using var path = RoundRect(rect, r);
                 g.FillPath(bgBrush, path);
 
-                var borderColor = _hovered ? AntdUI.Style.Db.Primary : _border;
+                var borderColor = _hovered ? _accent : _border;
                 using var pen = new Pen(borderColor, _hovered ? 2f : 1f);
                 g.DrawPath(pen, path);
 

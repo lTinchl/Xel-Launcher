@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace XelLauncher.Forms
 {
-    public class NoticeItem
+public class NoticeItem
     {
         public NoticeItem(string tag, string title, string date, string url)
         {
@@ -41,7 +41,7 @@ namespace XelLauncher.Forms
 
     class NoticeCarouselPanel : Control
     {
-        private readonly List<NoticeBannerItem> _banners;
+private readonly List<NoticeBannerItem> _banners;
         private readonly List<NoticeItem> _notices;
         private readonly System.Windows.Forms.Timer _timer;
         private readonly System.Windows.Forms.Timer _slideTimer;
@@ -332,7 +332,7 @@ namespace XelLauncher.Forms
             var rect = new Rectangle(1, 1, Width - 3, Height - 3);
             using (var path = RoundedRect(rect, 16))
             using (var bg = new SolidBrush(Color.FromArgb(188, 34, 37, 43)))
-            using (var border = new Pen(Color.FromArgb(22, 255, 255, 255), 1))
+            using (var border = new Pen(Color.FromArgb(34, 255, 255, 255), 1))
             {
                 g.FillPath(bg, path);
                 g.DrawPath(border, path);

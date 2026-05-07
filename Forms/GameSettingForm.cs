@@ -29,6 +29,7 @@ namespace XelLauncher.Forms
 
             Font = new Font("Microsoft YaHei UI", 9F);
             Size = new Size(360, 290);
+            AutoScroll = false;
 
             // ── 游戏图标 ──
             var picIcon = new PictureBox
@@ -216,13 +217,11 @@ namespace XelLauncher.Forms
                 var btnBili = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.BiliWebsite", "Arknights BiliBili官网"),
-                    Location = new Point(20, 316),
+                    Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
-                btnBili.Click += (s, e) =>
-                    TabHeaderForm.Open("https://www.biligame.com/detail/?id=117664");
-                Controls.Add(btnBili);
+                // Website button hidden.
                 Size = new Size(360, 386);
             }
             else if (game.IconName == "Endfield")
@@ -234,14 +233,12 @@ namespace XelLauncher.Forms
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
-                btn.Click += (s, e) =>
-                    TabHeaderForm.Open("https://endfield.hypergryph.com/");
-                Controls.Add(btn);
+                // Website button hidden.
 
                 var btnSync = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.SyncToAll", "同步路径到 BillBili服 / 国际服 / GooglePlay服"),
-                    Location = new Point(20, 316),
+                    Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
@@ -326,9 +323,7 @@ namespace XelLauncher.Forms
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
-                btn.Click += (s, e) =>
-                    TabHeaderForm.Open("https://www.biligame.com/detail/?id=108422");
-                Controls.Add(btn);
+                // Website button hidden.
                 Size = new Size(360, 386);
             }
             else if (game.IconName == "GlobalEndfield")
@@ -392,9 +387,7 @@ namespace XelLauncher.Forms
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
-                btn.Click += (s, e) =>
-                    TabHeaderForm.Open("https://endfield.hypergryph.com/en-US/");
-                Controls.Add(btn);
+                // Website button hidden.
                 Size = new Size(360, 386);
             }
             else if (game.IconName == "PlayEndfield")
@@ -576,9 +569,7 @@ namespace XelLauncher.Forms
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
-                btn.Click += (s, e) =>
-                    new TabHeaderForm("https://endfield.hypergryph.com/en-US/").Show();
-                Controls.Add(btn);
+                // Website button hidden.
                 Size = new Size(360, 524);
             }
             else
@@ -590,14 +581,12 @@ namespace XelLauncher.Forms
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
-                btnguan.Click += (s, e) =>
-                    TabHeaderForm.Open("https://ak.hypergryph.com/");
-                Controls.Add(btnguan);
+                // Website button hidden.
 
                 var btnSync = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.SyncToBili", "同步路径到 BillBili服"),
-                    Location = new Point(20, 316),
+                    Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
@@ -662,7 +651,8 @@ namespace XelLauncher.Forms
             {
                 bool on = swExtra.Checked;
                 btnManage.Visible = on;
-                Size = new Size(360, on ? 458 : 410);
+                MinimumSize = new Size(360, on ? 560 : 520);
+                if (Height < MinimumSize.Height) Height = MinimumSize.Height;
 
                 // 持久化 Switch 状态
                 var cfg = ConfigHelper.Load();
@@ -674,7 +664,8 @@ namespace XelLauncher.Forms
                 }
             };
 
-            Size = new Size(360, syncEnabled ? 458 : 410);
+            Size = new Size(360, syncEnabled ? 560 : 520);
+            MinimumSize = new Size(360, syncEnabled ? 560 : 520);
 
             // ── 启用账号切换 ──
             bool showAccountSwitch = game.IconName != "BiliArknights" && game.IconName != "BiliEndfield";
@@ -779,7 +770,82 @@ namespace XelLauncher.Forms
             Controls.Add(_inputPath);
             Controls.Add(btnBrowse);
             Controls.Add(btnOpenDir);
-            
+            ApplyGameAccentTheme();
+
+            swExtra.CheckedChanged += (s, e) => ApplyResponsiveLayout();
+            Resize += (s, e) => ApplyResponsiveLayout();
+            ApplyResponsiveLayout();
+
+            void ApplyResponsiveLayout()
+            {
+                int margin = 20;
+                int contentWidth = Math.Max(260, ClientSize.Width - margin * 2);
+                int switchX = margin + contentWidth - 36;
+
+                lblName.Width = Math.Max(160, contentWidth - 60);
+                lblVersion.Width = Math.Max(160, contentWidth - 60);
+                divider1.Width = contentWidth;
+                lblPathSection.Width = contentWidth;
+                _inputPath.Width = contentWidth;
+                btnBrowse.Width = contentWidth;
+                btnOpenDir.Width = contentWidth;
+
+                foreach (Control control in Controls)
+                {
+                    if (control == _inputPath || control == btnBrowse || control == btnOpenDir) continue;
+                    if (control.Left == margin && control.Width == 320 && (control is AntdUI.Button || control is AntdUI.Input))
+                    {
+                        control.Width = contentWidth;
+                        if (control is AntdUI.Button button) button.TextAlign = ContentAlignment.MiddleCenter;
+                    }
+                }
+                btnBrowse.TextAlign = ContentAlignment.MiddleCenter;
+                btnOpenDir.TextAlign = ContentAlignment.MiddleCenter;
+
+                Control[] lowerControls = showAccountSwitch
+                    ? new Control[] { divider3, swacmg, dividerArgs, swArgs, inputArgs, divider2, swExtra, btnManage }
+                    : new Control[] { dividerArgs, swArgs, inputArgs, divider2, swExtra, btnManage };
+
+                int upperBottom = 0;
+                foreach (Control control in Controls)
+                {
+                    if (Array.IndexOf(lowerControls, control) >= 0) continue;
+                    if (control.Visible) upperBottom = Math.Max(upperBottom, control.Bottom);
+                }
+
+                int lowerContentHeight = showAccountSwitch
+                    ? (btnManage.Visible ? 166 : 120)
+                    : (btnManage.Visible ? 136 : 90);
+                int maxLowerTop = Math.Max(upperBottom + 18, ClientSize.Height - lowerContentHeight - 24);
+                int preferredLowerTop = Math.Max(upperBottom + 28, ClientSize.Height - lowerContentHeight - 36);
+                int lowerTop = Math.Min(preferredLowerTop, maxLowerTop);
+
+                if (showAccountSwitch)
+                {
+                    divider3.Location = new Point(margin, lowerTop);
+                    divider3.Width = Math.Max(160, contentWidth - 56);
+                    swacmg.Location = new Point(switchX, lowerTop);
+                    lowerTop += 30;
+                }
+
+                dividerArgs.Location = new Point(margin, lowerTop);
+                dividerArgs.Width = Math.Max(160, contentWidth - 56);
+                swArgs.Location = new Point(switchX, lowerTop);
+
+                inputArgs.Location = new Point(margin, lowerTop + 24);
+                inputArgs.Width = contentWidth;
+
+                int syncTop = lowerTop + 70;
+                divider2.Location = new Point(margin, syncTop);
+                divider2.Width = Math.Max(160, contentWidth - 56);
+                swExtra.Location = new Point(switchX, syncTop);
+
+                btnManage.Location = new Point(margin, syncTop + 30);
+                btnManage.Width = contentWidth;
+                btnManage.TextAlign = ContentAlignment.MiddleCenter;
+
+                AutoScrollMinSize = Size.Empty;
+            }
 
         }
 
@@ -788,6 +854,43 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             var entry = cfg.Games.Find(g => g.Name == _game.Name && g.IconName == _game.IconName);
             if (entry != null) { entry.RootPath = path; ConfigHelper.Save(cfg); }
+        }
+
+        private void ApplyGameAccentTheme()
+        {
+            var primary = GameTheme.GetAccent(_game.IconName);
+            var hover = GameTheme.GetAccentHover(_game.IconName);
+            var active = GameTheme.GetAccentActive(_game.IconName);
+
+            foreach (Control control in Controls)
+                ApplyGameAccentTheme(control, primary, hover, active);
+        }
+
+        private static void ApplyGameAccentTheme(Control control, Color primary, Color hover, Color active)
+        {
+            switch (control)
+            {
+                case AntdUI.Button button:
+                    button.BackColor = Color.Transparent;
+                    button.DefaultBorderColor = Color.FromArgb(185, primary);
+                    button.BackHover = hover;
+                    button.BackActive = active;
+                    button.ForeHover = hover;
+                    button.ForeActive = active;
+                    break;
+                case AntdUI.Input input:
+                    input.BorderHover = Color.FromArgb(165, hover);
+                    input.BorderActive = hover;
+                    input.SelectionColor = Color.FromArgb(70, hover);
+                    break;
+                case AntdUI.Switch sw:
+                    sw.Fill = primary;
+                    sw.FillHover = hover;
+                    break;
+            }
+
+            foreach (Control child in control.Controls)
+                ApplyGameAccentTheme(child, primary, hover, active);
         }
 
         private void BrowsePath()

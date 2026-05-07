@@ -23,6 +23,7 @@ namespace XelLauncher
         {
             form = _form;
             InitializeComponent();
+            HideInternalUiOptions();
             ApplyThemeColors();
             btnSoftware.Click += (s, e) => ShowPanel(0);
             btnLog.Click += (s, e) => ShowPanel(1);
@@ -60,6 +61,27 @@ namespace XelLauncher
                 try { await CheckUpdateAsync(); }
                 catch { /* 静默失败，不打扰用户 */ }
             };
+        }
+
+        private void HideInternalUiOptions()
+        {
+            var controls = new Control[]
+            {
+                label1, switch1,
+                label2, switch2,
+                label3, switch3,
+                label4, switch4,
+                label5, switch5,
+            };
+
+            foreach (var control in controls)
+                control.Visible = false;
+
+            for (int i = 0; i < 5 && i < tableSoftware.RowStyles.Count; i++)
+            {
+                tableSoftware.RowStyles[i].SizeType = SizeType.Absolute;
+                tableSoftware.RowStyles[i].Height = 0F;
+            }
         }
 
         private void ApplyThemeColors()
