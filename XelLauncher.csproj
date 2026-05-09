@@ -101,6 +101,7 @@
 	<ItemGroup>
 		<EmbeddedResource Remove="Forms\GamePage.Accent.resx" />
 		<EmbeddedResource Remove="Forms\GamePage.Launch.resx" />
+		<EmbeddedResource Remove="Forms\GamePage.LaunchPanel.resx" />
 		<EmbeddedResource Update="Properties\Resources.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
