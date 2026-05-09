@@ -49,14 +49,22 @@ namespace XelLauncher.Helpers
                 using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                // tag_name 可能是 "v0.1.6" 或 "0.1.6"
+                
                 var tagName = root.GetProperty("tag_name").GetString() ?? "";
                 var version = tagName.TrimStart('v', 'V');
                 var changelog = root.GetProperty("body").GetString() ?? "";
                 var releaseUrl = root.GetProperty("html_url").GetString() ?? "";
+                DateTimeOffset? publishedAt = null;
+                if (root.TryGetProperty("published_at", out var publishedElement) &&
+                    DateTimeOffset.TryParse(publishedElement.GetString(), out var parsedPublishedAt))
+                {
+                    publishedAt = parsedPublishedAt;
+                }
 
                 string setupUrl = null;
                 string portableUrl = null;
+                long? setupSize = null;
+                long? portableSize = null;
 
                 if (root.TryGetProperty("assets", out var assets))
                 {
@@ -64,10 +72,20 @@ namespace XelLauncher.Helpers
                     {
                         var name = asset.GetProperty("name").GetString() ?? "";
                         var url  = asset.GetProperty("browser_download_url").GetString() ?? "";
+                        long? size = asset.TryGetProperty("size", out var sizeElement) &&
+                                     sizeElement.TryGetInt64(out var parsedSize)
+                            ? parsedSize
+                            : null;
                         if (name.EndsWith("-Setup.exe", StringComparison.OrdinalIgnoreCase))
+                        {
                             setupUrl = url;
+                            setupSize = size;
+                        }
                         else if (name.EndsWith("-Portable.zip", StringComparison.OrdinalIgnoreCase))
+                        {
                             portableUrl = url;
+                            portableSize = size;
+                        }
                     }
                 }
 
@@ -75,8 +93,11 @@ namespace XelLauncher.Helpers
                 {
                     LatestVersion       = version,
                     Changelog           = changelog,
+                    PublishedAt         = publishedAt,
                     SetupDownloadUrl    = setupUrl,
+                    SetupSizeBytes      = setupSize,
                     PortableDownloadUrl = portableUrl,
+                    PortableSizeBytes   = portableSize,
                     ReleasePageUrl      = releaseUrl
                 };
             }
@@ -95,6 +116,88 @@ namespace XelLauncher.Helpers
         /// <summary>
         /// 比较当前版本与最新版本，返回 true 表示有新版本可用。
         /// </summary>
+        public static AppUpdateState GetCachedState()
+        {
+            var cfg = ConfigHelper.Load();
+            return cfg.UpdateState ?? new AppUpdateState();
+        }
+
+        public static async Task<AppUpdateState> CheckAndPersistAsync(string currentVersion)
+        {
+            var cfg = ConfigHelper.Load();
+            cfg.UpdateState ??= new AppUpdateState();
+            cfg.UpdateState.LastCheckedAtUtc = DateTimeOffset.UtcNow.ToString("O");
+
+            var info = await CheckAsync();
+            if (info == null)
+            {
+                ConfigHelper.Save(cfg);
+                return null;
+            }
+
+            SaveInfo(cfg.UpdateState, info, IsNewer(currentVersion, info.LatestVersion));
+            ConfigHelper.Save(cfg);
+            return cfg.UpdateState;
+        }
+
+        public static UpdateInfo ToUpdateInfo(AppUpdateState state)
+        {
+            if (state == null || string.IsNullOrWhiteSpace(state.LatestVersion))
+                return null;
+
+            return new UpdateInfo
+            {
+                LatestVersion = state.LatestVersion,
+                Changelog = state.Changelog,
+                PublishedAt = state.PublishedAt,
+                SetupDownloadUrl = state.SetupDownloadUrl,
+                SetupSizeBytes = state.SetupSizeBytes,
+                PortableDownloadUrl = state.PortableDownloadUrl,
+                PortableSizeBytes = state.PortableSizeBytes,
+                ReleasePageUrl = state.ReleasePageUrl
+            };
+        }
+
+        public static bool ShouldShowCachedUpdate(AppConfig cfg, string currentVersion)
+        {
+            var state = cfg?.UpdateState;
+            if (state == null || !state.HasUpdate) return false;
+            if (string.IsNullOrWhiteSpace(state.LatestVersion)) return false;
+
+            return IsNewer(currentVersion, state.LatestVersion);
+        }
+
+        public static bool ShouldShowUpdateReminder(AppConfig cfg, string currentVersion)
+        {
+            if (!ShouldShowCachedUpdate(cfg, currentVersion)) return false;
+
+            var state = cfg.UpdateState;
+            if (state.DisableReminder) return false;
+            if (string.Equals(state.SkippedVersion, state.LatestVersion, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
+        }
+
+        private static void SaveInfo(AppUpdateState state, UpdateInfo info, bool hasUpdate)
+        {
+            state.HasUpdate = hasUpdate;
+            state.LatestVersion = info.LatestVersion ?? "";
+            state.Changelog = info.Changelog ?? "";
+            state.PublishedAt = info.PublishedAt;
+            state.SetupDownloadUrl = info.SetupDownloadUrl ?? "";
+            state.SetupSizeBytes = info.SetupSizeBytes;
+            state.PortableDownloadUrl = info.PortableDownloadUrl ?? "";
+            state.PortableSizeBytes = info.PortableSizeBytes;
+            state.ReleasePageUrl = info.ReleasePageUrl ?? "";
+
+            if (!string.Equals(state.SkippedVersion, state.LatestVersion, StringComparison.OrdinalIgnoreCase) &&
+                hasUpdate)
+            {
+                state.SkippedVersion = "";
+            }
+        }
+
         public static bool IsNewer(string currentVersion, string latestVersion)
         {
             try

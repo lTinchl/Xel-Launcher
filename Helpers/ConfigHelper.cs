@@ -7,6 +7,8 @@ namespace XelLauncher.Helpers
 {
     public static class ConfigHelper
     {
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions { WriteIndented = true };
+
         public static readonly string ConfigDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                          "XelLauncher");
@@ -24,8 +26,12 @@ namespace XelLauncher.Helpers
             if (!File.Exists(ConfigFile)) return new AppConfig();
             try
             {
-                return JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(ConfigFile))
-                       ?? new AppConfig();
+                var cfg = JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(ConfigFile))
+                          ?? new AppConfig();
+                cfg.UpdateState ??= new AppUpdateState();
+                cfg.GameStatusCache ??= new();
+                MigrateLegacySecrets(cfg);
+                return cfg;
             }
             catch (Exception ex)
             {
@@ -37,8 +43,25 @@ namespace XelLauncher.Helpers
         public static void Save(AppConfig cfg)
         {
             Directory.CreateDirectory(ConfigDir);
+            SkylandTokenStorage.NormalizeBeforeSave(cfg);
             File.WriteAllText(ConfigFile,
-                JsonSerializer.Serialize(cfg, new JsonSerializerOptions { WriteIndented = true }));
+                JsonSerializer.Serialize(cfg, JsonOptions));
+        }
+
+        private static void MigrateLegacySecrets(AppConfig cfg)
+        {
+            if (cfg.SkylandTokens == null || cfg.SkylandTokens.Count == 0) return;
+
+            try
+            {
+                Directory.CreateDirectory(ConfigDir);
+                SkylandTokenStorage.NormalizeBeforeSave(cfg);
+                File.WriteAllText(ConfigFile, JsonSerializer.Serialize(cfg, JsonOptions));
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "ConfigSecretMigration");
+            }
         }
     }
 }

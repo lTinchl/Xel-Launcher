@@ -57,7 +57,7 @@ namespace XelLauncher
             labelAuthor.Size = new Size(252, 26);
             labelAuthor.Margin = new Padding(0);
             labelAuthor.TabIndex = 3;
-            labelAuthor.Text = "By\uff1aTinch";
+            labelAuthor.Text = "By：Tinch";
             labelAuthor.TextAlign = ContentAlignment.TopCenter;
             //
             // shieldVersion

@@ -17,6 +17,9 @@ namespace XelLauncher.Forms
     {
         public UpdateReminderAction SelectedAction { get; private set; }
 
+        private static string L(string key, string fallback) =>
+            AntdUI.Localization.Get(key, fallback);
+
         public UpdateReminderDialog(UpdateInfo info, string currentVersion)
         {
             Size = new Size(420, 230);
@@ -28,7 +31,7 @@ namespace XelLauncher.Forms
 
             var title = new Label
             {
-                Text = $"\u53d1\u73b0\u65b0\u7248\u672c v{info.LatestVersion}",
+                Text = string.Format(L("App.Update.ReminderTitle", "发现新版本 v{0}"), info.LatestVersion),
                 AutoSize = false,
                 Location = new Point(18, 14),
                 Size = new Size(384, 30),
@@ -39,7 +42,7 @@ namespace XelLauncher.Forms
 
             var version = new Label
             {
-                Text = $"\u5f53\u524d\u7248\u672c v{currentVersion}\uff0c\u53ef\u66f4\u65b0\u5230 v{info.LatestVersion}",
+                Text = string.Format(L("App.Update.ReminderSubtitle", "当前版本 v{0}，可更新到 v{1}"), currentVersion, info.LatestVersion),
                 AutoSize = false,
                 Location = new Point(18, 48),
                 Size = new Size(384, 24),
@@ -63,10 +66,9 @@ namespace XelLauncher.Forms
                 TabStop = false,
             };
 
-            var btnUpdate = CreateButton("\u7acb\u5373\u66f4\u65b0", AntdUI.TTypeMini.Primary, 18, UpdateReminderAction.UpdateNow);
-            var btnSkip = CreateButton("\u4e0b\u4e2a\u7248\u672c\u518d\u63d0\u9192", AntdUI.TTypeMini.Default, 154, UpdateReminderAction.SkipVersion);
-            var btnDisable = CreateButton("\u4e0d\u518d\u63d0\u9192\u66f4\u65b0", AntdUI.TTypeMini.Default, 290, UpdateReminderAction.DisableReminder);
-            btnDisable.Ghost = true;
+            var btnUpdate = CreateButton(L("App.Update.DownloadNow", "立即更新"), AntdUI.TTypeMini.Success, 18, UpdateReminderAction.UpdateNow);
+            var btnSkip = CreateButton(L("App.Update.SkipVersion", "下个版本再提醒"), AntdUI.TTypeMini.Default, 154, UpdateReminderAction.SkipVersion);
+            var btnDisable = CreateButton(L("App.Update.DisableReminder", "不再提醒更新"), AntdUI.TTypeMini.Default, 290, UpdateReminderAction.DisableReminder);
 
             Controls.Add(title);
             Controls.Add(version);
@@ -85,7 +87,17 @@ namespace XelLauncher.Forms
                 Radius = 6,
                 Location = new Point(x, 178),
                 Size = new Size(118, 34),
+                TabStop = false,
+                WaveSize = 0,
             };
+            if (type == AntdUI.TTypeMini.Default)
+            {
+                button.Ghost = true;
+                button.BorderWidth = 1F;
+                button.DefaultBorderColor = AntdUI.Config.IsDark ? Color.FromArgb(70, 78, 92) : Color.FromArgb(226, 232, 240);
+                button.BackHover = AntdUI.Config.IsDark ? Color.FromArgb(218, 226, 238) : Color.FromArgb(76, 86, 102);
+                button.BackActive = AntdUI.Config.IsDark ? Color.FromArgb(238, 242, 248) : Color.FromArgb(48, 58, 72);
+            }
             button.Click += (s, e) => Complete(action);
             return button;
         }
@@ -103,20 +115,20 @@ namespace XelLauncher.Forms
         private static string BuildSummary(string changelog)
         {
             if (string.IsNullOrWhiteSpace(changelog))
-                return "\u6682\u65e0\u66f4\u65b0\u5185\u5bb9\u3002";
+                return L("App.Update.NoChangelog", "暂无更新内容。");
 
             var lines = changelog.Replace("\r\n", "\n").Split('\n');
             var result = new System.Text.StringBuilder();
             foreach (var raw in lines)
             {
-                var line = raw.Trim().TrimStart('-', '*', '\u2022').Trim();
+                var line = raw.Trim().TrimStart('-', '*', '•').Trim();
                 if (line.Length == 0) continue;
                 if (result.Length > 0) result.AppendLine();
-                result.Append("\u2022 ").Append(line);
+                result.Append("• ").Append(line);
                 if (result.Length > 240) break;
             }
 
-            return result.Length > 0 ? result.ToString() : "\u6682\u65e0\u66f4\u65b0\u5185\u5bb9\u3002";
+            return result.Length > 0 ? result.ToString() : L("App.Update.NoChangelog", "暂无更新内容。");
         }
     }
 }

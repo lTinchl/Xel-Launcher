@@ -24,6 +24,7 @@ namespace XelLauncher
 
         private UpdateInfo _updateInfo;
         private CancellationTokenSource _downloadCts;
+        private bool _isDownloadingUpdate;
         private RoundedPanel _logCard;
         private RoundedPanel _updateHeaderCard;
         private RoundedPanel _softwareCard;
@@ -32,8 +33,13 @@ namespace XelLauncher
         private ThinScrollBar _logScrollBar;
         private System.Windows.Forms.Timer _logScrollHideTimer;
         private System.Windows.Forms.Timer _updateScrollHideTimer;
+        private System.Windows.Forms.Timer _latestVersionColorTimer;
+        private System.Windows.Forms.Timer _tabUnderlineTimer;
+        private double _latestVersionHue;
+        private Rectangle _tabUnderlineTarget;
+        private bool _tabUnderlineInitialized;
         private Panel _tabBar;
-        private Panel _tabUnderline;
+        private Control _tabUnderline;
         private AntdUI.Label _settingTitle;
         private Panel _logHeader;
         private AntdUI.Label _logTitle;
@@ -44,6 +50,13 @@ namespace XelLauncher
         private AntdUI.Label _updateNotifyOption;
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
+        private static bool IsEnglishUi =>
+            AntdUI.Localization.CurrentLanguage?.StartsWith("en", StringComparison.OrdinalIgnoreCase) == true;
+        private static Color LatestVersionStaticColor =>
+            AntdUI.Config.IsDark ? Color.FromArgb(210, 216, 226) : Color.FromArgb(46, 54, 66);
+
+        private static string L(string key, string fallback) =>
+            AntdUI.Localization.Get(key, fallback);
 
         public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink;
 
@@ -51,7 +64,7 @@ namespace XelLauncher
         {
             form = _form;
             InitializeComponent();
-            Size = new Size(600, 500);
+            Size = new Size(600, 560);
             MinimumSize = Size;
             HideInternalUiOptions();
             ApplyModernLayout();
@@ -65,6 +78,8 @@ namespace XelLauncher
                 LogHelper.OnLog -= RefreshLogFromLogger;
                 _logScrollHideTimer?.Dispose();
                 _updateScrollHideTimer?.Dispose();
+                _latestVersionColorTimer?.Dispose();
+                _tabUnderlineTimer?.Dispose();
             };
 
             switch1.Checked = Animation = AntdUI.Config.Animation;
@@ -92,11 +107,7 @@ namespace XelLauncher
             switch11.CheckedChanged += (s, e) => { UseHardLink = e.Value; };
 
             BindUpdatePanel();
-            Load += async (s, e) =>
-            {
-                try { await CheckUpdateAsync(); }
-                catch { /* 静默失败，不打扰用户 */ }
-            };
+            Load += (s, e) => LoadUpdateFromCache();
         }
 
         private void HideInternalUiOptions()
@@ -134,7 +145,7 @@ namespace XelLauncher
             tableSoftware.BackColor = _softwareCard != null ? AppTheme.DarkSurface : AppTheme.DarkBackground;
             if (_tabBar != null) _tabBar.BackColor = AppTheme.DarkBackground;
             if (_settingTitle != null) _settingTitle.ForeColor = AppTheme.DarkForeground;
-            if (_tabUnderline != null) _tabUnderline.BackColor = Color.FromArgb(255, 76, 84);
+            if (_tabUnderline != null) _tabUnderline.BackColor = Color.Transparent;
             if (_logHeader != null) _logHeader.BackColor = AppTheme.DarkBackground;
             if (_logTitle != null) _logTitle.ForeColor = AppTheme.DarkForeground;
 
@@ -212,10 +223,10 @@ namespace XelLauncher
             BuildUpdateHeader(cardBack, border, normalText, subtleText);
             lblCurrentVersionTitle.ForeColor = subtleText;
             lblLatestVersionTitle.ForeColor = subtleText;
-            lblCurrentVersion.ForeColor = normalText;
-            lblLatestVersion.ForeColor = normalText;
-            lblCurrentVersion.Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold);
-            lblLatestVersion.Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold);
+            lblCurrentVersion.ForeColor = subtleText;
+            lblLatestVersion.ForeColor = LatestVersionStaticColor;
+            lblCurrentVersion.Font = new Font("Microsoft YaHei UI", 11.5F, FontStyle.Bold);
+            lblLatestVersion.Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold);
             btnCheckUpdate.Radius = 6;
             btnCheckUpdate.Type = AntdUI.TTypeMini.Primary;
 
@@ -274,7 +285,7 @@ namespace XelLauncher
             _updateHeaderCard = new RoundedPanel
             {
                 Dock = DockStyle.Top,
-                Height = 420,
+                Height = 438,
                 Padding = new Padding(18),
                 FillColor = cardBack,
                 BorderColor = border,
@@ -285,15 +296,15 @@ namespace XelLauncher
 
             _updateHeaderTitle = new AntdUI.Label
             {
-                Text = "\u53d1\u73b0\u65b0\u7248\u672c",
-                Size = new Size(180, 30),
+                Text = L("App.Update.NewVersionTitle", "发现新版本"),
+                Size = new Size(220, 30),
                 Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
                 ForeColor = normalText,
             };
             _updateHeaderSubtitle = new AntdUI.Label
             {
-                Text = "\u5f53\u524d\u7248\u672c\uff1a",
-                Size = new Size(76, 24),
+                Text = L("App.Update.CurrentVersion", "当前版本") + "：",
+                Size = new Size(IsEnglishUi ? 112 : 76, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
@@ -304,6 +315,7 @@ namespace XelLauncher
             lblCurrentVersionTitle.Font = new Font("Microsoft YaHei UI", 9F);
             lblCurrentVersion.Size = new Size(96, 24);
             lblCurrentVersion.Dock = DockStyle.None;
+            lblCurrentVersion.ForeColor = subtleText;
 
             _updateHeaderArrow = new AntdUI.Label
             {
@@ -314,17 +326,18 @@ namespace XelLauncher
                 ForeColor = Color.FromArgb(22, 119, 255),
             };
 
-            lblLatestVersionTitle.Text = "\u6700\u65b0\u7248\u672c\uff1a";
-            lblLatestVersionTitle.Size = new Size(76, 24);
+            lblLatestVersionTitle.LocalizationText = null;
+            lblLatestVersionTitle.Text = L("App.Update.LatestVersion", "最新版本") + "：";
+            lblLatestVersionTitle.Size = new Size(IsEnglishUi ? 104 : 76, 24);
             lblLatestVersionTitle.Dock = DockStyle.None;
             lblLatestVersionTitle.Font = new Font("Microsoft YaHei UI", 9F);
             lblLatestVersionTitle.ForeColor = subtleText;
             lblLatestVersion.Size = new Size(96, 24);
             lblLatestVersion.Dock = DockStyle.None;
-            lblLatestVersion.ForeColor = Color.FromArgb(22, 119, 255);
+            lblLatestVersion.ForeColor = LatestVersionStaticColor;
 
-            btnCheckUpdate.Text = "\u68c0\u67e5\u66f4\u65b0";
-            btnCheckUpdate.Size = new Size(92, 30);
+            btnCheckUpdate.LocalizationText = null;
+            btnCheckUpdate.Text = L("App.Update.CheckUpdate", "检查更新");
             btnCheckUpdate.Dock = DockStyle.None;
             btnCheckUpdate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnCheckUpdate.Ghost = true;
@@ -332,12 +345,12 @@ namespace XelLauncher
 
             _updateSectionTitle = new AntdUI.Label
             {
-                Text = "\u66f4\u65b0\u5185\u5bb9",
-                Size = new Size(120, 24),
+                Text = L("App.Update.ReleaseNotes", "更新内容"),
+                Size = new Size(IsEnglishUi ? 150 : 120, 24),
                 Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
                 ForeColor = normalText,
             };
-            txtChangelog.Text = "\u70b9\u51fb\u68c0\u67e5\u66f4\u65b0\u540e\u663e\u793a\u5185\u5bb9\u3002";
+            txtChangelog.Text = L("App.Update.ChangelogHint", "点击检查更新后显示内容。");
             _updateChangelogScrollBar = new ThinScrollBar(
                 AntdUI.Config.IsDark ? Color.FromArgb(48, 52, 60) : Color.FromArgb(236, 240, 246),
                 AntdUI.Config.IsDark ? Color.FromArgb(118, 128, 146) : Color.FromArgb(156, 166, 182));
@@ -365,15 +378,15 @@ namespace XelLauncher
             };
             _updateAutoOption = new AntdUI.Label
             {
-                Text = "\u53d1\u5e03\u65e5\u671f\uff1a\u68c0\u67e5\u540e\u663e\u793a",
-                Size = new Size(220, 24),
+                Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示"),
+                Size = new Size(IsEnglishUi ? 260 : 220, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
             _updateNotifyOption = new AntdUI.Label
             {
-                Text = "\u66f4\u65b0\u5927\u5c0f\uff1a\u68c0\u67e5\u540e\u663e\u793a",
-                Size = new Size(220, 24),
+                Text = L("App.Update.UpdateSizePending", "更新大小：检查后显示"),
+                Size = new Size(IsEnglishUi ? 260 : 220, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
@@ -405,66 +418,115 @@ namespace XelLauncher
 
             var contentWidth = Math.Max(300, width - 36);
             _updateHeaderTitle.Location = new Point(18, 18);
+            var checkTextWidth = TextRenderer.MeasureText(
+                btnCheckUpdate.Text,
+                btnCheckUpdate.Font,
+                Size.Empty,
+                TextFormatFlags.NoPadding).Width;
+            var checkButtonWidth = Math.Min(Math.Max(92, checkTextWidth + 28), Math.Max(92, contentWidth - 180));
+            btnCheckUpdate.Size = new Size(checkButtonWidth, 30);
+            btnCheckUpdate.Location = new Point(width - btnCheckUpdate.Width - 18, 22);
+            if (btnCheckUpdate.Left < _updateHeaderTitle.Right + 12)
+                btnCheckUpdate.Location = new Point(18, 48);
+
+            var versionTop = btnCheckUpdate.Top == 48 ? 86 : 56;
             _updateHeaderSubtitle.Location = new Point(18, 56);
-            lblCurrentVersion.Location = new Point(96, 56);
-            lblCurrentVersion.Size = new Size(96, 24);
-            lblLatestVersionTitle.Location = new Point(18, 82);
-            lblLatestVersion.Location = new Point(96, 82);
-            lblLatestVersion.Size = new Size(110, 24);
+            _updateHeaderSubtitle.Location = new Point(18, versionTop);
+            lblCurrentVersion.Location = new Point(_updateHeaderSubtitle.Right + 4, versionTop);
+            lblCurrentVersion.Size = new Size(100, 24);
+            lblLatestVersionTitle.Location = new Point(18, versionTop + 26);
+            lblLatestVersion.Location = new Point(lblLatestVersionTitle.Right + 4, versionTop + 26);
+            lblLatestVersion.Size = new Size(116, 28);
             lblCurrentVersionTitle.Visible = false;
             _updateHeaderArrow.Visible = false;
-            btnCheckUpdate.Location = new Point(width - btnCheckUpdate.Width - 18, 22);
 
-            _updateSectionTitle.Location = new Point(18, 120);
-            txtChangelog.Location = new Point(18, 150);
-            txtChangelog.Size = new Size(contentWidth - 18, 150);
+            var notesTop = versionTop + 64;
+            _updateSectionTitle.Location = new Point(18, notesTop);
+            txtChangelog.Location = new Point(18, notesTop + 30);
+            txtChangelog.Size = new Size(contentWidth - 18, btnCheckUpdate.Top == 48 ? 120 : 150);
             if (_updateChangelogScrollBar != null)
             {
-                _updateChangelogScrollBar.Location = new Point(18 + contentWidth - 10, 154);
-                _updateChangelogScrollBar.Size = new Size(8, 142);
+                _updateChangelogScrollBar.Location = new Point(18 + contentWidth - 10, txtChangelog.Top + 4);
+                _updateChangelogScrollBar.Size = new Size(8, Math.Max(40, txtChangelog.Height - 8));
                 _updateChangelogScrollBar.BringToFront();
                 UpdateChangelogScrollBar();
             }
             _updateAutoOption.Location = new Point(18, 316);
             _updateNotifyOption.Location = new Point(18, 342);
 
-            panelUpdateButtons.Location = new Point(18, 382);
-            panelUpdateButtons.Size = new Size(contentWidth, 34);
+            var downloadPanelHeight = _isDownloadingUpdate || progressDownload.Visible ? 68 : 34;
+            panelUpdateButtons.Location = new Point(18, downloadPanelHeight > 34 ? 368 : 382);
+            panelUpdateButtons.Size = new Size(contentWidth, downloadPanelHeight);
             if (btnDownloadSetup.Parent is Panel buttonPanel)
             {
                 buttonPanel.Dock = DockStyle.None;
                 buttonPanel.Location = new Point(0, 0);
                 buttonPanel.Size = new Size(contentWidth, 34);
-                btnDownloadSetup.Size = new Size(108, 32);
+                var setupWidth = IsEnglishUi ? 126 : 108;
+                var portableWidth = IsEnglishUi ? 118 : 112;
+                var cancelWidth = IsEnglishUi ? 152 : 104;
+                var gap = 16;
+                btnDownloadSetup.Size = new Size(setupWidth, 32);
                 btnDownloadSetup.Location = new Point(0, 1);
-                btnDownloadPortable.Size = new Size(112, 32);
-                btnDownloadPortable.Location = new Point(124, 1);
+                btnDownloadPortable.Size = new Size(portableWidth, 32);
+                btnDownloadPortable.Location = new Point(setupWidth + gap, 1);
                 btnFallback.Size = new Size(100, 32);
-                btnFallback.Location = new Point(252, 1);
+                btnFallback.Location = new Point(setupWidth + portableWidth + gap * 2, 1);
+                btnCancelDownload.Size = new Size(cancelWidth, 32);
+                btnCancelDownload.Location = new Point(_isDownloadingUpdate ? 0 : setupWidth + portableWidth + gap * 2, 1);
             }
-            progressDownload.Width = contentWidth;
+            lblDownloadStatus.Dock = DockStyle.None;
+            if (_isDownloadingUpdate)
+            {
+                var cancelWidth = IsEnglishUi ? 152 : 104;
+                lblDownloadStatus.Location = new Point(cancelWidth + 12, 5);
+                lblDownloadStatus.Size = new Size(Math.Max(80, contentWidth - cancelWidth - 12), 24);
+            }
+            else
+            {
+                lblDownloadStatus.Location = new Point(0, 38);
+                lblDownloadStatus.Size = new Size(contentWidth, 18);
+            }
+            progressDownload.Dock = DockStyle.None;
+            progressDownload.Location = new Point(0, _isDownloadingUpdate ? 44 : 58);
+            progressDownload.Size = new Size(Math.Max(120, contentWidth - 24), 10);
         }
 
         private void ConfigureUpdateButtons(Color surface, Color border, Color normalText)
         {
-            btnDownloadSetup.Text = "\u7acb\u5373\u66f4\u65b0";
-            btnDownloadSetup.LocalizationText = "";
-            btnDownloadSetup.Type = AntdUI.TTypeMini.Primary;
+            btnDownloadSetup.Text = L("App.Update.DownloadNow", "立即更新");
+            btnDownloadSetup.LocalizationText = null;
+            btnDownloadSetup.Type = AntdUI.TTypeMini.Success;
             btnDownloadSetup.Radius = 6;
 
-            btnDownloadPortable.Text = "\u4fbf\u643a\u7248";
-            btnDownloadPortable.LocalizationText = "";
+            var buttonBorder = AntdUI.Config.IsDark ? Color.FromArgb(82, 90, 104) : Color.FromArgb(196, 205, 218);
+            var buttonHover = AntdUI.Config.IsDark ? Color.FromArgb(218, 226, 238) : Color.FromArgb(76, 86, 102);
+            var buttonActive = AntdUI.Config.IsDark ? Color.FromArgb(238, 242, 248) : Color.FromArgb(48, 58, 72);
+
+            btnDownloadPortable.Text = L("App.Update.Portable", "便携版");
+            btnDownloadPortable.LocalizationText = null;
             btnDownloadPortable.Type = AntdUI.TTypeMini.Default;
             btnDownloadPortable.Ghost = true;
             btnDownloadPortable.BorderWidth = 1F;
+            btnDownloadPortable.DefaultBorderColor = buttonBorder;
+            btnDownloadPortable.BackHover = buttonHover;
+            btnDownloadPortable.BackActive = buttonActive;
             btnDownloadPortable.Radius = 6;
 
-            btnFallback.Text = "\u7f51\u76d8\u4e0b\u8f7d";
-            btnFallback.LocalizationText = "";
+            btnFallback.Text = L("App.Update.Fallback", "网盘下载");
+            btnFallback.LocalizationText = null;
             btnFallback.Type = AntdUI.TTypeMini.Default;
             btnFallback.Ghost = true;
             btnFallback.BorderWidth = 1F;
+            btnFallback.DefaultBorderColor = buttonBorder;
+            btnFallback.BackHover = buttonHover;
+            btnFallback.BackActive = buttonActive;
             btnFallback.Radius = 6;
+
+            btnCancelDownload.Text = L("App.Update.CancelDownload", "Cancel Download");
+            btnCancelDownload.LocalizationText = null;
+            btnCancelDownload.Type = AntdUI.TTypeMini.Error;
+            btnCancelDownload.Radius = 6;
         }
         private void BuildTopTabs(Color surface, Color normalText, Color subtleText)
         {
@@ -473,7 +535,7 @@ namespace XelLauncher
                 _tabBar = new Panel
                 {
                     Dock = DockStyle.None,
-                    Height = 44,
+                    Height = 46,
                     BackColor = surface,
                     Padding = new Padding(0),
                 };
@@ -485,10 +547,10 @@ namespace XelLauncher
                     ForeColor = normalText,
                     Visible = false,
                 };
-                _tabUnderline = new Panel
+                _tabUnderline = new AccentUnderline
                 {
                     Size = new Size(34, 2),
-                    BackColor = Color.FromArgb(255, 76, 84),
+                    BackColor = Color.Transparent,
                 };
                 panelRight.Controls.Add(_tabBar);
                 _tabBar.Controls.Add(_settingTitle);
@@ -519,9 +581,9 @@ namespace XelLauncher
             }
 
             _tabBar.BackColor = surface;
-            StyleTabButton(btnSoftware, "常规", normalText);
-            StyleTabButton(btnUpdate, "软件更新", normalText);
-            StyleTabButton(btnLog, "软件日志", normalText);
+            StyleTabButton(btnSoftware, L("App.Setting.Software", "常规"), normalText);
+            StyleTabButton(btnUpdate, L("App.Setting.Update", "软件更新"), normalText);
+            StyleTabButton(btnLog, L("App.Setting.Log", "软件日志"), normalText);
             _tabBar.BringToFront();
             LayoutTopTabs();
             UpdateTopTabState(0);
@@ -536,25 +598,32 @@ namespace XelLauncher
 
             var y = 8;
             var x = 0;
-            LayoutTabButton(btnSoftware, x, y, 64);
+            var softwareWidth = Math.Max(64, TextRenderer.MeasureText(btnSoftware.Text ?? string.Empty, btnSoftware.Font, Size.Empty, TextFormatFlags.NoPadding).Width + 24);
+            var updateWidth = Math.Max(86, TextRenderer.MeasureText(btnUpdate.Text ?? string.Empty, btnUpdate.Font, Size.Empty, TextFormatFlags.NoPadding).Width + 24);
+            var logWidth = Math.Max(64, TextRenderer.MeasureText(btnLog.Text ?? string.Empty, btnLog.Font, Size.Empty, TextFormatFlags.NoPadding).Width + 24);
+
+            LayoutTabButton(btnSoftware, x, y, softwareWidth);
             x += btnSoftware.Width + 22;
-            LayoutTabButton(btnUpdate, x, y, 86);
+            LayoutTabButton(btnUpdate, x, y, updateWidth);
             x += btnUpdate.Width + 22;
-            LayoutTabButton(btnLog, x, y, 86);
-            PositionTabUnderline();
+            LayoutTabButton(btnLog, x, y, logWidth);
+            PositionTabUnderline(animate: false);
         }
 
         private void StyleTabButton(AntdUI.Button button, string text, Color foreColor)
         {
             button.Text = text;
-            button.LocalizationText = "";
+            button.LocalizationText = null;
             button.Dock = DockStyle.None;
             button.Ghost = true;
             button.BorderWidth = 0;
-            button.Radius = 0;
+            button.Radius = 6;
             button.Type = AntdUI.TTypeMini.Default;
+            button.BackHover = Color.Transparent;
+            button.BackActive = Color.Transparent;
+            button.WaveSize = 0;
             button.TabStop = false;
-            button.Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold);
+            button.Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Regular);
             button.ForeColor = foreColor;
             button.GotFocus += (s, e) => panelRight.Focus();
             button.MouseUp += (s, e) => panelRight.Focus();
@@ -573,21 +642,82 @@ namespace XelLauncher
             btnSoftware.ForeColor = tab == 0 ? normalText : subtleText;
             btnUpdate.ForeColor = tab == 2 ? normalText : subtleText;
             btnLog.ForeColor = tab == 1 ? normalText : subtleText;
-            btnSoftware.Font = new Font("Microsoft YaHei UI", 10F, tab == 0 ? FontStyle.Bold : FontStyle.Regular);
-            btnUpdate.Font = new Font("Microsoft YaHei UI", 10F, tab == 2 ? FontStyle.Bold : FontStyle.Regular);
-            btnLog.Font = new Font("Microsoft YaHei UI", 10F, tab == 1 ? FontStyle.Bold : FontStyle.Regular);
+            btnSoftware.Font = new Font("Microsoft YaHei UI", 9.5F, tab == 0 ? FontStyle.Bold : FontStyle.Regular);
+            btnUpdate.Font = new Font("Microsoft YaHei UI", 9.5F, tab == 2 ? FontStyle.Bold : FontStyle.Regular);
+            btnLog.Font = new Font("Microsoft YaHei UI", 9.5F, tab == 1 ? FontStyle.Bold : FontStyle.Regular);
             PositionTabUnderline();
         }
 
-        private void PositionTabUnderline()
+        private void PositionTabUnderline(bool animate = true)
         {
             if (_tabUnderline == null) return;
 
             var active = scrollSoftware.Visible ? btnSoftware : panelUpdate.Visible ? btnUpdate : btnLog;
-            _tabUnderline.Width = Math.Min(34, active.Width - 12);
-            _tabUnderline.Location = new Point(active.Left + 6, active.Bottom + 1);
+            var textWidth = TextRenderer.MeasureText(active.Text, active.Font, Size.Empty, TextFormatFlags.NoPadding).Width;
+            var underlineWidth = Math.Max(24, Math.Min(active.Width - 14, (int)(textWidth * 0.72F)));
+            _tabUnderlineTarget = new Rectangle(
+                active.Left + (active.Width - underlineWidth) / 2,
+                active.Bottom - 4,
+                underlineWidth,
+                3);
+
+            if (!animate || !_tabUnderlineInitialized)
+            {
+                _tabUnderline.Bounds = _tabUnderlineTarget;
+                _tabUnderlineInitialized = true;
+                _tabUnderlineTimer?.Stop();
+            }
+            else
+            {
+                StartTabUnderlineAnimation();
+            }
+
             _tabUnderline.BringToFront();
         }
+
+        private void StartTabUnderlineAnimation()
+        {
+            if (_tabUnderline == null) return;
+
+            if (_tabUnderlineTimer == null)
+            {
+                _tabUnderlineTimer = new System.Windows.Forms.Timer { Interval = 15 };
+                _tabUnderlineTimer.Tick += (s, e) => AnimateTabUnderline();
+            }
+
+            if (!_tabUnderlineTimer.Enabled)
+                _tabUnderlineTimer.Start();
+        }
+
+        private void AnimateTabUnderline()
+        {
+            if (_tabUnderline == null)
+            {
+                _tabUnderlineTimer?.Stop();
+                return;
+            }
+
+            var current = _tabUnderline.Bounds;
+            var next = new Rectangle(
+                EaseUnderlineValue(current.X, _tabUnderlineTarget.X),
+                _tabUnderlineTarget.Y,
+                EaseUnderlineValue(current.Width, _tabUnderlineTarget.Width),
+                _tabUnderlineTarget.Height);
+
+            if (Math.Abs(next.X - _tabUnderlineTarget.X) <= 1 &&
+                Math.Abs(next.Width - _tabUnderlineTarget.Width) <= 1)
+            {
+                _tabUnderline.Bounds = _tabUnderlineTarget;
+                _tabUnderlineTimer?.Stop();
+            }
+            else
+            {
+                _tabUnderline.Bounds = next;
+            }
+        }
+
+        private static int EaseUnderlineValue(int current, int target) =>
+            current + (int)Math.Round((target - current) * 0.32D);
 
         private void BuildSoftwareCard(Color cardBack, Color border, Color normalText, Color subtleText)
         {
@@ -905,10 +1035,12 @@ namespace XelLauncher
             totalLines = textBox.IsHandleCreated
                 ? Math.Max(1, SendMessage(textBox.Handle, EmGetLineCount, IntPtr.Zero, IntPtr.Zero).ToInt32())
                 : Math.Max(1, textBox.GetLineFromCharIndex(textBox.TextLength) + 1);
-            visibleLines = Math.Max(1, (textBox.ClientSize.Height - 4) / Math.Max(1, textBox.Font.Height));
             firstVisible = textBox.IsHandleCreated
                 ? Math.Max(0, SendMessage(textBox.Handle, EmGetFirstVisibleLine, IntPtr.Zero, IntPtr.Zero).ToInt32())
                 : textBox.GetLineFromCharIndex(textBox.GetCharIndexFromPosition(new Point(1, 1)));
+            var bottomLine = textBox.GetLineFromCharIndex(
+                textBox.GetCharIndexFromPosition(new Point(1, Math.Max(1, textBox.ClientSize.Height - 2))));
+            visibleLines = Math.Max(1, bottomLine - firstVisible + 1);
             firstVisible = Math.Min(Math.Max(0, totalLines - visibleLines), firstVisible);
             return totalLines > visibleLines;
         }
@@ -1034,6 +1166,12 @@ namespace XelLauncher
                 try { await DownloadAsync(isSetup: false); }
                 catch (Exception ex) { lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadErrorPrefix", "错误：") + ex.Message; }
             };
+            btnCancelDownload.Click += (s, e) =>
+            {
+                btnCancelDownload.Enabled = false;
+                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.Canceling", "Canceling...");
+                _downloadCts?.Cancel();
+            };
             btnFallback.Click += (s, e) =>
             {
                 if (!string.IsNullOrEmpty(UpdateHelper.FallbackUrl))
@@ -1054,6 +1192,22 @@ namespace XelLauncher
             };
         }
 
+        private void LoadUpdateFromCache()
+        {
+            var state = UpdateHelper.GetCachedState();
+            if (state == null || string.IsNullOrWhiteSpace(state.LatestVersion))
+            {
+                lblLatestVersion.Text = "—";
+                _updateAutoOption.Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示");
+                _updateNotifyOption.Text = L("App.Update.UpdateSizePending", "更新大小：检查后显示");
+                panelUpdateButtons.Visible = false;
+                ShowChangelog(L("App.Update.ChangelogHint", "点击检查更新后显示内容。"));
+                return;
+            }
+
+            ApplyUpdateState(state);
+        }
+
         private async Task CheckUpdateAsync()
         {
             btnCheckUpdate.Text = AntdUI.Localization.Get("App.Update.Checking", "检查中...");
@@ -1062,39 +1216,17 @@ namespace XelLauncher
             try
             {
                 var state = await UpdateHelper.CheckAndPersistAsync(System.Windows.Forms.Application.ProductVersion);
-                var info = UpdateHelper.ToUpdateInfo(state);
-                if (info == null)
+                if (state == null)
                 {
                     ShowChangelog(AntdUI.Localization.Get("App.Update.CheckFailed", "检查失败，请检查网络连接。"));
                     lblLatestVersion.Text = "—";
-                    _updateAutoOption.Text = "发布日期：检查失败";
-                    _updateNotifyOption.Text = "更新大小：检查失败";
+                    _updateAutoOption.Text = L("App.Update.ReleaseDateFailed", "发布日期：检查失败");
+                    _updateNotifyOption.Text = L("App.Update.UpdateSizeFailed", "更新大小：检查失败");
                     panelUpdateButtons.Visible = false;
                     return;
                 }
 
-                _updateInfo = info;
-                lblLatestVersion.Text = "v" + info.LatestVersion;
-                _updateAutoOption.Text = "发布日期：" + FormatReleaseDate(info.PublishedAt);
-                _updateNotifyOption.Text = "更新大小：" + FormatReleaseSize(info);
-
-                var currentVer = System.Windows.Forms.Application.ProductVersion;
-                if (state.HasUpdate && UpdateHelper.IsNewer(currentVer, info.LatestVersion))
-                {
-                    ShowChangelog(info.Changelog);
-                    panelUpdateButtons.Visible = true;
-                    btnDownloadSetup.Visible    = true;
-                    btnDownloadPortable.Visible = true;
-                    btnFallback.Visible         = false;
-                    progressDownload.Visible    = false;
-                    progressDownload.Value      = 0F;
-                    lblDownloadStatus.Text      = "";
-                }
-                else
-                {
-                    ShowChangelog("当前已是最新版本。");
-                    panelUpdateButtons.Visible = false;
-                }
+                ApplyUpdateState(state);
             }
             finally
             {
@@ -1103,9 +1235,73 @@ namespace XelLauncher
             }
         }
 
+        private void ApplyUpdateState(AppUpdateState state)
+        {
+            var info = UpdateHelper.ToUpdateInfo(state);
+            if (info == null) return;
+
+            _updateInfo = info;
+            lblLatestVersion.Text = "v" + info.LatestVersion;
+            _updateAutoOption.Text = string.Format(L("App.Update.ReleaseDate", "发布日期：{0}"), FormatReleaseDate(info.PublishedAt));
+            _updateNotifyOption.Text = string.Format(L("App.Update.UpdateSize", "更新大小：{0}"), FormatReleaseSize(info));
+
+            var currentVer = System.Windows.Forms.Application.ProductVersion;
+            if (state.HasUpdate && UpdateHelper.IsNewer(currentVer, info.LatestVersion))
+            {
+                StartLatestVersionColorAnimation();
+                ShowChangelog(info.Changelog);
+                panelUpdateButtons.Visible = true;
+                btnDownloadSetup.Visible = true;
+                btnDownloadPortable.Visible = true;
+                btnFallback.Visible = false;
+                btnCancelDownload.Visible = false;
+                btnCancelDownload.Enabled = true;
+                progressDownload.Visible = false;
+                progressDownload.Value = 0F;
+                lblDownloadStatus.Text = "";
+                _isDownloadingUpdate = false;
+                LayoutUpdateHeader();
+                return;
+            }
+
+            StopLatestVersionColorAnimation();
+            ShowChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
+            panelUpdateButtons.Visible = false;
+        }
+
+        private void StartLatestVersionColorAnimation()
+        {
+            if (_latestVersionColorTimer == null)
+            {
+                _latestVersionColorTimer = new System.Windows.Forms.Timer { Interval = 60 };
+                _latestVersionColorTimer.Tick += (s, e) =>
+                {
+                    _latestVersionHue = (_latestVersionHue + 2.8D) % 360D;
+                    lblLatestVersion.ForeColor = ColorFromHsv(
+                        _latestVersionHue,
+                        0.68D,
+                        AntdUI.Config.IsDark ? 0.98D : 0.72D);
+                };
+            }
+
+            if (!_latestVersionColorTimer.Enabled)
+            {
+                _latestVersionHue = 210D;
+                _latestVersionColorTimer.Start();
+            }
+        }
+
+        private void StopLatestVersionColorAnimation()
+        {
+            if (_latestVersionColorTimer != null)
+                _latestVersionColorTimer.Stop();
+            lblLatestVersion.ForeColor = LatestVersionStaticColor;
+        }
+
         private async Task DownloadAsync(bool isSetup)
         {
             if (_updateInfo == null) return;
+            if (_isDownloadingUpdate) return;
 
             string url = isSetup ? _updateInfo.SetupDownloadUrl : _updateInfo.PortableDownloadUrl;
             if (string.IsNullOrEmpty(url))
@@ -1138,10 +1334,18 @@ namespace XelLauncher
 
             btnDownloadSetup.Enabled    = false;
             btnDownloadPortable.Enabled = false;
+            btnDownloadSetup.Visible    = false;
+            btnDownloadPortable.Visible = false;
+            btnFallback.Visible         = false;
+            btnCancelDownload.Enabled   = true;
+            btnCancelDownload.Visible   = true;
             progressDownload.Visible    = true;
             progressDownload.Value      = 0F;
             lblDownloadStatus.Text      = AntdUI.Localization.Get("App.Update.Preparing", "准备下载...");
+            _isDownloadingUpdate        = true;
+            LayoutUpdateHeader();
 
+            _downloadCts?.Dispose();
             _downloadCts = new CancellationTokenSource();
 
             try
@@ -1196,7 +1400,9 @@ namespace XelLauncher
             }
             catch (OperationCanceledException)
             {
-                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadCanceled", "已取消");
+                lblDownloadStatus.Text = "";
+                progressDownload.Visible = false;
+                progressDownload.Value = 0F;
             }
             catch (Exception)
             {
@@ -1205,8 +1411,19 @@ namespace XelLauncher
             }
             finally
             {
+                _isDownloadingUpdate = false;
+                _downloadCts?.Dispose();
+                _downloadCts = null;
                 btnDownloadSetup.Enabled    = true;
                 btnDownloadPortable.Enabled = true;
+                if (!btnFallback.Visible)
+                {
+                    btnDownloadSetup.Visible    = true;
+                    btnDownloadPortable.Visible = true;
+                }
+                btnCancelDownload.Visible   = false;
+                btnCancelDownload.Enabled   = true;
+                LayoutUpdateHeader();
             }
         }
 
@@ -1215,6 +1432,7 @@ namespace XelLauncher
             btnDownloadSetup.Visible    = false;
             btnDownloadPortable.Visible = false;
             btnFallback.Visible         = true;
+            btnCancelDownload.Visible   = false;
         }
 
         private void ShowChangelog(string text)
@@ -1229,14 +1447,14 @@ namespace XelLauncher
 
         private void HideChangelog()
         {
-            txtChangelog.Text = "\u5f53\u524d\u5df2\u662f\u6700\u65b0\u7248\u672c\u3002";
+            txtChangelog.Text = L("App.Update.AlreadyLatest", "当前已是最新版本。");
             UpdateChangelogScrollBar();
         }
         private static string FormatReleaseDate(DateTimeOffset? publishedAt)
         {
             return publishedAt.HasValue
                 ? publishedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-                : "未知";
+                : L("App.Update.Unknown", "未知");
         }
 
         private static string FormatReleaseSize(UpdateInfo info)
@@ -1244,18 +1462,19 @@ namespace XelLauncher
             var setup = FormatBytes(info.SetupSizeBytes);
             var portable = FormatBytes(info.PortableSizeBytes);
 
-            if (setup != "未知" && portable != "未知")
-                return $"安装包 {setup} / 便携包 {portable}";
-            if (setup != "未知")
+            var unknown = L("App.Update.Unknown", "未知");
+            if (setup != unknown && portable != unknown)
+                return string.Format(L("App.Update.SizeBoth", "安装包 {0} / 便携包 {1}"), setup, portable);
+            if (setup != unknown)
                 return setup;
-            if (portable != "未知")
+            if (portable != unknown)
                 return portable;
-            return "未知";
+            return unknown;
         }
 
         private static string FormatBytes(long? bytes)
         {
-            if (!bytes.HasValue || bytes.Value <= 0) return "未知";
+            if (!bytes.HasValue || bytes.Value <= 0) return L("App.Update.Unknown", "未知");
 
             var value = bytes.Value;
             if (value >= 1024L * 1024L * 1024L)
@@ -1267,10 +1486,57 @@ namespace XelLauncher
             return $"{value} B";
         }
 
+        private static Color ColorFromHsv(double hue, double saturation, double value)
+        {
+            var chroma = value * saturation;
+            var x = chroma * (1D - Math.Abs(hue / 60D % 2D - 1D));
+            var m = value - chroma;
+
+            double r = 0D, g = 0D, b = 0D;
+            if (hue < 60D)
+            {
+                r = chroma;
+                g = x;
+            }
+            else if (hue < 120D)
+            {
+                r = x;
+                g = chroma;
+            }
+            else if (hue < 180D)
+            {
+                g = chroma;
+                b = x;
+            }
+            else if (hue < 240D)
+            {
+                g = x;
+                b = chroma;
+            }
+            else if (hue < 300D)
+            {
+                r = x;
+                b = chroma;
+            }
+            else
+            {
+                r = chroma;
+                b = x;
+            }
+
+            return Color.FromArgb(
+                ClampColor((r + m) * 255D),
+                ClampColor((g + m) * 255D),
+                ClampColor((b + m) * 255D));
+        }
+
+        private static int ClampColor(double value) =>
+            Math.Max(0, Math.Min(255, (int)Math.Round(value)));
+
         private static string FormatUpdateChangelog(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
-                return "暂无更新内容。";
+                return L("App.Update.NoChangelog", "暂无更新内容。");
 
             var lines = text.Replace("\r\n", "\n").Split('\n');
             var result = new System.Text.StringBuilder();
@@ -1281,7 +1547,27 @@ namespace XelLauncher
                 if (result.Length > 0) result.AppendLine();
                 result.Append("• ").Append(item);
             }
-            return result.Length > 0 ? result.ToString() : "暂无更新内容。";
+            return result.Length > 0 ? result.ToString() : L("App.Update.NoChangelog", "暂无更新内容。");
+        }
+
+        private sealed class AccentUnderline : Control
+        {
+            public AccentUnderline()
+            {
+                SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint |
+                         ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw |
+                         ControlStyles.SupportsTransparentBackColor, true);
+                BackColor = Color.Transparent;
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using var path = RoundedPanel.CreateRoundRectPath(new Rectangle(0, 0, Width, Height), Math.Max(1, Height / 2));
+                using var fill = new SolidBrush(Color.FromArgb(255, 76, 84));
+                e.Graphics.FillPath(fill, path);
+            }
         }
 
         private sealed class ThinScrollBar : Control

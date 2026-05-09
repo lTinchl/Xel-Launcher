@@ -71,6 +71,12 @@ private readonly List<NoticeBannerItem> _banners;
         private List<string> _categories = new();
         private readonly List<NoticeHit> _noticeHits = new();
         private readonly List<CategoryHit> _categoryHits = new();
+        private readonly System.Windows.Forms.Timer _categoryUnderlineTimer;
+        private readonly System.Windows.Forms.Timer _categoryTextTimer;
+        private readonly Dictionary<string, float> _categoryTextProgress = new(StringComparer.OrdinalIgnoreCase);
+        private RectangleF _categoryUnderlineBounds;
+        private RectangleF _categoryUnderlineTarget;
+        private bool _categoryUnderlineInitialized;
 
         public event NoticeClickHandler NoticeClick;
 
@@ -92,6 +98,10 @@ private readonly List<NoticeBannerItem> _banners;
             _timer.Tick += (s, e) => Next();
             _slideTimer = new System.Windows.Forms.Timer { Interval = 15 };
             _slideTimer.Tick += (s, e) => UpdateBannerSlide();
+            _categoryUnderlineTimer = new System.Windows.Forms.Timer { Interval = 15 };
+            _categoryUnderlineTimer.Tick += (s, e) => UpdateCategoryUnderline();
+            _categoryTextTimer = new System.Windows.Forms.Timer { Interval = 15 };
+            _categoryTextTimer.Tick += (s, e) => UpdateCategoryTextAnimation();
             if (_banners.Count > 1) _timer.Start();
         }
 
@@ -164,9 +174,11 @@ private readonly List<NoticeBannerItem> _banners;
             foreach (var hit in _categoryHits)
             {
                 if (!hit.Rect.Contains(e.Location)) continue;
+                if (string.Equals(_selectedCategory, hit.Category, StringComparison.OrdinalIgnoreCase)) return;
                 _selectedCategory = hit.Category;
                 _noticeScroll = 0;
                 _hoverNoticeSourceIndex = -1;
+                StartCategoryTextAnimation();
                 Invalidate();
                 return;
             }
@@ -502,32 +514,137 @@ private readonly List<NoticeBannerItem> _banners;
         private void PaintCategoryTabs(Graphics g, int x, int y, int width, Font activeFont, Font tabFont)
         {
             if (_categories.Count == 0) RebuildCategories();
+            EnsureCategoryTextProgress();
 
             int currentX = x;
+            RectangleF? activeUnderline = null;
             for (int i = 0; i < _categories.Count; i++)
             {
                 string category = _categories[i];
                 bool active = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase);
-                var font = active ? activeFont : tabFont;
-                var size = TextRenderer.MeasureText(category, font, Size.Empty, TextFormatFlags.NoPadding);
-                int tabW = Math.Min(Math.Max(size.Width + 16, active ? 48 : 44), 86);
+                float progress = _categoryTextProgress.TryGetValue(category, out var value)
+                    ? value
+                    : active ? 1F : 0F;
+                var maxSize = TextRenderer.MeasureText(category, activeFont, Size.Empty, TextFormatFlags.NoPadding);
+                int tabW = Math.Min(Math.Max(maxSize.Width + 16, 48), 86);
                 if (currentX + tabW > x + width) break;
 
+                using var font = new Font(
+                    tabFont.FontFamily,
+                    tabFont.Size + (activeFont.Size - tabFont.Size) * progress,
+                    FontStyle.Bold);
+                var size = TextRenderer.MeasureText(category, font, Size.Empty, TextFormatFlags.NoPadding);
+                int textAlpha = ClampAlpha((int)Math.Round(120 + 135 * progress));
                 var tabRect = new Rectangle(currentX, y, tabW, 28);
                 _categoryHits.Add(new CategoryHit(tabRect, category));
                 TextRenderer.DrawText(g, category, font, tabRect,
-                    active ? Color.White : Color.FromArgb(120, 255, 255, 255),
+                    Color.FromArgb(textAlpha, 255, 255, 255),
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
                 if (active)
                 {
-                    using var accent = new SolidBrush(Color.FromArgb(255, 225, 0));
-                    int underlineWidth = Math.Min(size.Width, tabW - 8);
-                    g.FillRectangle(accent, currentX, y + 25, underlineWidth, 3);
+                    int underlineWidth = Math.Max(18, Math.Min(tabW - 8, (int)(maxSize.Width * 0.72F)));
+                    activeUnderline = new RectangleF(
+                        currentX + Math.Max(0, (maxSize.Width - underlineWidth) / 2F),
+                        y + 25,
+                        underlineWidth,
+                        3);
                 }
 
                 currentX += tabW + 8;
             }
+
+            if (activeUnderline.HasValue)
+            {
+                SetCategoryUnderlineTarget(activeUnderline.Value);
+                using var accent = new SolidBrush(Color.FromArgb(255, 225, 0));
+                using var path = RoundedRect(Rectangle.Round(_categoryUnderlineBounds), 1);
+                g.FillPath(accent, path);
+            }
         }
+
+        private void EnsureCategoryTextProgress()
+        {
+            foreach (var category in _categories)
+            {
+                if (!_categoryTextProgress.ContainsKey(category))
+                    _categoryTextProgress[category] = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
+            }
+        }
+
+        private void StartCategoryTextAnimation()
+        {
+            EnsureCategoryTextProgress();
+            if (!_categoryTextTimer.Enabled)
+                _categoryTextTimer.Start();
+        }
+
+        private void UpdateCategoryTextAnimation()
+        {
+            bool animating = false;
+            foreach (var category in _categories)
+            {
+                float target = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
+                float current = _categoryTextProgress.TryGetValue(category, out var value) ? value : target;
+                float next = Ease(current, target);
+                if (Math.Abs(next - target) <= 0.02F)
+                    next = target;
+                else
+                    animating = true;
+
+                _categoryTextProgress[category] = next;
+            }
+
+            if (!animating)
+                _categoryTextTimer.Stop();
+
+            Invalidate();
+        }
+
+        private void SetCategoryUnderlineTarget(RectangleF target)
+        {
+            if (!_categoryUnderlineInitialized)
+            {
+                _categoryUnderlineBounds = target;
+                _categoryUnderlineTarget = target;
+                _categoryUnderlineInitialized = true;
+                return;
+            }
+
+            if (NearlySame(_categoryUnderlineTarget, target)) return;
+
+            _categoryUnderlineTarget = target;
+            if (!_categoryUnderlineTimer.Enabled)
+                _categoryUnderlineTimer.Start();
+        }
+
+        private void UpdateCategoryUnderline()
+        {
+            _categoryUnderlineBounds = new RectangleF(
+                Ease(_categoryUnderlineBounds.X, _categoryUnderlineTarget.X),
+                _categoryUnderlineTarget.Y,
+                Ease(_categoryUnderlineBounds.Width, _categoryUnderlineTarget.Width),
+                _categoryUnderlineTarget.Height);
+
+            if (NearlySame(_categoryUnderlineBounds, _categoryUnderlineTarget, 0.5F))
+            {
+                _categoryUnderlineBounds = _categoryUnderlineTarget;
+                _categoryUnderlineTimer.Stop();
+            }
+
+            Invalidate();
+        }
+
+        private static float Ease(float current, float target) =>
+            current + (target - current) * 0.28F;
+
+        private static bool NearlySame(RectangleF a, RectangleF b, float tolerance = 0.1F) =>
+            Math.Abs(a.X - b.X) <= tolerance &&
+            Math.Abs(a.Y - b.Y) <= tolerance &&
+            Math.Abs(a.Width - b.Width) <= tolerance &&
+            Math.Abs(a.Height - b.Height) <= tolerance;
+
+        private static int ClampAlpha(int value) =>
+            Math.Max(0, Math.Min(255, value));
 
         private void PaintScrollBar(Graphics g, int x, int y, int height)
         {
@@ -596,6 +713,11 @@ private readonly List<NoticeBannerItem> _banners;
             if (string.IsNullOrEmpty(_selectedCategory) || !_categories.Contains(_selectedCategory))
                 _selectedCategory = _categories[0];
             _noticeScroll = 0;
+            _categoryTextTimer?.Stop();
+            _categoryTextProgress.Clear();
+            foreach (var category in _categories)
+                _categoryTextProgress[category] = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
+            _categoryUnderlineInitialized = false;
         }
 
         private void PaintDots(Graphics g, Rectangle rect)
@@ -672,6 +794,10 @@ private readonly List<NoticeBannerItem> _banners;
                 _timer.Dispose();
                 _slideTimer.Stop();
                 _slideTimer.Dispose();
+                _categoryUnderlineTimer.Stop();
+                _categoryUnderlineTimer.Dispose();
+                _categoryTextTimer.Stop();
+                _categoryTextTimer.Dispose();
                 foreach (var item in _banners)
                     if (item.OwnsImage) item.Image?.Dispose();
             }

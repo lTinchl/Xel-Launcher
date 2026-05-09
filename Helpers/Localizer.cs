@@ -1,3 +1,5 @@
+using Windows.Web.Syndication;
+
 namespace XelLauncher.Helpers
 {
     public class Localizer : AntdUI.ILocalization
@@ -947,7 +949,7 @@ namespace XelLauncher.Helpers
                 case "App.Game.SelectAccount":
                     return "  Select Account";
                 case "App.Game.Start":
-                    return "Start Game";
+                    return "Game Start";
                 case "App.Game.Setting":
                     return "Game Settings";
                 case "App.Game.Deledwonload":
@@ -1127,6 +1129,208 @@ namespace XelLauncher.Helpers
                 case "App.Setting.UseHardLink":
                     return "Use hard links for server switching";
 
+                // Skyland sign
+                case "App.Game.Sign":
+                    return "Skyland Sign";
+                case "App.Skyland.Title":
+                    return "Skyland Sign";
+                case "App.Skyland.ConfigTitle":
+                    return "Skyland Settings";
+                case "App.Skyland.Document":
+                    return "Docs";
+                case "App.Skyland.Token":
+                    return "Skyland Token";
+                case "App.Skyland.TokenHint":
+                    return "Separate tokens with semicolons (;). Multiple accounts are supported.";
+                case "App.Skyland.TokenPlaceholder":
+                    return "Enter Skyland tokens, separated by semicolons (;)";
+                case "App.Skyland.ScanLogin":
+                    return "QR Login";
+                case "App.Skyland.SmsLogin":
+                    return "SMS Login";
+                case "App.Skyland.PasswordLogin":
+                    return "Password Login";
+                case "App.Skyland.SignNow":
+                    return "Sign Now";
+                case "App.Skyland.AutoConfigTitle":
+                    return "Auto Sign Settings";
+                case "App.Skyland.AutoSign":
+                    return "Sign while launcher is running";
+                case "App.Skyland.AutoSignHint":
+                    return "After enabled, sign in once per day while the launcher is running and show the result in the notification area.";
+                case "App.Skyland.StartupSign":
+                    return "Sign in on Windows startup";
+                case "App.Skyland.StartupSignHint":
+                    return "Run one background sign-in after Windows starts, without showing the main window. Results are shown by notification.";
+                case "App.Skyland.Log":
+                    return "Log";
+                case "App.Skyland.ClearLog":
+                    return "Clear Log";
+                case "App.Skyland.TokenRequired":
+                    return "Please enter a Skyland Token first";
+                case "App.Skyland.SignStart":
+                    return "========== Skyland sign-in started ==========";
+                case "App.Skyland.SignEnd":
+                    return "========== Skyland sign-in finished ==========";
+                case "App.Skyland.SignComplete":
+                    return "Skyland sign-in complete";
+                case "App.Skyland.SignCanceled":
+                    return "Sign-in canceled.";
+                case "App.Skyland.SignFailedPrefix":
+                    return "Sign-in failed: ";
+                case "App.Skyland.ScanCreating":
+                    return "Creating Skyland QR login...";
+                case "App.Skyland.ScanChecking":
+                    return "Checking QR login status...";
+                case "App.Skyland.ScanSuccess":
+                    return "QR login succeeded. Token saved.";
+                case "App.Skyland.ScanSuccessToast":
+                    return "QR login succeeded. Token saved";
+                case "App.Skyland.ScanFailedPrefix":
+                    return "QR token retrieval failed: ";
+                case "App.Skyland.OperationCanceled":
+                    return "Operation canceled.";
+                case "App.Skyland.TokenSaved":
+                    return "Token saved";
+                case "App.Skyland.SmsSuccess":
+                    return "SMS login succeeded. Token saved.";
+                case "App.Skyland.PasswordSuccess":
+                    return "Password login succeeded. Token saved.";
+                case "App.Skyland.QrHint":
+                    return "Scan with the Skyland app, confirm login in the app, then click OK.";
+                case "App.Skyland.PasswordTitle":
+                    return "Get Token by Password";
+                case "App.Skyland.PasswordSubtitle":
+                    return "Sign in with your Skyland account. The token is saved automatically after success.";
+                case "App.Skyland.Account":
+                    return "Account";
+                case "App.Skyland.AccountPlaceholder":
+                    return "Enter phone number / account";
+                case "App.Skyland.Password":
+                    return "Password";
+                case "App.Skyland.PasswordPlaceholder":
+                    return "Enter password";
+                case "App.Skyland.LoginGet":
+                    return "Login";
+                case "App.Skyland.LoggingIn":
+                    return "Logging in...";
+                case "App.Skyland.PasswordLogging":
+                    return "Logging in with account and password...";
+                case "App.Skyland.PasswordFailedPrefix":
+                    return "Password token retrieval failed: ";
+                case "App.Skyland.SmsTitle":
+                    return "Get Token by SMS Code";
+                case "App.Skyland.SmsSubtitle":
+                    return "Enter the phone number bound to Skyland. Login starts after the code is entered.";
+                case "App.Skyland.Phone":
+                    return "Phone";
+                case "App.Skyland.PhonePlaceholder":
+                    return "Enter phone number";
+                case "App.Skyland.SendCode":
+                    return "Send Code";
+                case "App.Skyland.Code":
+                    return "Code";
+                case "App.Skyland.SmsLogging":
+                    return "Logging in with SMS code...";
+                case "App.Skyland.SmsFailedPrefix":
+                    return "SMS token retrieval failed: ";
+                case "App.Skyland.CodeSent":
+                    return "Verification code sent.";
+                case "App.Skyland.CodeSentToast":
+                    return "Verification code sent";
+                case "App.Skyland.SendCodeFailedPrefix":
+                    return "Failed to send verification code: ";
+                case "App.Skyland.ResendInSeconds":
+                    return "Resend in {0}s";
+                case "App.Skyland.Sending":
+                    return "Sending...";
+                case "App.Skyland.Progress.WaitScan":
+                    return "Waiting for QR scan...";
+                case "App.Skyland.Progress.WaitConfirm":
+                    return "Scanned. Waiting for confirmation in the Skyland app...";
+                case "App.Skyland.Progress.ScanStatus":
+                    return "Waiting for QR status: {0} {1}";
+                case "App.Skyland.Action.CreateScanLogin":
+                    return "Create QR login";
+                case "App.Skyland.Action.ScanLogin":
+                    return "QR login";
+                case "App.Skyland.Action.SendCode":
+                    return "Send verification code";
+                case "App.Skyland.Action.SmsLogin":
+                    return "SMS login";
+                case "App.Skyland.Action.PasswordLogin":
+                    return "Password login";
+                case "App.Skyland.Action.GetGrantCode":
+                    return "Get grant code with token";
+                case "App.Skyland.Action.GetCred":
+                    return "Get cred";
+                case "App.Skyland.Action.GetBindings":
+                    return "Get bound characters";
+                case "App.Skyland.Error.ScanMissing":
+                    return "Failed to create QR login: response is missing scanId or scanUrl.";
+                case "App.Skyland.Error.QrExpired":
+                    return "The QR code has expired. Please generate a new one.";
+                case "App.Skyland.Error.ScanTimeout":
+                    return "QR login timed out. Please generate a new QR code.";
+                case "App.Skyland.Error.ScanTokenMissing":
+                    return "QR login failed: response is missing token.";
+                case "App.Skyland.Error.PhoneRequired":
+                    return "Please enter a phone number";
+                case "App.Skyland.Error.CodeRequired":
+                    return "Please enter the SMS verification code.";
+                case "App.Skyland.Error.AccountRequired":
+                    return "Please enter an account";
+                case "App.Skyland.Error.PasswordRequired":
+                    return "Please enter a password";
+                case "App.Skyland.Error.TokenRequiredEnv":
+                    return "Please add SKYLAND_TOKEN first.";
+                case "App.Skyland.Error.GrantCodeMissing":
+                    return "Failed to get grant code with token: response is missing code.";
+                case "App.Skyland.Error.CredMissing":
+                    return "Failed to get cred: response is missing cred or token.";
+                case "App.Skyland.Error.ActionFailed":
+                    return "{0} failed: {1}";
+                case "App.Skyland.Error.TokenMissing":
+                    return "{0} failed: response is missing token.";
+                case "App.Skyland.Log.Account":
+                    return "Account {0}";
+                case "App.Skyland.Log.ProcessAccount":
+                    return "Processing {0}...";
+                case "App.Skyland.Log.NoBindings":
+                    return "[{0}] No bound Arknights or Endfield character found for sign-in.";
+                case "App.Skyland.Log.AccountFailed":
+                    return "[{0}] Sign-in failed: {1}";
+                case "App.Skyland.Log.WaitNext":
+                    return "Waiting {0} seconds before processing the next account...";
+                case "App.Skyland.Log.RoleTitle":
+                    return "[{0}] Role {1}({2})";
+                case "App.Skyland.Log.SignFailed":
+                    return "{0} sign-in failed: {1}";
+                case "App.Skyland.Log.SignSuccess":
+                    return "{0} signed in successfully, received {1}";
+                case "App.Skyland.ListSeparator":
+                    return ", ";
+                case "App.Skyland.Auto.Title":
+                    return "Skyland Auto Sign";
+                case "App.Skyland.Auto.NoToken":
+                    return "No token configured. Auto sign-in skipped.";
+                case "App.Skyland.Auto.Start":
+                    return "Skyland auto sign-in started.";
+                case "App.Skyland.Auto.Done":
+                    return "Sign-in complete.";
+                case "App.Skyland.Auto.MoreResults":
+                    return "{0} more result(s).";
+                case "App.Skyland.Auto.Complete":
+                    return "Skyland auto sign-in complete.";
+                case "App.Skyland.Auto.CompleteTitle":
+                    return "Skyland Auto Sign Complete";
+                case "App.Skyland.Auto.AlreadyDone":
+                    return "Auto sign-in already ran today. Skipped.";
+                case "App.Skyland.Auto.FailedTitle":
+                    return "Skyland Auto Sign Failed";
+                case "":
+                    return "";
+
                 // BrowserForm
                 case "App.Browser.Title":
                     return "Browser";
@@ -1212,6 +1416,8 @@ namespace XelLauncher.Helpers
                     return "Latest Version";
                 case "App.Update.CheckUpdate":
                     return "Check for Updates";
+                case "App.Update.ModalTitle":
+                    return "Software Update";
                 case "App.Update.Checking":
                     return "Checking...";
                 case "App.Update.CheckFailed":
@@ -1220,12 +1426,46 @@ namespace XelLauncher.Helpers
                     return "You are on the latest version";
                 case "App.Update.ChangelogHint":
                     return "Click \"Check for Updates\" to see the latest release notes";
+                case "App.Update.ReleaseNotes":
+                    return "Release Notes";
+                case "App.Update.ReleaseDate":
+                    return "Release date: {0}";
+                case "App.Update.ReleaseDatePending":
+                    return "Release date: shown after check";
+                case "App.Update.ReleaseDateFailed":
+                    return "Release date: check failed";
+                case "App.Update.UpdateSize":
+                    return "Update size: {0}";
+                case "App.Update.UpdateSizePending":
+                    return "Update size: shown after check";
+                case "App.Update.UpdateSizeFailed":
+                    return "Update size: check failed";
+                case "App.Update.DownloadNow":
+                    return "Update Now";
+                case "App.Update.Portable":
+                    return "Portable";
+                case "App.Update.Unknown":
+                    return "Unknown";
+                case "App.Update.SizeBoth":
+                    return "Installer {0} / portable {1}";
+                case "App.Update.NoChangelog":
+                    return "No release notes available.";
+                case "App.Update.ReminderTitle":
+                    return "New version v{0}";
+                case "App.Update.ReminderSubtitle":
+                    return "Current v{0}, update to v{1}";
+                case "App.Update.SkipVersion":
+                    return "Skip";
+                case "App.Update.DisableReminder":
+                    return "Don't remind";
                 case "App.Update.DownloadSetup":
                     return "⬇ Download Installer";
                 case "App.Update.DownloadPortable":
                     return "⬇ Download Portable";
                 case "App.Update.Fallback":
                     return "Open Download Page";
+                case "App.Update.CancelDownload":
+                    return "Cancel Download";
                 case "App.Update.SavePortableTitle":
                     return "Save Portable Package";
                 case "App.Update.SavePortableFilter":
@@ -1238,6 +1478,8 @@ namespace XelLauncher.Helpers
                     return "Download complete!";
                 case "App.Update.DownloadCanceled":
                     return "Canceled";
+                case "App.Update.Canceling":
+                    return "Canceling...";
                 case "App.Update.DownloadFailed":
                     return "Download failed";
                 case "App.Update.ErrorPrefix":

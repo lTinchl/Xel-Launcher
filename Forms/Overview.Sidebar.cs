@@ -34,6 +34,7 @@ namespace XelLauncher.Forms
                 btn.Height = SidebarButtonHeight;
                 btn.Margin = new Padding(2);
                 btn.Cursor = Cursors.Hand;
+                btn.ShowSelectionBar = false;
                 try
                 {
                     var ico = GetSidebarIcon(g.IconName);
@@ -174,6 +175,8 @@ namespace XelLauncher.Forms
 
             if (invalidate)
                 panelSidebarItems.Invalidate();
+
+            PositionSidebarSelectionIndicator(false);
         }
 
         private System.Drawing.Rectangle GetSidebarButtonBounds(int index)
@@ -289,6 +292,89 @@ namespace XelLauncher.Forms
                 .GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)
                 ?.SetValue(control, true, null);
         }
+
+        private void PositionSidebarSelectionIndicator(bool animate)
+        {
+            var active = _sidebarBtns.FirstOrDefault(x => x.Selected && !x.IsDisposed);
+            if (active == null || _sidebarSelectionIndicator == null || _sidebarSelectionIndicator.IsDisposed)
+            {
+                _sidebarSelectionInitialized = false;
+                _sidebarSelectionTimer?.Stop();
+                if (_sidebarSelectionIndicator != null) _sidebarSelectionIndicator.Visible = false;
+                return;
+            }
+
+            var point = panelSidebar.PointToClient(active.Parent.PointToScreen(new System.Drawing.Point(
+                active.Left + 6,
+                active.Top + (int)Math.Round((active.Height - 44F) / 2F))));
+            _sidebarSelectionTarget = new System.Drawing.RectangleF(
+                point.X,
+                point.Y,
+                4F,
+                44F);
+            _sidebarSelectionIndicator.AccentColor = _sidebarSelectionColor;
+            _sidebarSelectionIndicator.Visible = true;
+            _sidebarSelectionIndicator.BringToFront();
+
+            if (!_sidebarSelectionInitialized || !animate)
+            {
+                _sidebarSelectionBounds = _sidebarSelectionTarget;
+                _sidebarSelectionInitialized = true;
+                _sidebarSelectionTimer?.Stop();
+                ApplySidebarSelectionIndicatorBounds();
+                return;
+            }
+
+            if (NearlySame(_sidebarSelectionBounds, _sidebarSelectionTarget, 0.5F))
+            {
+                _sidebarSelectionBounds = _sidebarSelectionTarget;
+                ApplySidebarSelectionIndicatorBounds();
+                return;
+            }
+
+            if (_sidebarSelectionTimer == null)
+            {
+                _sidebarSelectionTimer = new Timer { Interval = 15 };
+                _sidebarSelectionTimer.Tick += SidebarSelectionTimer_Tick;
+            }
+
+            if (!_sidebarSelectionTimer.Enabled)
+                _sidebarSelectionTimer.Start();
+        }
+
+        private void SidebarSelectionTimer_Tick(object sender, EventArgs e)
+        {
+            _sidebarSelectionBounds = new System.Drawing.RectangleF(
+                Ease(_sidebarSelectionBounds.X, _sidebarSelectionTarget.X),
+                Ease(_sidebarSelectionBounds.Y, _sidebarSelectionTarget.Y),
+                Ease(_sidebarSelectionBounds.Width, _sidebarSelectionTarget.Width),
+                Ease(_sidebarSelectionBounds.Height, _sidebarSelectionTarget.Height));
+
+            if (NearlySame(_sidebarSelectionBounds, _sidebarSelectionTarget, 0.5F))
+            {
+                _sidebarSelectionBounds = _sidebarSelectionTarget;
+                _sidebarSelectionTimer?.Stop();
+            }
+
+            ApplySidebarSelectionIndicatorBounds();
+        }
+
+        private void ApplySidebarSelectionIndicatorBounds()
+        {
+            if (_sidebarSelectionIndicator == null || _sidebarSelectionIndicator.IsDisposed) return;
+
+            _sidebarSelectionIndicator.Bounds = System.Drawing.Rectangle.Round(_sidebarSelectionBounds);
+            _sidebarSelectionIndicator.Invalidate();
+        }
+
+        private static float Ease(float current, float target) =>
+            current + (target - current) * 0.28F;
+
+        private static bool NearlySame(System.Drawing.RectangleF a, System.Drawing.RectangleF b, float tolerance) =>
+            Math.Abs(a.X - b.X) <= tolerance &&
+            Math.Abs(a.Y - b.Y) <= tolerance &&
+            Math.Abs(a.Width - b.Width) <= tolerance &&
+            Math.Abs(a.Height - b.Height) <= tolerance;
 
         private static System.Drawing.Bitmap ApplyRoundedCorners(System.Drawing.Bitmap src, int radius)
         {

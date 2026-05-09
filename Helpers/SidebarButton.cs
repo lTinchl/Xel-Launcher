@@ -21,6 +21,9 @@ namespace XelLauncher.Helpers
         private Color _accentColor = Color.FromArgb(64, 128, 255);
 
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public bool ShowSelectionBar { get; set; } = true;
+
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
         public Color AccentColor
         {
             get => _accentColor;
@@ -99,7 +102,7 @@ namespace XelLauncher.Helpers
                 g.DrawPath(pen, path);
             }
 
-            if (_selectedProgress > 0.001F)
+            if (ShowSelectionBar && _selectedProgress > 0.001F)
             {
                 float barHeight = 40F + 8F * _selectedProgress;
                 float barWidth = 2F + 1.5F * _selectedProgress;
@@ -165,6 +168,63 @@ namespace XelLauncher.Helpers
         private static int Clamp(int value, int min, int max)
         {
             return Math.Max(min, Math.Min(max, value));
+        }
+
+        private static GraphicsPath RoundRect(RectangleF r, int radius)
+        {
+            int d = radius * 2;
+            var path = new GraphicsPath();
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+    }
+
+    class SidebarSelectionIndicator : Control
+    {
+        private Color _accentColor = Color.FromArgb(64, 128, 255);
+
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public Color AccentColor
+        {
+            get => _accentColor;
+            set
+            {
+                if (_accentColor.ToArgb() == value.ToArgb()) return;
+                _accentColor = value;
+                Invalidate();
+            }
+        }
+
+        public SidebarSelectionIndicator()
+        {
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer |
+                     ControlStyles.SupportsTransparentBackColor |
+                     ControlStyles.UserPaint, true);
+            BackColor = Color.Transparent;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using var brush = new SolidBrush(Color.FromArgb(210, _accentColor));
+            using var path = RoundRect(new RectangleF(0, 0, Width, Height), 2);
+            e.Graphics.FillPath(brush, path);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int wmNcHitTest = 0x84;
+            const int htTransparent = -1;
+
+            base.WndProc(ref m);
+            if (m.Msg == wmNcHitTest)
+                m.Result = new IntPtr(htTransparent);
         }
 
         private static GraphicsPath RoundRect(RectangleF r, int radius)

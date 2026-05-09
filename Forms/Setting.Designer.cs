@@ -240,9 +240,20 @@ namespace XelLauncher
             btnFallback.Visible = false;
             btnFallback.Type = AntdUI.TTypeMini.Warn;
 
+            btnCancelDownload = new AntdUI.Button();
+            btnCancelDownload.Text = "Cancel";
+            btnCancelDownload.LocalizationText = "App.Update.CancelDownload";
+            btnCancelDownload.Name = "btnCancelDownload";
+            btnCancelDownload.Width = 152;
+            btnCancelDownload.Height = 34;
+            btnCancelDownload.Location = new System.Drawing.Point(0, 4);
+            btnCancelDownload.Visible = false;
+            btnCancelDownload.Type = AntdUI.TTypeMini.Error;
+
             panelButtons.Controls.Add(btnDownloadSetup);
             panelButtons.Controls.Add(btnDownloadPortable);
             panelButtons.Controls.Add(btnFallback);
+            panelButtons.Controls.Add(btnCancelDownload);
 
             // lblDownloadStatus：状态文字，停靠底部
             lblDownloadStatus = new AntdUI.Label();
@@ -549,6 +560,7 @@ namespace XelLauncher
         private AntdUI.Button btnDownloadSetup;
         private AntdUI.Button btnDownloadPortable;
         private AntdUI.Button btnFallback;
+        private AntdUI.Button btnCancelDownload;
         private AntdUI.Progress progressDownload;
         private AntdUI.Label lblDownloadStatus;
         private System.Windows.Forms.TableLayoutPanel tableUpdate;

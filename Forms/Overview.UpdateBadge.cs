@@ -47,6 +47,28 @@ namespace XelLauncher.Forms
             catch { }
         }
 
+        private async System.Threading.Tasks.Task RefreshUpdateStateOnStartupAsync()
+        {
+            try
+            {
+                await System.Threading.Tasks.Task.Delay(1500);
+                await UpdateHelper.CheckAndPersistAsync(Application.ProductVersion);
+                if (IsDisposed || !IsHandleCreated) return;
+
+                BeginInvoke(new Action(() =>
+                {
+                    LoadUpdateBadgeFromCache();
+                    ShowStartupUpdateReminderFromCache();
+                }));
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "RefreshUpdateStateOnStartup");
+                if (IsDisposed || !IsHandleCreated) return;
+                BeginInvoke(new Action(LoadUpdateBadgeFromCache));
+            }
+        }
+
         private void updateBadge_Click(object sender, EventArgs e)
         {
             OpenSettingOnUpdatePage();
@@ -58,7 +80,7 @@ namespace XelLauncher.Forms
             if (info == null) return;
 
             var dialog = new UpdateReminderDialog(info, Application.ProductVersion);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, "\u8f6f\u4ef6\u66f4\u65b0", dialog)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("App.Update.ModalTitle", "软件更新"), dialog)
             {
                 BtnHeight = 0,
                 CloseIcon = true,
@@ -103,7 +125,7 @@ namespace XelLauncher.Forms
         {
             var setting = new Setting(this);
             setting.NavigateToUpdate();
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "\u8bbe\u7f6e"), setting)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "设置"), setting)
             {
                 BtnHeight = 0,
                 CloseIcon = true,

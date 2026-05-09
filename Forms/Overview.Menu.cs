@@ -8,7 +8,7 @@ namespace XelLauncher.Forms
         private void btn_setting_Click(object sender, EventArgs e)
         {
             var setting = new Setting(this);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "\u8bbe\u7f6e"), setting)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "设置"), setting)
             {
                 BtnHeight = 0,
                 CloseIcon = true,

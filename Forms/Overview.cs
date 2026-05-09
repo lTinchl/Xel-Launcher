@@ -30,6 +30,12 @@ namespace XelLauncher.Forms
         private Stopwatch _sidebarReorderWatch;
         private Dictionary<Control, System.Drawing.Rectangle> _sidebarAnimFrom = new();
         private Dictionary<Control, System.Drawing.Rectangle> _sidebarAnimTo = new();
+        private Timer _sidebarSelectionTimer;
+        private SidebarSelectionIndicator _sidebarSelectionIndicator;
+        private System.Drawing.RectangleF _sidebarSelectionBounds;
+        private System.Drawing.RectangleF _sidebarSelectionTarget;
+        private System.Drawing.Color _sidebarSelectionColor = AntdUI.Style.Db.Primary;
+        private bool _sidebarSelectionInitialized;
 
         public Overview(bool top)
         {
@@ -45,6 +51,13 @@ namespace XelLauncher.Forms
             EnableDoubleBuffer(panelMain);
             panelSidebarItems.SizeChanged += (s, e) => LayoutSidebarButtons(false);
             panelSidebarItems.Scroll += (s, e) => LayoutSidebarButtons(false);
+            _sidebarSelectionIndicator = new SidebarSelectionIndicator
+            {
+                Visible = false,
+                AccentColor = _sidebarSelectionColor
+            };
+            panelSidebar.Controls.Add(_sidebarSelectionIndicator);
+            _sidebarSelectionIndicator.BringToFront();
             var globals = new AntdUI.SelectItem[] {
                 new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.Chinese", "中文"),"zh-CN"),
                 new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.English", "English"),"en-US")
@@ -74,10 +87,22 @@ namespace XelLauncher.Forms
 
                 PositionUpdateBadge();
                 LoadUpdateBadgeFromCache();
-                BeginInvoke(() => ShowStartupUpdateReminderFromCache());
+                _ = RefreshUpdateStateOnStartupAsync();
                 _ = RunSkylandAutoSignOnLaunchAsync();
             };
             windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _sidebarSelectionTimer?.Stop();
+                _sidebarSelectionTimer?.Dispose();
+                _sidebarSelectionTimer = null;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

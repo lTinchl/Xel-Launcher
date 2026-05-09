@@ -75,6 +75,8 @@ namespace XelLauncher.Forms
                 _sidebarBtns[i].AccentColor = accent;
                 _sidebarBtns[i].Selected = config.Games[i].IconName == g.IconName;
             }
+            _sidebarSelectionColor = accent;
+            PositionSidebarSelectionIndicator(true);
         }
     }
 }
