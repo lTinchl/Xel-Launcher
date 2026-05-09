@@ -56,15 +56,6 @@ namespace XelLauncher.Forms
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
             });
-            /*
-            btn_bgcolor.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.White", "纯白"), "#FFFFFF"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Mint", "薄荷绿"), "#F0F7F4"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Warm", "暖米色"), "#FAF7F2"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Sky", "天空蓝"), "#EFF6FB"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.BgColor.Custom", "自定义..."), "custom"),
-            });
-            */
             var lang = AntdUI.Localization.CurrentLanguage;
             if (lang.StartsWith("en")) btn_global.SelectedValue = globals[1].Tag;
             else btn_global.SelectedValue = globals[0].Tag;
@@ -82,7 +73,9 @@ namespace XelLauncher.Forms
                     ApplyThemeSurfaces();
 
                 PositionUpdateBadge();
-                _ = CheckUpdateBadgeAsync();
+                LoadUpdateBadgeFromCache();
+                BeginInvoke(() => ShowStartupUpdateReminderFromCache());
+                _ = RunSkylandAutoSignOnLaunchAsync();
             };
             windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
         }

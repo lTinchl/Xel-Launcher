@@ -29,7 +29,9 @@ namespace XelLauncher.Forms
         private AntdUI.FormFloatButton? _floatBtn;
         private bool _floatExpanded = false;
         private AntdUI.Panel _toolSidebar;
-        private AntdUI.TooltipComponent _toolTooltip;
+        private AntdUI.TooltipComponent _leftTooltip;
+        private AntdUI.TooltipComponent _topTooltip;
+        private AntdUI.TooltipComponent _bottomTooltip;
         private CoverPictureBox _coverPictureBox;
         private NoticeCarouselPanel _noticePanel;
         private Image _coverImage;

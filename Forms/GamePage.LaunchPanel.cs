@@ -37,12 +37,13 @@ namespace XelLauncher.Forms
             {
                 IconSvg = "UserOutlined",
                 Type = AntdUI.TTypeMini.Primary,
-                Size = new Size(52, 52),
-                Location = new Point(0, 0),
+                Size = new Size(44, 44),
+                Location = new Point(4, 4),
                 BorderWidth = 0,
-                Radius = 24,
+                Radius = 22,
                 WaveSize = 0,
             };
+            TopTooltip().SetTip(btnAccountManage, AntdUI.Localization.Get("App.Game.AccountManage", "账号管理"));
             btnAccountManage.Click += btnAccountManage_Click;
 
             accountSelect = new AntdUI.Select
@@ -89,6 +90,23 @@ namespace XelLauncher.Forms
             };
 
             floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Sign", "森空岛签到"), "sign").SetIcon(LoadMenuIcon("Skland_Sign.ico")));
+            floatMenu.SelectedValueChanged += (s, e) =>
+            {
+                if (e.Value is string v && v == "sign")
+                {
+                    BeginInvoke(() =>
+                    {
+                        ResetFloatMenuVisualState();
+                        AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, new SkylandSignForm(_overview))
+                        {
+                            OkText = null,
+                            CancelText = null,
+                            BtnHeight = 0,
+                            MaskClosable = true,
+                        });
+                    });
+                }
+            };
 
             floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Setting", "游戏设置"), "setting").SetIcon("SettingOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
@@ -98,7 +116,7 @@ namespace XelLauncher.Forms
                     BeginInvoke(() =>
                     {
                         ResetFloatMenuVisualState();
-                        var drawer = AntdUI.Drawer.open(_overview, new GameSettingForm(_game, _overview, UpdateAccountControlsVisibility, () => _ = CheckGameStatusAsync()), AntdUI.TAlignMini.Right);
+                        var drawer = AntdUI.Drawer.open(_overview, new GameSettingForm(_game, _overview, UpdateAccountControlsVisibility, () => _ = CheckGameStatusAsync(), this), AntdUI.TAlignMini.Right);
                         if (drawer != null)
                             drawer.Disposed += (sender, args) => BeginInvoke(ResetFloatMenuVisualState);
                     });

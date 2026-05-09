@@ -133,11 +133,11 @@ namespace XelLauncher
             btnClose.Anchor = AnchorStyles.None;
             btnClose.Type = AntdUI.TTypeMini.Primary;
             btnClose.Name = "btnClose";
-            btnClose.Size = new Size(80, 32);
-            btnClose.Margin = new Padding(0, 8, 0, 8);
+            btnClose.Size = new Size(96, 34);
+            btnClose.Margin = new Padding(0, 12, 0, 8);
             btnClose.TabIndex = 4;
             btnClose.Text = "关闭";
-            btnClose.LocalizationText = "Cancel";
+            btnClose.LocalizationText = "Close";
             btnClose.Click += (s, e) => ParentForm?.Close();
             //
             // mainPanel
@@ -149,7 +149,7 @@ namespace XelLauncher
             mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
             mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
             mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
-            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 58F));
             mainPanel.Controls.Add(avatar, 0, 0);
             mainPanel.Controls.Add(labelName, 0, 1);
             mainPanel.Controls.Add(labelAuthor, 0, 2);
@@ -163,7 +163,7 @@ namespace XelLauncher
             //
             Controls.Add(mainPanel);
             Name = "About";
-            Size = new Size(470, 220);
+            Size = new Size(470, 236);
             BackColor = Color.Transparent;
             shieldPanel.ResumeLayout(false);
             mainPanel.ResumeLayout(false);

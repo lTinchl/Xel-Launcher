@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
+using XelLauncher.Models;
 
 namespace XelLauncher.Forms
 {
@@ -20,18 +21,28 @@ namespace XelLauncher.Forms
             updateBadge.BringToFront();
         }
 
-        private async System.Threading.Tasks.Task CheckUpdateBadgeAsync()
+        private void LoadUpdateBadgeFromCache()
         {
             try
             {
-                var info = await UpdateHelper.CheckAsync();
-                if (info == null) return;
-                var currentVer = Application.ProductVersion;
-                if (UpdateHelper.IsNewer(currentVer, info.LatestVersion))
-                {
-                    if (IsHandleCreated)
-                        Invoke(() => updateBadge.Visible = true);
-                }
+                var cfg = ConfigHelper.Load();
+                updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
+            }
+            catch { }
+        }
+
+        private void ShowStartupUpdateReminderFromCache()
+        {
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
+
+                if (cfg.UpdateState == null ||
+                    !UpdateHelper.ShouldShowUpdateReminder(cfg, Application.ProductVersion))
+                    return;
+
+                ShowUpdateReminder(cfg.UpdateState);
             }
             catch { }
         }
@@ -41,30 +52,80 @@ namespace XelLauncher.Forms
             OpenSettingOnUpdatePage();
         }
 
+        private void ShowUpdateReminder(AppUpdateState state)
+        {
+            var info = UpdateHelper.ToUpdateInfo(state);
+            if (info == null) return;
+
+            var dialog = new UpdateReminderDialog(info, Application.ProductVersion);
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, "\u8f6f\u4ef6\u66f4\u65b0", dialog)
+            {
+                BtnHeight = 0,
+                CloseIcon = true,
+                MaskClosable = true,
+            });
+
+            ApplyUpdateReminderAction(state.LatestVersion, dialog.SelectedAction);
+        }
+
+        private void ApplyUpdateReminderAction(string latestVersion, UpdateReminderAction action)
+        {
+            if (string.IsNullOrWhiteSpace(latestVersion)) return;
+
+            var cfg = ConfigHelper.Load();
+            cfg.UpdateState ??= new AppUpdateState();
+            cfg.LastNotifiedVersion = latestVersion;
+
+            switch (action)
+            {
+                case UpdateReminderAction.SkipVersion:
+                    cfg.UpdateState.SkippedVersion = latestVersion;
+                    ConfigHelper.Save(cfg);
+                    updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
+                    break;
+                case UpdateReminderAction.DisableReminder:
+                    cfg.UpdateState.DisableReminder = true;
+                    ConfigHelper.Save(cfg);
+                    updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
+                    break;
+                case UpdateReminderAction.UpdateNow:
+                    ConfigHelper.Save(cfg);
+                    OpenSettingOnUpdatePage();
+                    break;
+                default:
+                    ConfigHelper.Save(cfg);
+                    updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
+                    break;
+            }
+        }
+
         private void OpenSettingOnUpdatePage()
         {
             var setting = new Setting(this);
             setting.NavigateToUpdate();
-            if (AntdUI.Modal.open(this, AntdUI.Localization.Get("Setting", "设置"), setting) == DialogResult.OK)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "\u8bbe\u7f6e"), setting)
             {
-                AntdUI.Config.Animation = setting.Animation;
-                AntdUI.Config.ShadowEnabled = setting.ShadowEnabled;
-                AntdUI.Config.ShowInWindow = setting.ShowInWindow;
-                AntdUI.Config.ScrollBarHide = setting.ScrollBarHide;
-                if (AntdUI.Config.TextRenderingHighQuality != setting.TextRenderingHighQuality)
-                {
-                    AntdUI.Config.TextRenderingHighQuality = setting.TextRenderingHighQuality;
-                    Refresh();
-                }
-                var cfg = ConfigHelper.Load();
-                cfg.MinimizeToTray = setting.MinimizeToTray;
-                cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
-                cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
-                cfg.UseHardLink = setting.UseHardLink;
-                cfg.UseExternalBrowser = setting.UseExternalBrowser;
-                ConfigHelper.Save(cfg);
-                Setting.ApplyStartWithWindows(setting.StartWithWindows);
+                BtnHeight = 0,
+                CloseIcon = true,
+            });
+            AntdUI.Config.Animation = setting.Animation;
+            AntdUI.Config.ShadowEnabled = setting.ShadowEnabled;
+            AntdUI.Config.ShowInWindow = setting.ShowInWindow;
+            AntdUI.Config.ScrollBarHide = setting.ScrollBarHide;
+            if (AntdUI.Config.TextRenderingHighQuality != setting.TextRenderingHighQuality)
+            {
+                AntdUI.Config.TextRenderingHighQuality = setting.TextRenderingHighQuality;
+                Refresh();
             }
+            var cfg = ConfigHelper.Load();
+            cfg.MinimizeToTray = setting.MinimizeToTray;
+            cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
+            cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
+            cfg.UseHardLink = setting.UseHardLink;
+            cfg.UseExternalBrowser = setting.UseExternalBrowser;
+            ConfigHelper.Save(cfg);
+            Setting.ApplyStartWithWindows(setting.StartWithWindows);
+            LoadUpdateBadgeFromCache();
             RebuildGameButtons();
             RebuildSidebar();
         }

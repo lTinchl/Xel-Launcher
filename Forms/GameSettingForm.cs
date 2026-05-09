@@ -15,13 +15,15 @@ namespace XelLauncher.Forms
     {
         private readonly GameEntry _game;
         private readonly Overview _overview;
+        private readonly GamePage _gamePage;
         private AntdUI.Input _inputPath;
         private readonly Action _onPathChanged;
 
-        public GameSettingForm(GameEntry game, Overview overview, Action onAccountSwitchChanged = null, Action onPathChanged = null)
+        public GameSettingForm(GameEntry game, Overview overview, Action onAccountSwitchChanged = null, Action onPathChanged = null, GamePage gamePage = null)
         {
             _game = game;
             _overview = overview;
+            _gamePage = gamePage;
             _onPathChanged = onPathChanged;
             var cfg = ConfigHelper.Load();
             var latest = cfg.Games.Find(g => g.Name == game.Name && g.IconName == game.IconName);
@@ -135,6 +137,9 @@ namespace XelLauncher.Forms
             var btnBrowse = new AntdUI.Button
             {
                 Text = AntdUI.Localization.Get("App.GameSetting.ChangePath", "更改路径"),
+                IconSvg = "FolderOpenOutlined",
+                IconRatio = .58F,
+                IconGap = .18F,
                 Location = new Point(20, 172),
                 Size = new Size(320, 36),
                 Ghost = true,
@@ -145,6 +150,9 @@ namespace XelLauncher.Forms
             var btnOpenDir = new AntdUI.Button
             {
                 Text = AntdUI.Localization.Get("App.GameSetting.OpenDir", "打开文件目录"),
+                IconSvg = "FolderOutlined",
+                IconRatio = .58F,
+                IconGap = .18F,
                 Location = new Point(20, 220),
                 Size = new Size(320, 36),
                 Ghost = true,
@@ -238,6 +246,9 @@ namespace XelLauncher.Forms
                 var btnSync = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.SyncToAll", "同步路径到 BillBili服 / 国际服 / GooglePlay服"),
+                    IconSvg = "CopyOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -586,6 +597,9 @@ namespace XelLauncher.Forms
                 var btnSync = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.SyncToBili", "同步路径到 BillBili服"),
+                    IconSvg = "CopyOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -858,9 +872,10 @@ namespace XelLauncher.Forms
 
         private void ApplyGameAccentTheme()
         {
-            var primary = GameTheme.GetAccent(_game.IconName);
-            var hover = GameTheme.GetAccentHover(_game.IconName);
-            var active = GameTheme.GetAccentActive(_game.IconName);
+            var palette = _gamePage?.GetCoverAccentPalette();
+            var primary = palette?.Primary ?? GameTheme.GetAccent(_game.IconName);
+            var hover = palette?.PrimaryHover ?? GameTheme.GetAccentHover(_game.IconName);
+            var active = palette?.PrimaryActive ?? GameTheme.GetAccentActive(_game.IconName);
 
             foreach (Control control in Controls)
                 ApplyGameAccentTheme(control, primary, hover, active);

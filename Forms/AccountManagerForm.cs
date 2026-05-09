@@ -16,6 +16,8 @@ namespace XelLauncher.Forms
         private readonly string _iconName;
         private readonly HashSet<string> _pendingDelete = new();
         private readonly (Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) _theme;
+        private readonly Color _solidButtonText;
+        private readonly Color _mutedButtonText;
         private AntdUI.Table table;
 
         public AccountManagerForm(Overview overview, GamePage gamePage, string iconName = "Arknights")
@@ -24,6 +26,8 @@ namespace XelLauncher.Forms
             _gamePage = gamePage;
             _iconName = iconName;
             _theme = gamePage.GetCoverAccentPalette();
+            _solidButtonText = Color.White;
+            _mutedButtonText = AntdUI.Config.IsDark ? Color.WhiteSmoke : Color.FromArgb(35, 35, 35);
 
             Font = new Font("Microsoft YaHei UI", 10F);
             Size = new Size(720, 560);
@@ -69,7 +73,7 @@ namespace XelLauncher.Forms
                 BackExtend = $"135, {ToHex(_theme.Primary)}, {ToHex(_theme.PrimaryHover)}",
                 BackHover = _theme.PrimaryHover,
                 BackActive = _theme.PrimaryActive,
-                ForeColor = _theme.Text,
+                ForeColor = _solidButtonText,
             };
             btnDone.Click += (s, e) =>
             {
@@ -85,7 +89,7 @@ namespace XelLauncher.Forms
                 Ghost = true,
                 Radius = 6,
                 Margin = new Padding(12, 4, 12, 12),
-                ForeColor = _theme.Text,
+                ForeColor = _mutedButtonText,
                 BackHover = Color.FromArgb(82, _theme.PrimaryHover),
                 BackActive = Color.FromArgb(120, _theme.PrimaryActive),
             };
@@ -145,11 +149,11 @@ namespace XelLauncher.Forms
                     action = new AntdUI.CellLink[]
                     {
                         StyleActionButton(new AntdUI.CellButton("record", AntdUI.Localization.Get("App.Account.BtnRecord", "保存账号"), AntdUI.TTypeMini.Primary), "primary"),
-                        new AntdUI.CellButton("setDefault", AntdUI.Localization.Get("App.Account.BtnSetDefault", "设为默认"), AntdUI.TTypeMini.Success).SetRadius(5),
+                        new AntdUI.CellButton("setDefault", AntdUI.Localization.Get("App.Account.BtnSetDefault", "设为默认"), AntdUI.TTypeMini.Success).SetFore(_solidButtonText).SetRadius(5),
                         StyleActionButton(new AntdUI.CellButton("rename", AntdUI.Localization.Get("App.Account.BtnRename", "重命名"), AntdUI.TTypeMini.Default), "muted"),
                         _pendingDelete.Contains(id)
-                            ? new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnConfirmDelete", "确认删除"), AntdUI.TTypeMini.Error).SetRadius(5)
-                            : new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnDelete", "删除"), AntdUI.TTypeMini.Primary).SetBack(Color.Orange).SetRadius(5),
+                            ? new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnConfirmDelete", "确认删除"), AntdUI.TTypeMini.Error).SetFore(_solidButtonText).SetRadius(5)
+                            : new AntdUI.CellButton("delete", AntdUI.Localization.Get("App.Account.BtnDelete", "删除"), AntdUI.TTypeMini.Primary).SetBack(Color.Orange).SetFore(_solidButtonText).SetRadius(5),
                     }
                 });
             }
@@ -159,16 +163,16 @@ namespace XelLauncher.Forms
 
         private AntdUI.CellTag StyleDefaultTag(AntdUI.CellTag tag)
         {
-            return tag.SetBack(_theme.MutedHover).SetFore(_theme.Text).SetBorderWidth(0);
+            return tag.SetBack(_theme.MutedHover).SetFore(_solidButtonText).SetBorderWidth(0);
         }
 
         private AntdUI.CellButton StyleActionButton(AntdUI.CellButton button, string kind)
         {
             return kind switch
             {
-                "danger" => button.SetBack(_theme.Danger, _theme.DangerHover, _theme.PrimaryActive).SetFore(_theme.Text).SetRadius(5),
-                "muted" => button.SetBack(_theme.Muted, _theme.MutedHover, _theme.MutedActive).SetFore(_theme.Text).SetRadius(5),
-                _ => button.SetBack(_theme.Primary, _theme.PrimaryHover, _theme.PrimaryActive).SetFore(_theme.Text).SetRadius(5),
+                "danger" => button.SetBack(_theme.Danger, _theme.DangerHover, _theme.PrimaryActive).SetFore(_solidButtonText).SetRadius(5),
+                "muted" => button.SetBack(_theme.Muted, _theme.MutedHover, _theme.MutedActive).SetFore(_mutedButtonText).SetRadius(5),
+                _ => button.SetBack(_theme.Primary, _theme.PrimaryHover, _theme.PrimaryActive).SetFore(_solidButtonText).SetRadius(5),
             };
         }
 
@@ -177,7 +181,7 @@ namespace XelLauncher.Forms
             var cell = new AntdUI.CellSwitch(enabled)
                 .SetFill(_theme.Primary)
                 .SetFillHover(_theme.PrimaryHover)
-                .SetFore(_theme.Text);
+                .SetFore(_solidButtonText);
             cell.CheckedChanged += (s, e) => UpdateAccountEnabled(id, e.Value);
             return cell;
         }

@@ -68,15 +68,36 @@ namespace XelLauncher.Forms
                 Visible = true,
             };
             btn.Click += clickHandler;
-            EnsureToolTooltip().SetTip(btn, tip);
+            LeftTooltip().SetTip(btn, tip);
             return btn;
         }
 
-        private AntdUI.TooltipComponent EnsureToolTooltip()
+        private AntdUI.TooltipComponent LeftTooltip()
         {
-            return _toolTooltip ??= new AntdUI.TooltipComponent
+            return _leftTooltip ??= new AntdUI.TooltipComponent
             {
                 ArrowAlign = AntdUI.TAlign.Left,
+                Delay = 300,
+                Radius = 8,
+            };
+        }
+
+        private AntdUI.TooltipComponent TopTooltip()
+        {
+            return _topTooltip ??= new AntdUI.TooltipComponent
+            {
+                ArrowAlign = AntdUI.TAlign.Top,
+                Delay = 300,
+                Radius = 8,
+            };
+        }
+
+
+        private AntdUI.TooltipComponent BottonTooltip()
+        {
+            return _bottomTooltip ??= new AntdUI.TooltipComponent
+            {
+                ArrowAlign = AntdUI.TAlign.Bottom,
                 Delay = 300,
                 Radius = 8,
             };
