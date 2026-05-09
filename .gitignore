@@ -367,5 +367,6 @@ load/
 
 #
 /XelLauncher.iss
-/docs/superpowers
-/.claude
+/docs
+/.dotnet-home
+/.buildcheck
