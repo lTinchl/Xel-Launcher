@@ -40,7 +40,7 @@
 - 账号备份默认保存在 `C:\Users\用户名\AppData\Local\XelLauncher\AccountBackups`，如需重置账号请删除此目录
 
 ## 如何使用
-在 [Releases](https://github.com/lTinchl/Xel-Launcher/releases) 下载最新版本安装包，安装后打开软件，按照提示添加游戏路径，即可使用切服功能。
+在 [Releases](https://github.com/lTinchl/Xel-Launcher/releases) 下载最新版本安装包，安装后打开软件，按照提示添加游戏路径，即可使用切服功能
 
 ## 已支持功能
 - 服务器切换
