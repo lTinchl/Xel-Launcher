@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace XelLauncher.Models
@@ -9,6 +9,22 @@ namespace XelLauncher.Models
         public bool HasUpdate { get; set; }
         public string LocalVersion { get; set; } = "";
         public string RemoteVersion { get; set; } = "";
+    }
+
+    public class AppUpdateState
+    {
+        public string LastCheckedAtUtc { get; set; } = "";
+        public bool HasUpdate { get; set; }
+        public string LatestVersion { get; set; } = "";
+        public string Changelog { get; set; } = "";
+        public DateTimeOffset? PublishedAt { get; set; }
+        public string SetupDownloadUrl { get; set; } = "";
+        public long? SetupSizeBytes { get; set; }
+        public string PortableDownloadUrl { get; set; } = "";
+        public long? PortableSizeBytes { get; set; }
+        public string ReleasePageUrl { get; set; } = "";
+        public bool DisableReminder { get; set; }
+        public string SkippedVersion { get; set; } = "";
     }
 
     public class AppConfig
@@ -41,6 +57,12 @@ namespace XelLauncher.Models
         public string GlobalEndfieldDefaultAccount { get; set; } = "";
         public HashSet<string> GlobalEndfieldDisabledAccounts { get; set; } = new HashSet<string>();
         public string LastNotifiedVersion { get; set; } = "";               // 上次通知的版本号
+        // 森空岛自动签到
+        public bool SkylandSignEnabled { get; set; } = false;
+        public bool SkylandStartupSignEnabled { get; set; } = false;
+        public string SkylandLastAutoSignDate { get; set; } = "";
+        public string SkylandTokensEncrypted { get; set; } = "";
+        public List<string> SkylandTokens { get; set; } = new List<string>();
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
         public bool AutoLaunchOfficial { get; set; } = false;               // 启动时自动打开官服
@@ -57,6 +79,7 @@ namespace XelLauncher.Models
         public string ThemeMode { get; set; } = "system";
         public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
+        public AppUpdateState UpdateState { get; set; } = new();
 
     }
 }
