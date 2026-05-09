@@ -54,6 +54,7 @@ Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Lau
 - [x] Game download, update, and version detection
 - [x] Companion app launching
 - [x] Custom launch parameters
+- [x] Skyland Sign
 
 ## Screenshots
 <img width="1280" height="760" alt="QQ_1775213815782" src="https://github.com/user-attachments/assets/b2f3b2e0-d0ac-480d-aaba-f7fee556baab" />
