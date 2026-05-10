@@ -18,6 +18,8 @@ namespace XelLauncher
         private const int EmGetFirstVisibleLine = 0x00CE;
         private const int WmVScroll = 0x0115;
         private const int SbBottom = 7;
+        private const int UpdateCardCompactHeight = 126;
+        private const int UpdateCardExpandedHeight = 470;
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -34,8 +36,13 @@ namespace XelLauncher
         private System.Windows.Forms.Timer _logScrollHideTimer;
         private System.Windows.Forms.Timer _updateScrollHideTimer;
         private System.Windows.Forms.Timer _latestVersionColorTimer;
+        private System.Windows.Forms.Timer _updateCardHeightTimer;
+        private System.Windows.Forms.Timer _updateDetailsRevealTimer;
         private System.Windows.Forms.Timer _tabUnderlineTimer;
         private double _latestVersionHue;
+        private int _updateCardTargetHeight = UpdateCardCompactHeight;
+        private bool _showUpdateButtonsAfterExpand;
+        private int _lastUpdateHeaderLayoutWidth;
         private Rectangle _tabUnderlineTarget;
         private bool _tabUnderlineInitialized;
         private Panel _tabBar;
@@ -79,6 +86,8 @@ namespace XelLauncher
                 _logScrollHideTimer?.Dispose();
                 _updateScrollHideTimer?.Dispose();
                 _latestVersionColorTimer?.Dispose();
+                _updateCardHeightTimer?.Dispose();
+                _updateDetailsRevealTimer?.Dispose();
                 _tabUnderlineTimer?.Dispose();
             };
 
@@ -235,7 +244,7 @@ namespace XelLauncher
                 txtChangelog.Parent?.Controls.Remove(txtChangelog);
                 _updateHeaderCard.Controls.Add(txtChangelog);
             }
-            txtChangelog.Visible = true;
+            txtChangelog.Visible = false;
             txtChangelog.ReadOnly = true;
             txtChangelog.TabStop = false;
             txtChangelog.ShortcutsEnabled = false;
@@ -285,7 +294,7 @@ namespace XelLauncher
             _updateHeaderCard = new RoundedPanel
             {
                 Dock = DockStyle.Top,
-                Height = 438,
+                Height = UpdateCardCompactHeight,
                 Padding = new Padding(18),
                 FillColor = cardBack,
                 BorderColor = border,
@@ -296,8 +305,8 @@ namespace XelLauncher
 
             _updateHeaderTitle = new AntdUI.Label
             {
-                Text = L("App.Update.NewVersionTitle", "发现新版本"),
-                Size = new Size(220, 30),
+                Text = L("App.Update.ModalTitle", "软件更新"),
+                Size = new Size(240, 30),
                 Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
                 ForeColor = normalText,
             };
@@ -391,7 +400,11 @@ namespace XelLauncher
                 ForeColor = subtleText,
             };
 
-            _updateHeaderCard.Resize += (s, e) => LayoutUpdateHeader();
+            _updateHeaderCard.Resize += (s, e) =>
+            {
+                if (_updateHeaderCard.ClientSize.Width != _lastUpdateHeaderLayoutWidth)
+                    LayoutUpdateHeader();
+            };
             _updateHeaderCard.Controls.Add(_updateHeaderTitle);
             _updateHeaderCard.Controls.Add(_updateHeaderSubtitle);
             _updateHeaderCard.Controls.Add(lblCurrentVersionTitle);
@@ -407,14 +420,108 @@ namespace XelLauncher
             _updateHeaderCard.Controls.Add(_updateNotifyOption);
             panelUpdate.Controls.Add(_updateHeaderCard);
             _updateHeaderCard.BringToFront();
+            SetUpdateDetailsVisible(false);
             LayoutUpdateHeader();
         }
+
+        private void SetUpdateDetailsVisible(bool visible)
+        {
+            if (_updateSectionTitle != null) _updateSectionTitle.Visible = visible;
+            if (txtChangelog != null) txtChangelog.Visible = visible;
+            if (_updateAutoOption != null) _updateAutoOption.Visible = visible;
+            if (_updateNotifyOption != null) _updateNotifyOption.Visible = visible;
+            if (!visible && _updateChangelogScrollBar != null)
+                _updateChangelogScrollBar.Visible = false;
+        }
+
+        private void CompleteUpdateCardExpansion()
+        {
+            if (_updateHeaderCard == null || _updateHeaderCard.IsDisposed) return;
+
+            _updateDetailsRevealTimer?.Stop();
+            _updateCardHeightTimer?.Stop();
+            _updateHeaderCard.Height = _updateCardTargetHeight;
+            SetUpdateDetailsVisible(_updateCardTargetHeight == UpdateCardExpandedHeight);
+            if (_showUpdateButtonsAfterExpand)
+                panelUpdateButtons.Visible = true;
+            LayoutUpdateHeader();
+            UpdateChangelogScrollBar();
+            _updateHeaderCard.Invalidate();
+        }
+
+        private void SetUpdateCardExpanded(bool expanded, bool animate, bool showButtonsWhenExpanded = false)
+        {
+            if (_updateHeaderCard == null) return;
+
+            _updateDetailsRevealTimer?.Stop();
+            _updateCardTargetHeight = expanded ? UpdateCardExpandedHeight : UpdateCardCompactHeight;
+            _showUpdateButtonsAfterExpand = expanded && showButtonsWhenExpanded;
+            var shouldAnimate = animate &&
+                AntdUI.Config.Animation &&
+                IsHandleCreated &&
+                _updateHeaderCard.Height != _updateCardTargetHeight;
+            SetUpdateDetailsVisible(expanded && !shouldAnimate);
+
+            if (!expanded || (expanded && shouldAnimate))
+            {
+                panelUpdateButtons.Visible = false;
+                progressDownload.Visible = false;
+                progressDownload.Loading = false;
+            }
+
+            if (!shouldAnimate)
+            {
+                _updateCardHeightTimer?.Stop();
+                _updateHeaderCard.Height = _updateCardTargetHeight;
+                SetUpdateDetailsVisible(expanded);
+                if (_showUpdateButtonsAfterExpand)
+                    panelUpdateButtons.Visible = true;
+                LayoutUpdateHeader();
+                return;
+            }
+
+            if (_updateCardHeightTimer == null)
+            {
+                _updateCardHeightTimer = new System.Windows.Forms.Timer { Interval = 15 };
+                _updateCardHeightTimer.Tick += (s, e) =>
+                {
+                    if (_updateHeaderCard == null || _updateHeaderCard.IsDisposed)
+                    {
+                        _updateCardHeightTimer.Stop();
+                        return;
+                    }
+
+                    var delta = _updateCardTargetHeight - _updateHeaderCard.Height;
+                    if (Math.Abs(delta) <= 2)
+                    {
+                        CompleteUpdateCardExpansion();
+                        return;
+                    }
+
+                    var step = Math.Max(10, Math.Abs(delta) / 4);
+                    _updateHeaderCard.Height += Math.Sign(delta) * step;
+                };
+            }
+
+            _updateCardHeightTimer.Start();
+            if (expanded)
+            {
+                if (_updateDetailsRevealTimer == null)
+                {
+                    _updateDetailsRevealTimer = new System.Windows.Forms.Timer { Interval = 280 };
+                    _updateDetailsRevealTimer.Tick += (s, e) => CompleteUpdateCardExpansion();
+                }
+                _updateDetailsRevealTimer.Start();
+            }
+        }
+
         private void LayoutUpdateHeader()
         {
             if (_updateHeaderCard == null) return;
 
             var width = _updateHeaderCard.ClientSize.Width;
             if (width <= 0) return;
+            _lastUpdateHeaderLayoutWidth = width;
 
             var contentWidth = Math.Max(300, width - 36);
             _updateHeaderTitle.Location = new Point(18, 18);
@@ -455,7 +562,7 @@ namespace XelLauncher
             _updateNotifyOption.Location = new Point(18, 342);
 
             var downloadPanelHeight = _isDownloadingUpdate || progressDownload.Visible ? 68 : 34;
-            panelUpdateButtons.Location = new Point(18, downloadPanelHeight > 34 ? 368 : 382);
+            panelUpdateButtons.Location = new Point(18, downloadPanelHeight > 34 ? 398 : 410);
             panelUpdateButtons.Size = new Size(contentWidth, downloadPanelHeight);
             if (btnDownloadSetup.Parent is Panel buttonPanel)
             {
@@ -464,7 +571,13 @@ namespace XelLauncher
                 buttonPanel.Size = new Size(contentWidth, 34);
                 var setupWidth = IsEnglishUi ? 126 : 108;
                 var portableWidth = IsEnglishUi ? 118 : 112;
-                var cancelWidth = IsEnglishUi ? 152 : 104;
+                var cancelWidth = Math.Max(
+                    IsEnglishUi ? 152 : 104,
+                    TextRenderer.MeasureText(
+                        btnCancelDownload.Text,
+                        btnCancelDownload.Font,
+                        Size.Empty,
+                        TextFormatFlags.NoPadding).Width + 34);
                 var gap = 16;
                 btnDownloadSetup.Size = new Size(setupWidth, 32);
                 btnDownloadSetup.Location = new Point(0, 1);
@@ -478,7 +591,13 @@ namespace XelLauncher
             lblDownloadStatus.Dock = DockStyle.None;
             if (_isDownloadingUpdate)
             {
-                var cancelWidth = IsEnglishUi ? 152 : 104;
+                var cancelWidth = Math.Max(
+                    IsEnglishUi ? 152 : 104,
+                    TextRenderer.MeasureText(
+                        btnCancelDownload.Text,
+                        btnCancelDownload.Font,
+                        Size.Empty,
+                        TextFormatFlags.NoPadding).Width + 34);
                 lblDownloadStatus.Location = new Point(cancelWidth + 12, 5);
                 lblDownloadStatus.Size = new Size(Math.Max(80, contentWidth - cancelWidth - 12), 24);
             }
@@ -489,7 +608,9 @@ namespace XelLauncher
             }
             progressDownload.Dock = DockStyle.None;
             progressDownload.Location = new Point(0, _isDownloadingUpdate ? 44 : 58);
-            progressDownload.Size = new Size(Math.Max(120, contentWidth - 24), 10);
+            progressDownload.Size = new Size(Math.Max(160, contentWidth), 20);
+            progressDownload.Animation = 220;
+            progressDownload.LoadingFull = false;
         }
 
         private void ConfigureUpdateButtons(Color surface, Color border, Color normalText)
@@ -523,7 +644,7 @@ namespace XelLauncher
             btnFallback.BackActive = buttonActive;
             btnFallback.Radius = 6;
 
-            btnCancelDownload.Text = L("App.Update.CancelDownload", "Cancel Download");
+            btnCancelDownload.Text = L("App.Update.CancelDownload", "取消下载");
             btnCancelDownload.LocalizationText = null;
             btnCancelDownload.Type = AntdUI.TTypeMini.Error;
             btnCancelDownload.Radius = 6;
@@ -1057,6 +1178,12 @@ namespace XelLauncher
             if (txtChangelog.IsDisposed || _updateChangelogScrollBar == null ||
                 _updateChangelogScrollBar.IsDisposed || _updateChangelogScrollBar.IsDragging) return;
 
+            if (!txtChangelog.Visible)
+            {
+                _updateChangelogScrollBar.Visible = false;
+                return;
+            }
+
             if (!TryGetScrollMetrics(txtChangelog, _updateChangelogScrollBar.Height, out var totalLines,
                     out var visibleLines, out var firstVisible))
             {
@@ -1075,6 +1202,11 @@ namespace XelLauncher
         private void RevealUpdateScrollBar(bool autoHide)
         {
             if (_updateChangelogScrollBar == null || _updateChangelogScrollBar.IsDisposed) return;
+            if (!txtChangelog.Visible)
+            {
+                _updateChangelogScrollBar.Visible = false;
+                return;
+            }
 
             UpdateChangelogScrollBar();
             if (!UpdateChangelogNeedsScroll()) return;
@@ -1097,6 +1229,7 @@ namespace XelLauncher
         private bool UpdateChangelogNeedsScroll()
         {
             return _updateChangelogScrollBar != null &&
+                   txtChangelog.Visible &&
                    TryGetScrollMetrics(txtChangelog, _updateChangelogScrollBar.Height, out _, out _, out _);
         }
 
@@ -1169,7 +1302,7 @@ namespace XelLauncher
             btnCancelDownload.Click += (s, e) =>
             {
                 btnCancelDownload.Enabled = false;
-                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.Canceling", "Canceling...");
+                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.Canceling", "正在取消...");
                 _downloadCts?.Cancel();
             };
             btnFallback.Click += (s, e) =>
@@ -1197,11 +1330,13 @@ namespace XelLauncher
             var state = UpdateHelper.GetCachedState();
             if (state == null || string.IsNullOrWhiteSpace(state.LatestVersion))
             {
+                SetUpdateHeaderTitle(L("App.Update.ModalTitle", "软件更新"));
+                _updateInfo = null;
+                StopLatestVersionColorAnimation();
                 lblLatestVersion.Text = "—";
                 _updateAutoOption.Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示");
                 _updateNotifyOption.Text = L("App.Update.UpdateSizePending", "更新大小：检查后显示");
-                panelUpdateButtons.Visible = false;
-                ShowChangelog(L("App.Update.ChangelogHint", "点击检查更新后显示内容。"));
+                SetUpdateCardExpanded(false, false);
                 return;
             }
 
@@ -1218,11 +1353,12 @@ namespace XelLauncher
                 var state = await UpdateHelper.CheckAndPersistAsync(System.Windows.Forms.Application.ProductVersion);
                 if (state == null)
                 {
+                    SetUpdateHeaderTitle(L("App.Update.CheckFailedTitle", "检查更新失败"));
                     ShowChangelog(AntdUI.Localization.Get("App.Update.CheckFailed", "检查失败，请检查网络连接。"));
                     lblLatestVersion.Text = "—";
                     _updateAutoOption.Text = L("App.Update.ReleaseDateFailed", "发布日期：检查失败");
                     _updateNotifyOption.Text = L("App.Update.UpdateSizeFailed", "更新大小：检查失败");
-                    panelUpdateButtons.Visible = false;
+                    SetUpdateCardExpanded(false, true);
                     return;
                 }
 
@@ -1246,11 +1382,13 @@ namespace XelLauncher
             _updateNotifyOption.Text = string.Format(L("App.Update.UpdateSize", "更新大小：{0}"), FormatReleaseSize(info));
 
             var currentVer = System.Windows.Forms.Application.ProductVersion;
-            if (state.HasUpdate && UpdateHelper.IsNewer(currentVer, info.LatestVersion))
+            var hasUpdate = state.HasUpdate && UpdateHelper.IsNewer(currentVer, info.LatestVersion);
+            if (hasUpdate)
             {
-                StartLatestVersionColorAnimation();
+                SetUpdateHeaderTitle(L("App.Update.NewVersionTitle", "发现新版本"));
+                StopLatestVersionColorAnimation();
+                lblLatestVersion.ForeColor = Color.FromArgb(40, 180, 120);
                 ShowChangelog(info.Changelog);
-                panelUpdateButtons.Visible = true;
                 btnDownloadSetup.Visible = true;
                 btnDownloadPortable.Visible = true;
                 btnFallback.Visible = false;
@@ -1258,15 +1396,41 @@ namespace XelLauncher
                 btnCancelDownload.Enabled = true;
                 progressDownload.Visible = false;
                 progressDownload.Value = 0F;
+                progressDownload.Loading = false;
                 lblDownloadStatus.Text = "";
                 _isDownloadingUpdate = false;
+                SetUpdateCardExpanded(true, true, showButtonsWhenExpanded: true);
                 LayoutUpdateHeader();
                 return;
             }
 
             StopLatestVersionColorAnimation();
-            ShowChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
-            panelUpdateButtons.Visible = false;
+            SetUpdateHeaderTitle(L("App.Update.NoUpdateTitle", "已是最新版本"));
+            txtChangelog.Text = FormatUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
+            btnDownloadSetup.Visible = false;
+            btnDownloadPortable.Visible = false;
+            btnFallback.Visible = false;
+            btnCancelDownload.Visible = false;
+            progressDownload.Visible = false;
+            progressDownload.Value = 0F;
+            progressDownload.Loading = false;
+            lblDownloadStatus.Text = "";
+            _isDownloadingUpdate = false;
+            SetUpdateCardExpanded(false, true);
+        }
+
+        private void SetUpdateHeaderTitle(string text)
+        {
+            if (_updateHeaderTitle == null) return;
+
+            _updateHeaderTitle.Text = text;
+            var measuredWidth = TextRenderer.MeasureText(
+                text,
+                _updateHeaderTitle.Font,
+                Size.Empty,
+                TextFormatFlags.NoPadding).Width;
+            _updateHeaderTitle.Size = new Size(Math.Max(160, measuredWidth + 8), 30);
+            LayoutUpdateHeader();
         }
 
         private void StartLatestVersionColorAnimation()
@@ -1341,6 +1505,7 @@ namespace XelLauncher
             btnCancelDownload.Visible   = true;
             progressDownload.Visible    = true;
             progressDownload.Value      = 0F;
+            progressDownload.Loading    = true;
             lblDownloadStatus.Text      = AntdUI.Localization.Get("App.Update.Preparing", "准备下载...");
             _isDownloadingUpdate        = true;
             LayoutUpdateHeader();
@@ -1403,6 +1568,7 @@ namespace XelLauncher
                 lblDownloadStatus.Text = "";
                 progressDownload.Visible = false;
                 progressDownload.Value = 0F;
+                progressDownload.Loading = false;
             }
             catch (Exception)
             {
@@ -1423,6 +1589,7 @@ namespace XelLauncher
                 }
                 btnCancelDownload.Visible   = false;
                 btnCancelDownload.Enabled   = true;
+                progressDownload.Loading    = false;
                 LayoutUpdateHeader();
             }
         }
@@ -1433,6 +1600,7 @@ namespace XelLauncher
             btnDownloadPortable.Visible = false;
             btnFallback.Visible         = true;
             btnCancelDownload.Visible   = false;
+            progressDownload.Loading    = false;
         }
 
         private void ShowChangelog(string text)

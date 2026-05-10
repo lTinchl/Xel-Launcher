@@ -1488,6 +1488,10 @@ namespace XelLauncher.Helpers
                     return "Error: ";
                 case "App.Update.NewVersionTitle":
                     return "New Version Available";
+                case "App.Update.NoUpdateTitle":
+                    return "You're Up to Date";
+                case "App.Update.CheckFailedTitle":
+                    return "Update Check Failed";
 
 
                     return "Smileys & Emotion";

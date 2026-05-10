@@ -66,9 +66,10 @@ namespace XelLauncher.Forms
                 TabStop = false,
             };
 
-            var btnUpdate = CreateButton(L("App.Update.DownloadNow", "立即更新"), AntdUI.TTypeMini.Success, 18, UpdateReminderAction.UpdateNow);
-            var btnSkip = CreateButton(L("App.Update.SkipVersion", "下个版本再提醒"), AntdUI.TTypeMini.Default, 154, UpdateReminderAction.SkipVersion);
-            var btnDisable = CreateButton(L("App.Update.DisableReminder", "不再提醒更新"), AntdUI.TTypeMini.Default, 290, UpdateReminderAction.DisableReminder);
+            var btnUpdate = CreateButton(L("App.Update.DownloadNow", "立即更新"), AntdUI.TTypeMini.Success, UpdateReminderAction.UpdateNow);
+            var btnSkip = CreateButton(L("App.Update.SkipVersion", "下个版本再提醒"), AntdUI.TTypeMini.Default, UpdateReminderAction.SkipVersion);
+            var btnDisable = CreateButton(L("App.Update.DisableReminder", "不再提醒更新"), AntdUI.TTypeMini.Default, UpdateReminderAction.DisableReminder);
+            LayoutButtons(btnUpdate, btnSkip, btnDisable);
 
             Controls.Add(title);
             Controls.Add(version);
@@ -78,15 +79,21 @@ namespace XelLauncher.Forms
             Controls.Add(btnDisable);
         }
 
-        private AntdUI.Button CreateButton(string text, AntdUI.TTypeMini type, int x, UpdateReminderAction action)
+        private AntdUI.Button CreateButton(string text, AntdUI.TTypeMini type, UpdateReminderAction action)
         {
+            var width = Math.Max(96, TextRenderer.MeasureText(
+                text,
+                new Font("Microsoft YaHei UI", 9F),
+                Size.Empty,
+                TextFormatFlags.NoPadding).Width + 38);
+
             var button = new AntdUI.Button
             {
                 Text = text,
                 Type = type,
                 Radius = 6,
-                Location = new Point(x, 178),
-                Size = new Size(118, 34),
+                Location = new Point(18, 178),
+                Size = new Size(width, 34),
                 TabStop = false,
                 WaveSize = 0,
             };
@@ -100,6 +107,21 @@ namespace XelLauncher.Forms
             }
             button.Click += (s, e) => Complete(action);
             return button;
+        }
+
+        private void LayoutButtons(params AntdUI.Button[] buttons)
+        {
+            const int gap = 10;
+            var totalWidth = -gap;
+            foreach (var button in buttons)
+                totalWidth += button.Width + gap;
+
+            var x = Math.Max(18, (Width - totalWidth) / 2 - 10);
+            foreach (var button in buttons)
+            {
+                button.Location = new Point(x, 178);
+                x += button.Width + gap;
+            }
         }
 
         private void Complete(UpdateReminderAction action)

@@ -241,7 +241,7 @@ namespace XelLauncher
             btnFallback.Type = AntdUI.TTypeMini.Warn;
 
             btnCancelDownload = new AntdUI.Button();
-            btnCancelDownload.Text = "Cancel";
+            btnCancelDownload.Text = "取消下载";
             btnCancelDownload.LocalizationText = "App.Update.CancelDownload";
             btnCancelDownload.Name = "btnCancelDownload";
             btnCancelDownload.Width = 152;
