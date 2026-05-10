@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,6 +31,12 @@ namespace XelLauncher
             if (args.Any(arg => string.Equals(arg, "--skyland-auto-sign", StringComparison.OrdinalIgnoreCase)))
             {
                 SkylandAutoSignCommandRunner.Run();
+                return;
+            }
+
+            if (args.Any(arg => string.Equals(arg, "--skport-auto-sign", StringComparison.OrdinalIgnoreCase)))
+            {
+                SkportAutoSignCommandRunner.Run();
                 return;
             }
 

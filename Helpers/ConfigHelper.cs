@@ -44,6 +44,7 @@ namespace XelLauncher.Helpers
         {
             Directory.CreateDirectory(ConfigDir);
             SkylandTokenStorage.NormalizeBeforeSave(cfg);
+            SkportTokenStorage.NormalizeBeforeSave(cfg);
             File.WriteAllText(ConfigFile,
                 JsonSerializer.Serialize(cfg, JsonOptions));
         }
@@ -56,6 +57,7 @@ namespace XelLauncher.Helpers
             {
                 Directory.CreateDirectory(ConfigDir);
                 SkylandTokenStorage.NormalizeBeforeSave(cfg);
+            SkportTokenStorage.NormalizeBeforeSave(cfg);
                 File.WriteAllText(ConfigFile, JsonSerializer.Serialize(cfg, JsonOptions));
             }
             catch (Exception ex)
