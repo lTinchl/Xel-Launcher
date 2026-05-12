@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace XelLauncher.Models
@@ -63,6 +63,14 @@ namespace XelLauncher.Models
         public string SkylandLastAutoSignDate { get; set; } = "";
         public string SkylandTokensEncrypted { get; set; } = "";
         public List<string> SkylandTokens { get; set; } = new List<string>();
+        
+        // SKPORT 国际服自动签到
+        public bool SkportSignEnabled { get; set; } = false;
+        public bool SkportStartupSignEnabled { get; set; } = false;
+        public string SkportLastAutoSignDate { get; set; } = "";
+        public string SkportTokensEncrypted { get; set; } = "";
+        public List<string> SkportTokens { get; set; } = new List<string>();
+
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
         public bool AutoLaunchOfficial { get; set; } = false;               // 启动时自动打开官服

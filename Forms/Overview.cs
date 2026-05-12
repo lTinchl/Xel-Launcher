@@ -89,6 +89,7 @@ namespace XelLauncher.Forms
                 LoadUpdateBadgeFromCache();
                 _ = RefreshUpdateStateOnStartupAsync();
                 _ = RunSkylandAutoSignOnLaunchAsync();
+                _ = RunSkportAutoSignOnLaunchAsync();
             };
             windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
         }
