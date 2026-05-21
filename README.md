@@ -56,9 +56,6 @@ Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Lau
 - [x] Custom launch parameters
 - [x] Skyland Sign
 
-## Screenshots
-<img width="1280" height="760" alt="QQ_1775213815782" src="https://github.com/user-attachments/assets/b2f3b2e0-d0ac-480d-aaba-f7fee556baab" />
-
 ## Special Thanks
 
 - UI Framework: [AntdUI](https://github.com/AntdUI/AntdUI)
