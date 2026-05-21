@@ -38,6 +38,7 @@ namespace XelLauncher.Forms
                 OkText = null,
                 CancelText = null,
                 BtnHeight = 0,
+                CloseIcon = true,
                 MaskClosable = true,
             });
         }

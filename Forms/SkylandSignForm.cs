@@ -663,6 +663,8 @@ namespace XelLauncher.Forms
 
         private void SetBusy(bool busy)
         {
+            if (IsDisposed || Disposing) return;
+
             _btnScan.Enabled = !busy;
             _btnSms.Enabled = !busy;
             _btnPassword.Enabled = !busy;

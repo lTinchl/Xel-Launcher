@@ -43,6 +43,7 @@ namespace XelLauncher.Forms
             this.Icon = Properties.Resources.icon;
             windowBar.Text = "Xel Launcher ";
             AntdUI.Config.DropDownMarginFurther = true;
+            InstallCloseCommandFilter();
 
             TopMost = top;
             EnableDoubleBuffer(panelSidebar);
@@ -98,6 +99,7 @@ namespace XelLauncher.Forms
         {
             if (disposing)
             {
+                RemoveCloseCommandFilter();
                 _sidebarSelectionTimer?.Stop();
                 _sidebarSelectionTimer?.Dispose();
                 _sidebarSelectionTimer = null;
