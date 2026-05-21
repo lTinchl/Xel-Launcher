@@ -82,9 +82,6 @@ namespace XelLauncher.Forms
                                     ? "https://github.com/lTinchl/Xel-Launcher/blob/master/README.md"
                                     : "https://github.com/lTinchl/Xel-Launcher/blob/master/README.zh.md");
                             break;
-                        case "github":
-                            TabHeaderForm.Open("https://github.com/lTinchl/Xel-Launcher");
-                            break;
                         case "info":
                             AntdUI.Modal.open(new AntdUI.Modal.Config(this, "", new About())
                             {
@@ -94,6 +91,12 @@ namespace XelLauncher.Forms
                                 EnableSound = false,
                                 MaskClosable = true
                             });
+                            break;
+                        case "github":
+                            TabHeaderForm.Open("https://github.com/lTinchl/Xel-Launcher");
+                            break;
+                        case "bilibili":
+                            TabHeaderForm.Open("https://www.bilibili.com/video/BV1FD9MBfED5");
                             break;
                     }
                 });
