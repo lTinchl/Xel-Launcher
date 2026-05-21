@@ -1130,10 +1130,16 @@ namespace XelLauncher.Helpers
                     return "Use hard links for server switching";
 
                 // Skyland sign
+                case "App.SignHub.Title":
+                    return "Sign";
                 case "App.Game.Sign":
                     return "Skyland Sign";
+                case "App.Game.SkportSign":
+                    return "SKPORT Sign";
                 case "App.Skyland.Title":
                     return "Skyland Sign";
+                case "App.Skport.Title":
+                    return "SKPORT Sign";
                 case "App.Skyland.ConfigTitle":
                     return "Skyland Settings";
                 case "App.Skyland.Document":
@@ -1328,6 +1334,128 @@ namespace XelLauncher.Helpers
                     return "Auto sign-in already ran today. Skipped.";
                 case "App.Skyland.Auto.FailedTitle":
                     return "Skyland Auto Sign Failed";
+
+                // SKPORT sign
+                case "App.Skport.ConfigTitle":
+                    return "SKPORT Sign Settings";
+                case "App.Skport.Token":
+                    return "SKPORT Token";
+                case "App.Skport.TokenHint":
+                    return "Separate tokens with semicolons (;). Multiple accounts are supported.";
+                case "App.Skport.TokenPlaceholder":
+                    return "Enter SKPORT tokens, separated by semicolons (;)";
+                case "App.Skport.PasswordLogin":
+                    return "Password Login";
+                case "App.Skport.SignNow":
+                    return "Sign Now";
+                case "App.Skport.AutoConfigTitle":
+                    return "Auto Sign Settings";
+                case "App.Skport.AutoSign":
+                    return "Sign while launcher is running";
+                case "App.Skport.AutoSignHint":
+                    return "After enabled, sign in once per day while the launcher is running and show the result in the notification area.";
+                case "App.Skport.StartupSign":
+                    return "Sign in on Windows startup";
+                case "App.Skport.StartupSignHint":
+                    return "Run one background sign-in after Windows starts, without showing the main window. Results are shown by notification.";
+                case "App.Skport.Log":
+                    return "Log";
+                case "App.Skport.ClearLog":
+                    return "Clear Log";
+                case "App.Skport.TokenRequired":
+                    return "Please enter a SKPORT Token first";
+                case "App.Skport.SignStart":
+                    return "========== SKPORT sign-in started ==========";
+                case "App.Skport.SignComplete":
+                    return "========== SKPORT sign-in finished ==========";
+                case "App.Skport.OperationCanceled":
+                    return "Operation canceled.";
+                case "App.Skport.SignFailedPrefix":
+                    return "Sign-in failed: ";
+                case "App.Skport.Signing":
+                    return "Signing...";
+                case "App.Skport.PasswordSuccess":
+                    return "Password login succeeded. Token saved.";
+                case "App.Skport.TokenSaved":
+                    return "Token saved";
+                case "App.Skport.PasswordSubtitle":
+                    return "Sign in with your Hypergryph account. The token is saved automatically after success.";
+                case "App.Skport.Account":
+                    return "Account";
+                case "App.Skport.AccountPlaceholder":
+                    return "Enter Hypergryph phone number / email";
+                case "App.Skport.Password":
+                    return "Password";
+                case "App.Skport.PasswordPlaceholder":
+                    return "Enter password";
+                case "App.Skport.LoginAndGetToken":
+                    return "Login";
+                case "App.Skport.LoggingIn":
+                    return "Logging in...";
+                case "App.Skport.InputRequired":
+                    return "Please enter account and password";
+                case "App.Skport.PasswordLoginStart":
+                    return "Logging in with account and password...";
+                case "App.Skport.PasswordFailedPrefix":
+                    return "Password token retrieval failed: ";
+                case "App.Skport.Action.PasswordLogin":
+                    return "Password login";
+                case "App.Skport.Action.GetGrantCode":
+                    return "Get grant code with token";
+                case "App.Skport.Action.GetCred":
+                    return "Get cred";
+                case "App.Skport.Action.GetBindings":
+                    return "Get bound characters";
+                case "App.Skport.Error.AccountRequired":
+                    return "Please enter an account";
+                case "App.Skport.Error.PasswordRequired":
+                    return "Please enter a password";
+                case "App.Skport.Error.TokenRequiredEnv":
+                    return "Please add SKPORT_TOKEN first.";
+                case "App.Skport.Error.GrantCodeMissing":
+                    return "Failed to get grant code with token: response is missing code.";
+                case "App.Skport.Error.CredMissing":
+                    return "Failed to get cred: response is missing cred or token.";
+                case "App.Skport.Error.ActionFailed":
+                    return "{0} failed: {1}";
+                case "App.Skport.Error.TokenMissing":
+                    return "{0} failed: response is missing token.";
+                case "App.Skport.Log.Account":
+                    return "Account {0}";
+                case "App.Skport.Log.ProcessAccount":
+                    return "Processing {0}...";
+                case "App.Skport.Log.NoBindings":
+                    return "[{0}] No bound Endfield character found for sign-in.";
+                case "App.Skport.Log.AccountFailed":
+                    return "[{0}] Sign-in failed: {1}";
+                case "App.Skport.Log.WaitNext":
+                    return "Waiting {0} seconds before processing the next account...";
+                case "App.Skport.Log.RoleTitle":
+                    return "[{0}] Role {1}({2})";
+                case "App.Skport.Log.SignFailed":
+                    return "{0} sign-in failed: {1}";
+                case "App.Skport.Log.SignSuccess":
+                    return "{0} signed in successfully, received {1}";
+                case "App.Skport.ListSeparator":
+                    return ", ";
+                case "App.Skport.Auto.Title":
+                    return "SKPORT Auto Sign";
+                case "App.Skport.Auto.NoToken":
+                    return "No token configured. Auto sign-in skipped.";
+                case "App.Skport.Auto.Start":
+                    return "SKPORT auto sign-in started.";
+                case "App.Skport.Auto.Done":
+                    return "Sign-in complete.";
+                case "App.Skport.Auto.MoreResults":
+                    return "{0} more result(s).";
+                case "App.Skport.Auto.Complete":
+                    return "SKPORT auto sign-in complete.";
+                case "App.Skport.Auto.CompleteTitle":
+                    return "SKPORT Auto Sign Complete";
+                case "App.Skport.Auto.AlreadyDone":
+                    return "Auto sign-in already ran today. Skipped.";
+                case "App.Skport.Auto.FailedTitle":
+                    return "SKPORT Auto Sign Failed";
                 case "":
                     return "";
 

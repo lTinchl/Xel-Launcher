@@ -74,14 +74,16 @@ namespace XelLauncher.Forms
             {
                 BeginInvoke(() =>
                 {
-                    switch (code)
-                    {
+                switch (code)
+                {
                         case "help":
-                            var browser = new TabHeaderForm("https://www.google.com/");
-                            browser.Show(this);
+                            TabHeaderForm.Open(
+                                AntdUI.Localization.CurrentLanguage.StartsWith("en", StringComparison.OrdinalIgnoreCase)
+                                    ? "https://github.com/lTinchl/Xel-Launcher/blob/master/README.md"
+                                    : "https://github.com/lTinchl/Xel-Launcher/blob/master/README.zh.md");
                             break;
                         case "github":
-                            TabHeaderForm.Open("https://github.com/lTinchl");
+                            TabHeaderForm.Open("https://github.com/lTinchl/Xel-Launcher");
                             break;
                         case "info":
                             AntdUI.Modal.open(new AntdUI.Modal.Config(this, "", new About())

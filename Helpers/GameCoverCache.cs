@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -21,6 +22,10 @@ namespace XelLauncher.Helpers
         private const string ClientCoverPattern = "client-cover-*";
         private const string NoticeBannerPattern = "notice-banner-*";
         private const string NoticeContentFileName = "launcher-notice.json";
+        private const string ClientCoverRefreshStampFileName = "client-cover-refresh.txt";
+
+        private static readonly object CoverRefreshLock = new();
+        private static readonly HashSet<string> CoverRefreshAttempts = new(StringComparer.OrdinalIgnoreCase);
 
         private static readonly HttpClient Client = new()
         {
@@ -132,7 +137,41 @@ namespace XelLauncher.Helpers
             }
         }
 
-        public static async Task<string> UpdateAsync(string iconName, string imageUrl, CancellationToken ct = default)
+        public static bool TryBeginDailyCoverRefresh(string iconName)
+        {
+            var dir = GetGameCoverDir(iconName);
+            var today = DateTime.Now.ToString("yyyy-MM-dd");
+            var attemptKey = $"{dir}|{today}";
+
+            lock (CoverRefreshLock)
+            {
+                if (CoverRefreshAttempts.Contains(attemptKey))
+                    return false;
+
+                var cachedPath = GetCachedCoverPath(iconName);
+                if (!string.IsNullOrEmpty(cachedPath) && string.Equals(ReadCoverRefreshStamp(dir), today, StringComparison.Ordinal))
+                    return false;
+
+                CoverRefreshAttempts.Add(attemptKey);
+                return true;
+            }
+        }
+
+        public static void MarkDailyCoverRefreshAttempt(string iconName)
+        {
+            try
+            {
+                var dir = GetGameCoverDir(iconName);
+                Directory.CreateDirectory(dir);
+                File.WriteAllText(GetCoverRefreshStampPath(dir), DateTime.Now.ToString("yyyy-MM-dd"), Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GameCoverCache.MarkDailyCoverRefreshAttempt({iconName})");
+            }
+        }
+
+        public static async Task<string> UpdateAsync(string iconName, string imageUrl, TimeSpan? refreshAfter = null, CancellationToken ct = default, bool forceRefresh = false)
         {
             if (string.IsNullOrWhiteSpace(imageUrl)) return null;
 
@@ -142,12 +181,28 @@ namespace XelLauncher.Helpers
             var urlExtension = GetImageExtension(imageUrl);
             var baseTarget = Path.Combine(dir, $"client-cover-{HashUrl(imageUrl)}");
             var cachedPath = TryGetCachedPath(baseTarget, urlExtension);
-            if (cachedPath != null) return cachedPath;
+            if (cachedPath != null && !forceRefresh && !IsCacheExpired(cachedPath, refreshAfter)) return cachedPath;
 
             var temp = baseTarget + ".download.tmp";
             try
             {
-                using var response = await Client.GetAsync(imageUrl, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+                var metadata = LoadClientCoverMetadata(baseTarget);
+                if (cachedPath != null && await IsRemoteCoverUnchangedAsync(imageUrl, metadata, ct).ConfigureAwait(false))
+                {
+                    LogHelper.Log($"Game cover unchanged, skip download: {iconName} -> {cachedPath}");
+                    return cachedPath;
+                }
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
+                ApplyConditionalHeaders(request, metadata);
+
+                using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+                if (response.StatusCode == HttpStatusCode.NotModified && cachedPath != null)
+                {
+                    LogHelper.Log($"Game cover not modified, skip download: {iconName} -> {cachedPath}");
+                    return cachedPath;
+                }
+
                 response.EnsureSuccessStatusCode();
 
                 await using (var source = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
@@ -170,6 +225,7 @@ namespace XelLauncher.Helpers
                     {
                         TryDelete(temp);
                         CleanupOldCovers(dir, pngPath);
+                        SaveClientCoverMetadata(baseTarget, response);
                         LogHelper.Log($"Game cover cached: {iconName} -> {pngPath}");
                         return pngPath;
                     }
@@ -177,6 +233,7 @@ namespace XelLauncher.Helpers
                     var webpPath = baseTarget + ".webp";
                     MoveReplacing(temp, webpPath);
                     CleanupOldCovers(dir, webpPath);
+                    SaveClientCoverMetadata(baseTarget, response);
                     LogHelper.Log($"Game cover cached (WebP fallback): {iconName} -> {webpPath}");
                     return webpPath;
                 }
@@ -189,16 +246,18 @@ namespace XelLauncher.Helpers
                     {
                         TryDelete(temp);
                         CleanupOldCovers(dir, pngPath);
+                        SaveClientCoverMetadata(baseTarget, response);
                         LogHelper.Log($"Game cover cached: {iconName} -> {pngPath}");
                         return pngPath;
                     }
 
                     TryDelete(temp);
-                    return null;
+                    return cachedPath;
                 }
 
                 MoveReplacing(temp, target);
                 CleanupOldCovers(dir, target);
+                SaveClientCoverMetadata(baseTarget, response);
                 LogHelper.Log($"Game cover cached: {iconName} -> {target}");
                 return target;
             }
@@ -206,7 +265,7 @@ namespace XelLauncher.Helpers
             {
                 TryDelete(temp);
                 LogHelper.LogError(ex, $"GameCoverCache.UpdateAsync({iconName})");
-                return null;
+                return cachedPath;
             }
         }
 
@@ -389,9 +448,125 @@ namespace XelLauncher.Helpers
             return Path.Combine(ConfigHelper.ConfigDir, "GameCovers", SanitizeFileName(normalizedName));
         }
 
+        private static bool IsCacheExpired(string path, TimeSpan? refreshAfter)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return true;
+            if (!refreshAfter.HasValue || refreshAfter.Value <= TimeSpan.Zero) return false;
+
+            try
+            {
+                return DateTime.UtcNow - File.GetLastWriteTimeUtc(path) >= refreshAfter.Value;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private static async Task<bool> IsRemoteCoverUnchangedAsync(string imageUrl, ClientCoverMetadata metadata, CancellationToken ct)
+        {
+            if (metadata == null || !metadata.HasValidator) return false;
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Head, imageUrl);
+                using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode) return false;
+
+                var remote = CreateClientCoverMetadata(response);
+                return remote.HasValidator && metadata.Matches(remote);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Debug.WriteLine($"[GameCoverCache] HEAD duplicate check failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static void ApplyConditionalHeaders(HttpRequestMessage request, ClientCoverMetadata metadata)
+        {
+            if (metadata == null) return;
+
+            if (!string.IsNullOrWhiteSpace(metadata.ETag))
+            {
+                try { request.Headers.TryAddWithoutValidation("If-None-Match", metadata.ETag); }
+                catch { }
+            }
+
+            if (!string.IsNullOrWhiteSpace(metadata.LastModified))
+            {
+                try { request.Headers.TryAddWithoutValidation("If-Modified-Since", metadata.LastModified); }
+                catch { }
+            }
+        }
+
+        private static ClientCoverMetadata LoadClientCoverMetadata(string baseTarget)
+        {
+            try
+            {
+                var path = GetClientCoverMetadataPath(baseTarget);
+                if (!File.Exists(path)) return null;
+
+                return JsonSerializer.Deserialize<ClientCoverMetadata>(File.ReadAllText(path, Encoding.UTF8), JsonOptions);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void SaveClientCoverMetadata(string baseTarget, HttpResponseMessage response)
+        {
+            try
+            {
+                var metadata = CreateClientCoverMetadata(response);
+                if (!metadata.HasValidator) return;
+
+                File.WriteAllText(GetClientCoverMetadataPath(baseTarget), JsonSerializer.Serialize(metadata, JsonOptions), Encoding.UTF8);
+            }
+            catch { }
+        }
+
+        private static ClientCoverMetadata CreateClientCoverMetadata(HttpResponseMessage response)
+        {
+            var lastModified = response.Content.Headers.LastModified?.ToString() ?? "";
+            if (string.IsNullOrWhiteSpace(lastModified) && response.Headers.TryGetValues("Last-Modified", out var values))
+                lastModified = values.FirstOrDefault() ?? "";
+
+            return new ClientCoverMetadata
+            {
+                ETag = response.Headers.ETag?.ToString() ?? "",
+                LastModified = lastModified,
+                ContentLength = response.Content.Headers.ContentLength
+            };
+        }
+
+        private static string GetClientCoverMetadataPath(string baseTarget)
+        {
+            return baseTarget + ".metadata.json";
+        }
+
         private static string GetNoticeContentPath(string iconName)
         {
             return Path.Combine(GetGameCoverDir(iconName), NoticeContentFileName);
+        }
+
+        private static string GetCoverRefreshStampPath(string dir)
+        {
+            return Path.Combine(dir, ClientCoverRefreshStampFileName);
+        }
+
+        private static string ReadCoverRefreshStamp(string dir)
+        {
+            try
+            {
+                var path = GetCoverRefreshStampPath(dir);
+                return File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8).Trim() : "";
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private static bool IsLikelyImagePath(string pathOrUrl)
@@ -481,6 +656,33 @@ namespace XelLauncher.Helpers
         {
             public List<LauncherBannerItem> Banners { get; set; } = new();
             public List<LauncherNoticeItem> Notices { get; set; } = new();
+        }
+
+        private sealed class ClientCoverMetadata
+        {
+            public string ETag { get; set; } = "";
+            public string LastModified { get; set; } = "";
+            public long? ContentLength { get; set; }
+
+            public bool HasValidator =>
+                !string.IsNullOrWhiteSpace(ETag) ||
+                !string.IsNullOrWhiteSpace(LastModified) ||
+                ContentLength.HasValue;
+
+            public bool Matches(ClientCoverMetadata other)
+            {
+                if (other == null) return false;
+
+                if (!string.IsNullOrWhiteSpace(ETag) && !string.IsNullOrWhiteSpace(other.ETag))
+                    return string.Equals(ETag, other.ETag, StringComparison.Ordinal);
+
+                if (!string.IsNullOrWhiteSpace(LastModified) && !string.IsNullOrWhiteSpace(other.LastModified))
+                    return string.Equals(LastModified, other.LastModified, StringComparison.Ordinal);
+
+                return ContentLength.HasValue &&
+                       other.ContentLength.HasValue &&
+                       ContentLength.Value == other.ContentLength.Value;
+            }
         }
     }
 }

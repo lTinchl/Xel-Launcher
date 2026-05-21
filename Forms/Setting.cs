@@ -530,7 +530,10 @@ namespace XelLauncher
                 btnCheckUpdate.Font,
                 Size.Empty,
                 TextFormatFlags.NoPadding).Width;
-            var checkButtonWidth = Math.Min(Math.Max(92, checkTextWidth + 28), Math.Max(92, contentWidth - 180));
+            var checkButtonMinWidth = IsEnglishUi ? 156 : 104;
+            var checkButtonWidth = Math.Min(
+                Math.Max(checkButtonMinWidth, checkTextWidth + 44),
+                Math.Max(checkButtonMinWidth, contentWidth - 180));
             btnCheckUpdate.Size = new Size(checkButtonWidth, 30);
             btnCheckUpdate.Location = new Point(width - btnCheckUpdate.Width - 18, 22);
             if (btnCheckUpdate.Left < _updateHeaderTitle.Right + 12)

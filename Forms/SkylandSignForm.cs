@@ -40,13 +40,15 @@ namespace XelLauncher.Forms
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool HideCaret(IntPtr hWnd);
 
-        public SkylandSignForm(Overview overview)
+        public SkylandSignForm(Overview overview, bool embedded = false)
         {
             const int formWidth = 1040;
             const int formHeight = 720;
             const int headerHeight = 58;
             const int margin = 28;
             const int contentWidth = formWidth - margin * 2;
+            var controlHeight = embedded ? formHeight - headerHeight : formHeight;
+            var contentTop = embedded ? 0 : headerHeight;
             var accent = Color.FromArgb(22, 119, 255);
             var subtleText = AntdUI.Config.IsDark ? AppTheme.DarkForegroundSecondary : Color.FromArgb(112, 118, 128);
             var normalText = AntdUI.Config.IsDark ? AppTheme.DarkForeground : Color.FromArgb(24, 28, 34);
@@ -62,43 +64,46 @@ namespace XelLauncher.Forms
             };
 
             Font = new Font("Microsoft YaHei UI", 10F);
-            Size = new Size(formWidth, formHeight);
+            Size = new Size(formWidth, controlHeight);
             MinimumSize = Size;
             BackColor = surface;
 
-            var header = new Panel
+            if (!embedded)
             {
-                Location = new Point(0, 0),
-                Size = new Size(formWidth, headerHeight),
-                BackColor = surface,
-            };
-            Controls.Add(header);
+                var header = new Panel
+                {
+                    Location = new Point(0, 0),
+                    Size = new Size(formWidth, headerHeight),
+                    BackColor = surface,
+                };
+                Controls.Add(header);
 
-            var formTitle = new AntdUI.Label
-            {
-                Text = AntdUI.Localization.Get("App.Skyland.Title", "Skyland Sign"),
-                Location = new Point(margin, 8),
-                Size = new Size(760, 38),
-                Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
-                ForeColor = normalText,
-            };
-            var btnClose = new AntdUI.Button
-            {
-                IconSvg = "CloseOutlined",
-                Location = new Point(formWidth - margin - 36, 10),
-                Size = new Size(36, 36),
-                Ghost = true,
-                Radius = 6,
-                BorderWidth = 0,
-                WaveSize = 0,
-            };
-            btnClose.Click += (s, e) => FindForm()?.Close();
-            header.Controls.Add(formTitle);
-            header.Controls.Add(btnClose);
+                var formTitle = new AntdUI.Label
+                {
+                    Text = AntdUI.Localization.Get("App.Skyland.Title", "Skyland Sign"),
+                    Location = new Point(margin, 8),
+                    Size = new Size(760, 38),
+                    Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
+                    ForeColor = normalText,
+                };
+                var btnClose = new AntdUI.Button
+                {
+                    IconSvg = "CloseOutlined",
+                    Location = new Point(formWidth - margin - 36, 10),
+                    Size = new Size(36, 36),
+                    Ghost = true,
+                    Radius = 6,
+                    BorderWidth = 0,
+                    WaveSize = 0,
+                };
+                btnClose.Click += (s, e) => FindForm()?.Close();
+                header.Controls.Add(formTitle);
+                header.Controls.Add(btnClose);
+            }
 
             var content = new Panel
             {
-                Location = new Point(0, headerHeight),
+                Location = new Point(0, contentTop),
                 Size = new Size(formWidth, formHeight - headerHeight),
                 BackColor = surface,
             };

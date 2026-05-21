@@ -51,7 +51,7 @@ namespace XelLauncher.Helpers
                 finally
                 {
                     notifyIcon.Visible = false;
-                    context.ExitThread();
+                    Application.Exit();
                 }
             });
 

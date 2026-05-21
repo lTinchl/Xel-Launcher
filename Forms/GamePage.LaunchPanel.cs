@@ -97,26 +97,7 @@ namespace XelLauncher.Forms
                     BeginInvoke(() =>
                     {
                         ResetFloatMenuVisualState();
-                        AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, new SkylandSignForm(_overview))
-                        {
-                            OkText = null,
-                            CancelText = null,
-                            BtnHeight = 0,
-                            MaskClosable = true,
-                        });
-                    });
-                }
-            };
-
-            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.SkportSign", "SKPORT 签到"), "skport_sign").SetIcon(LoadMenuIcon("Skland_Sign.ico")));
-            floatMenu.SelectedValueChanged += (s, e) =>
-            {
-                if (e.Value is string v && v == "skport_sign")
-                {
-                    BeginInvoke(() =>
-                    {
-                        ResetFloatMenuVisualState();
-                        AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, new SkportSignForm(_overview))
+                        AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, new SignHubForm(_overview, 0))
                         {
                             OkText = null,
                             CancelText = null,

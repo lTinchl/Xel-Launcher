@@ -38,13 +38,15 @@ namespace XelLauncher.Forms
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool HideCaret(IntPtr hWnd);
 
-        public SkportSignForm(Overview overview)
+        public SkportSignForm(Overview overview, bool embedded = false)
         {
             const int formWidth = 1040;
             const int formHeight = 720;
             const int headerHeight = 58;
             const int margin = 28;
             const int contentWidth = formWidth - margin * 2;
+            var controlHeight = embedded ? formHeight - headerHeight : formHeight;
+            var contentTop = embedded ? 0 : headerHeight;
             var accent = Color.FromArgb(22, 119, 255);
             var subtleText = AntdUI.Config.IsDark ? AppTheme.DarkForegroundSecondary : Color.FromArgb(112, 118, 128);
             var normalText = AntdUI.Config.IsDark ? AppTheme.DarkForeground : Color.FromArgb(24, 28, 34);
@@ -60,43 +62,46 @@ namespace XelLauncher.Forms
             };
 
             Font = new Font("Microsoft YaHei UI", 10F);
-            Size = new Size(formWidth, formHeight);
+            Size = new Size(formWidth, controlHeight);
             MinimumSize = Size;
             BackColor = surface;
 
-            var header = new Panel
+            if (!embedded)
             {
-                Location = new Point(0, 0),
-                Size = new Size(formWidth, headerHeight),
-                BackColor = surface,
-            };
-            Controls.Add(header);
+                var header = new Panel
+                {
+                    Location = new Point(0, 0),
+                    Size = new Size(formWidth, headerHeight),
+                    BackColor = surface,
+                };
+                Controls.Add(header);
 
-            var formTitle = new AntdUI.Label
-            {
-                Text = AntdUI.Localization.Get("App.Skport.Title", "SKPORT Sign"),
-                Location = new Point(margin, 8),
-                Size = new Size(760, 38),
-                Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
-                ForeColor = normalText,
-            };
-            var btnClose = new AntdUI.Button
-            {
-                IconSvg = "CloseOutlined",
-                Location = new Point(formWidth - margin - 36, 10),
-                Size = new Size(36, 36),
-                Ghost = true,
-                Radius = 6,
-                BorderWidth = 0,
-                WaveSize = 0,
-            };
-            btnClose.Click += (s, e) => FindForm()?.Close();
-            header.Controls.Add(formTitle);
-            header.Controls.Add(btnClose);
+                var formTitle = new AntdUI.Label
+                {
+                    Text = AntdUI.Localization.Get("App.Skport.Title", "SKPORT Sign"),
+                    Location = new Point(margin, 8),
+                    Size = new Size(760, 38),
+                    Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
+                    ForeColor = normalText,
+                };
+                var btnClose = new AntdUI.Button
+                {
+                    IconSvg = "CloseOutlined",
+                    Location = new Point(formWidth - margin - 36, 10),
+                    Size = new Size(36, 36),
+                    Ghost = true,
+                    Radius = 6,
+                    BorderWidth = 0,
+                    WaveSize = 0,
+                };
+                btnClose.Click += (s, e) => FindForm()?.Close();
+                header.Controls.Add(formTitle);
+                header.Controls.Add(btnClose);
+            }
 
             var content = new Panel
             {
-                Location = new Point(0, headerHeight),
+                Location = new Point(0, contentTop),
                 Size = new Size(formWidth, formHeight - headerHeight),
                 BackColor = surface,
             };
@@ -792,42 +797,105 @@ namespace XelLauncher.Forms
         private readonly AntdUI.Input _inputAccount;
         private readonly AntdUI.Input _inputPassword;
         private readonly AntdUI.Button _btnLogin;
-        public string Token { get; private set; }
+        private bool _loggingIn;
+
+        public string Token { get; private set; } = "";
 
         public SkportPasswordTokenDialog(SkportService service, Action<string> logAction)
         {
             _service = service;
             _logAction = logAction;
+            const int left = 28;
+            const int contentWidth = 424;
+            var subtleText = AntdUI.Config.IsDark ? AppTheme.DarkForegroundSecondary : Color.FromArgb(112, 118, 128);
+            var normalText = AntdUI.Config.IsDark ? AppTheme.DarkForeground : Color.FromArgb(24, 28, 34);
+            var surface = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White;
+            var accent = Color.FromArgb(22, 119, 255);
 
-            Width = 400;
-            Height = 240;
-            BackColor = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.FromArgb(250, 252, 255);
+            Size = new Size(480, 300);
+            BackColor = surface;
             Font = new Font("Microsoft YaHei UI", 10F);
 
             var title = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.PasswordLogin", "账号密码登录"),
-                Location = new Point(0, 0),
-                Size = new Size(400, 50),
-                Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleCenter,
-                ForeColor = AntdUI.Config.IsDark ? AppTheme.DarkForeground : Color.FromArgb(24, 28, 34),
+                Location = new Point(left, 12),
+                Size = new Size(320, 30),
+                Font = new Font("Microsoft YaHei UI", 12.5F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = normalText,
+            };
+
+            var subtitle = new AntdUI.Label
+            {
+                Text = AntdUI.Localization.Get("App.Skport.PasswordSubtitle", "使用鹰角网络账号登录，成功后会自动保存 Token。"),
+                Location = new Point(left, 42),
+                Size = new Size(390, 24),
+                Font = new Font("Microsoft YaHei UI", 9F),
+                ForeColor = subtleText,
+            };
+            var btnClose = new AntdUI.Button
+            {
+                IconSvg = "CloseOutlined",
+                Location = new Point(left + contentWidth - 34, 10),
+                Size = new Size(34, 34),
+                Ghost = true,
+                Radius = 6,
+                BorderWidth = 0,
+                WaveSize = 0,
+            };
+            btnClose.Click += (s, e) => FindForm()?.Close();
+
+            var topLine = new Panel
+            {
+                Location = new Point(left, 78),
+                Size = new Size(contentWidth, 1),
+                BackColor = AntdUI.Config.IsDark ? Color.FromArgb(52, 56, 64) : Color.FromArgb(232, 236, 242),
+            };
+            var accountMark = new Panel
+            {
+                Location = new Point(left, 100),
+                Size = new Size(3, 18),
+                BackColor = accent,
+            };
+            var lblAccount = new AntdUI.Label
+            {
+                Text = AntdUI.Localization.Get("App.Skport.Account", "账号"),
+                Location = new Point(left + 12, 94),
+                Size = new Size(120, 28),
+                Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
+                ForeColor = normalText,
             };
 
             _inputAccount = new AntdUI.Input
             {
                 PlaceholderText = AntdUI.Localization.Get("App.Skport.AccountPlaceholder", "请输入鹰角网络手机号 / 邮箱"),
-                Location = new Point(40, 60),
-                Size = new Size(320, 44),
+                Location = new Point(left, 130),
+                Size = new Size(contentWidth, 42),
                 Radius = 6,
                 AllowClear = true,
+            };
+
+            var passwordMark = new Panel
+            {
+                Location = new Point(left, 194),
+                Size = new Size(3, 18),
+                BackColor = accent,
+            };
+            var lblPassword = new AntdUI.Label
+            {
+                Text = AntdUI.Localization.Get("App.Skport.Password", "密码"),
+                Location = new Point(left + 12, 188),
+                Size = new Size(120, 28),
+                Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
+                ForeColor = normalText,
             };
 
             _inputPassword = new AntdUI.Input
             {
                 PlaceholderText = AntdUI.Localization.Get("App.Skport.PasswordPlaceholder", "请输入密码"),
-                Location = new Point(40, 120),
-                Size = new Size(320, 44),
+                Location = new Point(left, 224),
+                Size = new Size(288, 42),
                 Radius = 6,
                 AllowClear = true,
                 UseSystemPasswordChar = true,
@@ -836,21 +904,37 @@ namespace XelLauncher.Forms
             _btnLogin = new AntdUI.Button
             {
                 Text = AntdUI.Localization.Get("App.Skport.LoginAndGetToken", "登录并获取 Token"),
-                Type = AntdUI.TTypeMini.Primary,
-                Location = new Point(40, 180),
-                Size = new Size(320, 44),
+                IconSvg = "LoginOutlined",
+                Type = AntdUI.TTypeMini.Success,
+                Location = new Point(left + 304, 224),
+                Size = new Size(120, 42),
                 Radius = 6,
             };
             _btnLogin.Click += async (s, e) => await LoginAsync();
+            _inputPassword.KeyDown += async (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                await LoginAsync();
+            };
 
             Controls.Add(title);
+            Controls.Add(subtitle);
+            Controls.Add(btnClose);
+            Controls.Add(topLine);
+            Controls.Add(accountMark);
+            Controls.Add(lblAccount);
             Controls.Add(_inputAccount);
+            Controls.Add(passwordMark);
+            Controls.Add(lblPassword);
             Controls.Add(_inputPassword);
             Controls.Add(_btnLogin);
         }
 
         private async Task LoginAsync()
         {
+            if (_loggingIn) return;
+
             var account = _inputAccount.Text.Trim();
             var pwd = _inputPassword.Text;
 
@@ -860,9 +944,12 @@ namespace XelLauncher.Forms
                 return;
             }
 
+            _loggingIn = true;
             _btnLogin.Loading = true;
-            _inputAccount.Enabled = false;
-            _inputPassword.Enabled = false;
+            _btnLogin.Text = AntdUI.Localization.Get("App.Skport.LoggingIn", "登录中...");
+            _btnLogin.Enabled = false;
+            _inputAccount.ReadOnly = true;
+            _inputPassword.ReadOnly = true;
 
             try
             {
@@ -884,9 +971,12 @@ namespace XelLauncher.Forms
             {
                 if (!IsDisposed)
                 {
+                    _loggingIn = false;
                     _btnLogin.Loading = false;
-                    _inputAccount.Enabled = true;
-                    _inputPassword.Enabled = true;
+                    _btnLogin.Text = AntdUI.Localization.Get("App.Skport.LoginAndGetToken", "登录并获取 Token");
+                    _btnLogin.Enabled = true;
+                    _inputAccount.ReadOnly = false;
+                    _inputPassword.ReadOnly = false;
                 }
             }
         }

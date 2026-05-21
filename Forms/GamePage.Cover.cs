@@ -117,15 +117,14 @@ namespace XelLauncher.Forms
 
         private async Task RefreshRemoteCoverAsync()
         {
+            if (!GameCoverCache.TryBeginDailyCoverRefresh(_game.IconName))
+            {
+                LogHelper.Log($"Client cover daily refresh skipped: {_game.IconName}");
+                return;
+            }
+
             try
             {
-                var cachedPath = GameCoverCache.GetCachedCoverPath(_game.IconName);
-                if (!string.IsNullOrEmpty(cachedPath))
-                {
-                    LogHelper.Log($"Client cover cache hit, skip refresh: {_game.IconName} -> {cachedPath}");
-                    return;
-                }
-
                 var service = _service;
                 if (service == null) return;
 
@@ -140,13 +139,21 @@ namespace XelLauncher.Forms
 
                 LogHelper.Log($"Client cover URL: {_game.IconName} -> {imageUrl}");
 
-                var imagePath = await GameCoverCache.UpdateAsync(_game.IconName, imageUrl, token);
+                var beforePath = GameCoverCache.GetCachedCoverPath(_game.IconName);
+                var beforeWrite = !string.IsNullOrEmpty(beforePath) && File.Exists(beforePath)
+                    ? File.GetLastWriteTimeUtc(beforePath)
+                    : DateTime.MinValue;
+                var imagePath = await GameCoverCache.UpdateAsync(_game.IconName, imageUrl, ct: token, forceRefresh: true);
                 if (string.IsNullOrEmpty(imagePath) || _coverCts.IsCancellationRequested)
                 {
                     LogHelper.Log($"Client cover cache skipped: {_game.IconName}");
                     return;
                 }
                 if (!IsHandleCreated || IsDisposed) return;
+                if (string.Equals(imagePath, beforePath, StringComparison.OrdinalIgnoreCase) &&
+                    File.Exists(imagePath) &&
+                    File.GetLastWriteTimeUtc(imagePath) == beforeWrite)
+                    return;
 
                 BeginInvoke(() => ApplyCoverImage(imagePath));
             }
@@ -154,6 +161,10 @@ namespace XelLauncher.Forms
             catch (Exception ex)
             {
                 LogHelper.LogError(ex, $"GamePage.RefreshRemoteCoverAsync({_game.IconName})");
+            }
+            finally
+            {
+                GameCoverCache.MarkDailyCoverRefreshAttempt(_game.IconName);
             }
         }
 
