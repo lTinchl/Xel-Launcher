@@ -31,20 +31,6 @@ namespace XelLauncher.Forms
             windowBar.SuspendLayout();
             SuspendLayout();
             //
-            // btn_bgcolor
-            //
-            btn_bgcolor.Dock = DockStyle.Right;
-            btn_bgcolor.Ghost = true;
-            btn_bgcolor.IconSvg = "BgColorsOutlined";
-            btn_bgcolor.Name = "btn_bgcolor";
-            btn_bgcolor.Radius = 0;
-            btn_bgcolor.Size = new Size(46, 40);
-            btn_bgcolor.TabIndex = 10;
-            btn_bgcolor.WaveSize = 0;
-            btn_bgcolor.DropDownRadius = 6;
-            btn_bgcolor.Placement = AntdUI.TAlignFrom.BR;
-            btn_bgcolor.SelectedValueChanged += btn_bgcolor_Changed;
-            //
             // btn_mode
             //
             btn_mode.Dock = DockStyle.Right;

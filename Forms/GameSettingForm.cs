@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -19,6 +20,15 @@ namespace XelLauncher.Forms
         private AntdUI.Input _inputPath;
         private readonly Action _onPathChanged;
 
+        private Size LogicalSize(int width, int height) => new Size(width, LogicalPixels(height));
+
+        private int LogicalPixels(int value)
+        {
+            using var g = CreateGraphics();
+            var scale = Math.Max(1F, g.DpiY / 96F);
+            return Math.Max(1, (int)Math.Round(value / scale));
+        }
+
         public GameSettingForm(GameEntry game, Overview overview, Action onAccountSwitchChanged = null, Action onPathChanged = null, GamePage gamePage = null)
         {
             _game = game;
@@ -30,7 +40,10 @@ namespace XelLauncher.Forms
             string currentPath = latest?.RootPath ?? game.RootPath;
 
             Font = new Font("Microsoft YaHei UI", 9F);
-            Size = new Size(360, 290);
+            var surfaceBack = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.FromArgb(245, 245, 245);
+            BackColor = surfaceBack;
+            Size = LogicalSize(380, 520);
+            MinimumSize = LogicalSize(340, 320);
             AutoScroll = false;
 
             // ── 游戏图标 ──
@@ -230,7 +243,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 // Website button hidden.
-                Size = new Size(360, 386);
+                Size = LogicalSize(360, 386);
             }
             else if (game.IconName == "Endfield")
             {
@@ -271,7 +284,7 @@ namespace XelLauncher.Forms
                     AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccessAll", "路径已同步到 BillBili服 / 国际服 / GooglePlay服"));
                 };
                 Controls.Add(btnSync);
-                Size = new Size(360, 386);
+                Size = LogicalSize(360, 386);
             }
             else if (game.IconName == "BiliEndfield")
             {
@@ -335,7 +348,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 // Website button hidden.
-                Size = new Size(360, 386);
+                Size = LogicalSize(360, 386);
             }
             else if (game.IconName == "GlobalEndfield")
             {
@@ -399,7 +412,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 // Website button hidden.
-                Size = new Size(360, 386);
+                Size = LogicalSize(360, 386);
             }
             else if (game.IconName == "PlayEndfield")
             {
@@ -581,7 +594,7 @@ namespace XelLauncher.Forms
                     Ghost = true,
                 };
                 // Website button hidden.
-                Size = new Size(360, 524);
+                Size = LogicalSize(360, 524);
             }
             else
             {
@@ -619,7 +632,7 @@ namespace XelLauncher.Forms
                     AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccess", "路径已同步到 BillBili服"));
                 };
                 Controls.Add(btnSync);
-                Size = new Size(360, 386);
+                Size = LogicalSize(360, 386);
             }
 
             // ── 读取持久化的 Switch 状态 ──
@@ -665,8 +678,6 @@ namespace XelLauncher.Forms
             {
                 bool on = swExtra.Checked;
                 btnManage.Visible = on;
-                MinimumSize = new Size(360, on ? 560 : 520);
-                if (Height < MinimumSize.Height) Height = MinimumSize.Height;
 
                 // 持久化 Switch 状态
                 var cfg = ConfigHelper.Load();
@@ -678,8 +689,7 @@ namespace XelLauncher.Forms
                 }
             };
 
-            Size = new Size(360, syncEnabled ? 560 : 520);
-            MinimumSize = new Size(360, syncEnabled ? 560 : 520);
+            Size = LogicalSize(380, syncEnabled ? 560 : 520);
 
             // ── 启用账号切换 ──
             bool showAccountSwitch = game.IconName != "BiliArknights" && game.IconName != "BiliEndfield";
@@ -784,83 +794,237 @@ namespace XelLauncher.Forms
             Controls.Add(_inputPath);
             Controls.Add(btnBrowse);
             Controls.Add(btnOpenDir);
+            Size = GetInitialDrawerSize();
+            MinimumSize = new Size(Math.Min(320, Size.Width), Math.Min(300, Size.Height));
+
+            int contentPanelTop = 94;
+            var contentPanel = new System.Windows.Forms.Panel
+            {
+                Location = new Point(0, contentPanelTop),
+                Size = new Size(Width, Math.Max(1, Height - contentPanelTop)),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                AutoScroll = true,
+                BackColor = surfaceBack,
+                TabStop = false,
+            };
+            var contentControls = Controls
+                .Cast<Control>()
+                .Where(control => control != picIcon && control != lblName && control != lblVersion && control != divider1)
+                .ToArray();
+            foreach (var control in contentControls)
+            {
+                Controls.Remove(control);
+                control.Top -= contentPanelTop;
+                contentPanel.Controls.Add(control);
+            }
+            Controls.Add(contentPanel);
+
             ApplyGameAccentTheme();
 
             swExtra.CheckedChanged += (s, e) => ApplyResponsiveLayout();
             Resize += (s, e) => ApplyResponsiveLayout();
+            contentPanel.Resize += (s, e) => ApplyResponsiveLayout();
+            HandleCreated += (s, e) => ScheduleResponsiveLayout();
+            Control drawerHost = null;
+            EventHandler drawerHostResize = (s, e) =>
+            {
+                FitToDrawerHost();
+                ScheduleResponsiveLayout();
+            };
+            ParentChanged += (s, e) =>
+            {
+                if (drawerHost != null)
+                    drawerHost.Resize -= drawerHostResize;
+
+                drawerHost = Parent;
+                if (drawerHost != null)
+                    drawerHost.Resize += drawerHostResize;
+
+                FitToDrawerHost();
+                ScheduleResponsiveLayout();
+            };
+            Disposed += (s, e) =>
+            {
+                if (drawerHost != null)
+                    drawerHost.Resize -= drawerHostResize;
+            };
+            VisibleChanged += (s, e) => ScheduleResponsiveLayout();
             ApplyResponsiveLayout();
+
+            void FitToDrawerHost()
+            {
+                if (IsDisposed || Parent == null) return;
+
+                int hostHeight = Parent.ClientSize.Height;
+                if (hostHeight > 0 && Height != hostHeight)
+                    Height = hostHeight;
+            }
+
+            void ScheduleResponsiveLayout()
+            {
+                if (IsDisposed) return;
+                if (IsHandleCreated) BeginInvoke((Action)(() =>
+                {
+                    FitToDrawerHost();
+                    ApplyResponsiveLayout();
+                    contentPanel.AutoScrollPosition = Point.Empty;
+                }));
+                else
+                {
+                    FitToDrawerHost();
+                    ApplyResponsiveLayout();
+                }
+            }
 
             void ApplyResponsiveLayout()
             {
-                int margin = 20;
-                int contentWidth = Math.Max(260, ClientSize.Width - margin * 2);
+                if (IsDisposed) return;
+
+                int gapTiny = Math.Max(6, lblPathSection.Font.Height / 3);
+                int gapSmall = Math.Max(10, lblPathSection.Font.Height / 2);
+                int gapMedium = Math.Max(14, lblPathSection.Font.Height * 2 / 3);
+                int inputHeight = Math.Max(36, _inputPath.Font.Height + gapSmall * 2);
+                int buttonHeight = Math.Max(36, btnBrowse.Font.Height + gapSmall * 2);
+
+                int reservedScrollWidth = SystemInformation.VerticalScrollBarWidth + 24;
+                int viewportWidth = Math.Max(0, contentPanel.ClientSize.Width - reservedScrollWidth);
+                int sidePadding = viewportWidth >= 420 ? 32 : 24;
+                int contentWidth = Math.Min(560, Math.Max(260, viewportWidth - sidePadding * 2));
+                int margin = Math.Max(sidePadding, (viewportWidth - contentWidth) / 2);
                 int switchX = margin + contentWidth - 36;
+                int contentRight = margin + contentWidth;
 
-                lblName.Width = Math.Max(160, contentWidth - 60);
-                lblVersion.Width = Math.Max(160, contentWidth - 60);
+                picIcon.Size = new Size(56, 56);
+                picIcon.Left = margin;
+                picIcon.Top = 22;
+                lblName.Left = picIcon.Right + 20;
+                lblVersion.Left = lblName.Left;
+                lblName.Top = picIcon.Top + 4;
+                lblVersion.Top = lblName.Bottom + 6;
+                lblName.Width = Math.Max(120, contentRight - lblName.Left);
+                lblVersion.Width = lblName.Width;
+                divider1.Left = margin;
+                divider1.Top = Math.Max(picIcon.Bottom, lblVersion.Bottom) + gapMedium;
                 divider1.Width = contentWidth;
-                lblPathSection.Width = contentWidth;
-                _inputPath.Width = contentWidth;
-                btnBrowse.Width = contentWidth;
-                btnOpenDir.Width = contentWidth;
 
-                foreach (Control control in Controls)
-                {
-                    if (control == _inputPath || control == btnBrowse || control == btnOpenDir) continue;
-                    if (control.Left == margin && control.Width == 320 && (control is AntdUI.Button || control is AntdUI.Input))
-                    {
-                        control.Width = contentWidth;
-                        if (control is AntdUI.Button button) button.TextAlign = ContentAlignment.MiddleCenter;
-                    }
-                }
-                btnBrowse.TextAlign = ContentAlignment.MiddleCenter;
-                btnOpenDir.TextAlign = ContentAlignment.MiddleCenter;
+                contentPanelTop = divider1.Bottom + gapSmall;
+                contentPanel.Location = new Point(0, contentPanelTop);
+                contentPanel.Size = new Size(ClientSize.Width, Math.Max(1, ClientSize.Height - contentPanelTop));
+
+                lblPathSection.Left = margin;
+                lblPathSection.Top = gapTiny;
+                lblPathSection.Width = contentWidth;
+                _inputPath.Left = margin;
+                _inputPath.Top = lblPathSection.Bottom + gapSmall;
+                _inputPath.Width = contentWidth;
+                _inputPath.Height = inputHeight;
+                btnBrowse.Left = margin;
+                btnBrowse.Top = _inputPath.Bottom + gapSmall;
+                btnBrowse.Width = contentWidth;
+                btnBrowse.Height = buttonHeight;
+                btnOpenDir.Left = margin;
+                btnOpenDir.Top = btnBrowse.Bottom + gapSmall;
+                btnOpenDir.Width = contentWidth;
+                btnOpenDir.Height = buttonHeight;
 
                 Control[] lowerControls = showAccountSwitch
                     ? new Control[] { divider3, swacmg, dividerArgs, swArgs, inputArgs, divider2, swExtra, btnManage }
                     : new Control[] { dividerArgs, swArgs, inputArgs, divider2, swExtra, btnManage };
 
-                int upperBottom = 0;
-                foreach (Control control in Controls)
+                int actionTop = btnOpenDir.Bottom + gapSmall;
+                foreach (Control control in contentPanel.Controls)
                 {
-                    if (Array.IndexOf(lowerControls, control) >= 0) continue;
-                    if (control.Visible) upperBottom = Math.Max(upperBottom, control.Bottom);
-                }
+                    if (control == lblPathSection ||
+                        control == _inputPath ||
+                        control == btnBrowse ||
+                        control == btnOpenDir ||
+                        Array.IndexOf(lowerControls, control) >= 0)
+                    {
+                        continue;
+                    }
 
-                int lowerContentHeight = showAccountSwitch
-                    ? (btnManage.Visible ? 166 : 120)
-                    : (btnManage.Visible ? 136 : 90);
-                int maxLowerTop = Math.Max(upperBottom + 18, ClientSize.Height - lowerContentHeight - 24);
-                int preferredLowerTop = Math.Max(upperBottom + 28, ClientSize.Height - lowerContentHeight - 36);
-                int lowerTop = Math.Min(preferredLowerTop, maxLowerTop);
+                    if (!control.Visible) continue;
+
+                    if (control is AntdUI.Button button && control.Width > 80)
+                    {
+                        control.Left = margin;
+                        control.Top = actionTop;
+                        control.Width = contentWidth;
+                        control.Height = buttonHeight;
+                        button.TextAlign = ContentAlignment.MiddleCenter;
+                        actionTop = control.Bottom + gapSmall;
+                    }
+                    else if (control is AntdUI.Input && control.Width > 80)
+                    {
+                        control.Left = margin;
+                        control.Top = actionTop;
+                        control.Width = contentWidth;
+                        control.Height = inputHeight;
+                        actionTop = control.Bottom + gapSmall;
+                    }
+                }
+                btnBrowse.TextAlign = ContentAlignment.MiddleCenter;
+                btnOpenDir.TextAlign = ContentAlignment.MiddleCenter;
+
+                int lowerTop = Math.Max(btnOpenDir.Bottom + gapMedium, actionTop + gapMedium);
 
                 if (showAccountSwitch)
                 {
                     divider3.Location = new Point(margin, lowerTop);
                     divider3.Width = Math.Max(160, contentWidth - 56);
                     swacmg.Location = new Point(switchX, lowerTop);
-                    lowerTop += 30;
+                    lowerTop += Math.Max(34, divider3.Height + gapSmall);
                 }
 
                 dividerArgs.Location = new Point(margin, lowerTop);
                 dividerArgs.Width = Math.Max(160, contentWidth - 56);
                 swArgs.Location = new Point(switchX, lowerTop);
 
-                inputArgs.Location = new Point(margin, lowerTop + 24);
+                inputArgs.Location = new Point(margin, lowerTop + Math.Max(30, dividerArgs.Height + gapSmall));
                 inputArgs.Width = contentWidth;
+                inputArgs.Height = inputHeight;
 
-                int syncTop = lowerTop + 70;
+                int syncTop = inputArgs.Bottom + gapMedium;
                 divider2.Location = new Point(margin, syncTop);
                 divider2.Width = Math.Max(160, contentWidth - 56);
                 swExtra.Location = new Point(switchX, syncTop);
 
-                btnManage.Location = new Point(margin, syncTop + 30);
+                btnManage.Location = new Point(margin, syncTop + Math.Max(42, divider2.Height + gapMedium));
                 btnManage.Width = contentWidth;
+                btnManage.Height = buttonHeight;
                 btnManage.TextAlign = ContentAlignment.MiddleCenter;
 
-                AutoScrollMinSize = Size.Empty;
+                foreach (Control control in contentPanel.Controls)
+                {
+                    if (!control.Visible) continue;
+                    if (control is AntdUI.Switch)
+                    {
+                        control.Left = Math.Min(control.Left, contentRight - control.Width);
+                    }
+                    else if (control.Right > contentRight && control.Width > 16)
+                    {
+                        control.Width = Math.Max(16, contentRight - control.Left);
+                    }
+                }
+
+                int contentBottom = btnManage.Visible
+                    ? btnManage.Bottom
+                    : Math.Max(divider2.Bottom, swExtra.Bottom);
+                contentPanel.AutoScrollMinSize = new Size(0, contentBottom + 40);
+                contentPanel.HorizontalScroll.Enabled = false;
+                contentPanel.HorizontalScroll.Maximum = 0;
             }
 
+        }
+
+        private Size GetInitialDrawerSize()
+        {
+            var ownerSize = _overview?.ClientSize ?? Size.Empty;
+            if (ownerSize.Width <= 0 || ownerSize.Height <= 0) return Size;
+
+            int width = Math.Min(Math.Max(340, Width), Math.Max(300, ownerSize.Width - 48));
+            int height = Math.Max(320, ownerSize.Height);
+            return new Size(width, height);
         }
 
         private void AutoSave(string path)

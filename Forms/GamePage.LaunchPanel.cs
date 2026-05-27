@@ -118,7 +118,7 @@ namespace XelLauncher.Forms
                         ResetFloatMenuVisualState();
                         var drawer = AntdUI.Drawer.open(_overview, new GameSettingForm(_game, _overview, UpdateAccountControlsVisibility, () => _ = CheckGameStatusAsync(), this), AntdUI.TAlignMini.Right);
                         if (drawer != null)
-                            drawer.Disposed += (sender, args) => BeginInvoke(ResetFloatMenuVisualState);
+                            drawer.Disposed += (sender, args) => BeginInvokeResetFloatMenuVisualState();
                     });
                 }
             };
@@ -179,6 +179,20 @@ namespace XelLauncher.Forms
             floatMenu.ExtraMouseDown = false;
             if (floatMenu.Focused) _overview.Focus();
             floatMenu.Invalidate();
+        }
+
+        private void BeginInvokeResetFloatMenuVisualState()
+        {
+            if (IsDisposed || !IsHandleCreated) return;
+
+            try
+            {
+                BeginInvoke(ResetFloatMenuVisualState);
+            }
+            catch (InvalidOperationException)
+            {
+                // The game page may have been disposed while the drawer was closing.
+            }
         }
     }
 }

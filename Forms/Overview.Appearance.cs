@@ -34,37 +34,7 @@ namespace XelLauncher.Forms
             }));
         }
 
-        private void btn_bgcolor_Changed(object sender, AntdUI.ObjectNEventArgs e)
-        {
-            btn_bgcolor.SelectedValue = null;
-            if (e.Value is not string hex) return;
-            if (hex == "custom")
-            {
-                BeginInvoke(() =>
-                {
-                    var picker = new AntdUI.ColorPicker { Size = new System.Drawing.Size(40, 40) };
-                    var cfg0 = ConfigHelper.Load();
-                    picker.Value = System.Drawing.ColorTranslator.FromHtml(cfg0.BackgroundColor);
-                    var result = AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("App.BgColor.DialogTitle", "自定义背景色"), picker)
-                    {
-                        OkText = AntdUI.Localization.Get("App.BgColor.OK", "确定"),
-                        CancelText = AntdUI.Localization.Get("App.BgColor.Cancel", "取消"),
-                        MaskClosable = true,
-                    });
-                    if (result != DialogResult.OK) return;
-                    hex = "#" + picker.Value.ToHex();
-                    ApplyBackgroundColor(hex);
-                    var cfg = ConfigHelper.Load();
-                    cfg.BackgroundColor = hex;
-                    ConfigHelper.Save(cfg);
-                });
-                return;
-            }
-            ApplyBackgroundColor(hex);
-            var cfg2 = ConfigHelper.Load();
-            cfg2.BackgroundColor = hex;
-            ConfigHelper.Save(cfg2);
-        }
+       
 
         private void ApplyBackgroundColor(string hex)
         {

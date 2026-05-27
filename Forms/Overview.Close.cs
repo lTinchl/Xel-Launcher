@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -15,6 +14,7 @@ namespace XelLauncher.Forms
 
         private CloseCommandMessageFilter _closeCommandMessageFilter;
         private bool _applicationExitRequested;
+        private bool _closingOwnedOverlays;
 
         private void InstallCloseCommandFilter()
         {
@@ -38,39 +38,17 @@ namespace XelLauncher.Forms
             _forceClose = true;
 
             if (IsDisposed)
-            {
-                KillCurrentProcess();
                 return;
-            }
 
             void Exit()
             {
-                try
-                {
-                    if (_trayIcon != null) _trayIcon.Visible = false;
-                    CloseOwnedOverlayForms();
-                    Close();
-                }
-                finally
-                {
-                    KillCurrentProcess();
-                }
+                if (_trayIcon != null) _trayIcon.Visible = false;
+                CloseOwnedOverlayForms();
+                Close();
             }
 
             if (InvokeRequired) BeginInvoke((Action)Exit);
             else Exit();
-        }
-
-        private static void KillCurrentProcess()
-        {
-            try
-            {
-                Process.GetCurrentProcess().Kill();
-            }
-            catch
-            {
-                Environment.Exit(0);
-            }
         }
 
         private bool IsOwnedByOverview(Form form)
@@ -110,26 +88,36 @@ namespace XelLauncher.Forms
 
         private void CloseOwnedOverlayForms()
         {
+            if (_closingOwnedOverlays) return;
+
+            _closingOwnedOverlays = true;
             var forms = new List<Form>();
-            foreach (Form form in Application.OpenForms)
+            try
             {
-                if (IsOwnedOverlayForm(form))
-                    forms.Add(form);
+                foreach (Form form in Application.OpenForms)
+                {
+                    if (IsOwnedOverlayForm(form))
+                        forms.Add(form);
+                }
+
+                forms.Sort((a, b) => GetOwnerDepth(b).CompareTo(GetOwnerDepth(a)));
+
+                foreach (var form in forms)
+                {
+                    try
+                    {
+                        if (form.IsDisposed) continue;
+                        form.Close();
+                    }
+                    catch
+                    {
+                        // Best effort cleanup while the app itself is exiting.
+                    }
+                }
             }
-
-            forms.Sort((a, b) => GetOwnerDepth(b).CompareTo(GetOwnerDepth(a)));
-
-            foreach (var form in forms)
+            finally
             {
-                try
-                {
-                    if (form.IsDisposed) continue;
-                    form.Close();
-                }
-                catch
-                {
-                    // Best effort cleanup while the app itself is exiting.
-                }
+                _closingOwnedOverlays = false;
             }
         }
 
@@ -153,34 +141,17 @@ namespace XelLauncher.Forms
         private bool ShouldTreatCloseMessageAsApplicationExit(IntPtr hwnd)
         {
             var target = Control.FromHandle(hwnd)?.FindForm();
-            if (target == null) return HasOwnedOverlayForms();
+            if (target == null) return false;
 
-            if (ReferenceEquals(target, this))
-                return HasOwnedOverlayForms();
-
-            return IsOwnedOverlayForm(target);
+            return ReferenceEquals(target, this) && HasOwnedOverlayForms();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            _applicationExitRequested = true;
             _forceClose = true;
             if (_trayIcon != null) _trayIcon.Visible = false;
             CloseOwnedOverlayForms();
             base.OnFormClosing(e);
-            KillCurrentProcess();
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            if (m.Msg == WmClose ||
-                (m.Msg == WmSysCommand && ((long)m.WParam & 0xFFF0L) == ScClose))
-            {
-                RequestApplicationExit();
-                return;
-            }
-
-            base.WndProc(ref m);
         }
 
         private sealed class CloseCommandMessageFilter : IMessageFilter

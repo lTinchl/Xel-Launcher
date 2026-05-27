@@ -62,8 +62,26 @@ namespace XelLauncher
         private static Color LatestVersionStaticColor =>
             AntdUI.Config.IsDark ? Color.FromArgb(210, 216, 226) : Color.FromArgb(46, 54, 66);
 
+        private int UpdateCardCompactPixelHeight => D(UpdateCardCompactHeight);
+        private int UpdateCardExpandedPixelHeight => D(UpdateCardExpandedHeight);
+
         private static string L(string key, string fallback) =>
             AntdUI.Localization.Get(key, fallback);
+
+        private int D(int value) =>
+            Math.Max(1, (int)Math.Round(value * GetCurrentDpi() / 96D));
+
+        private Size DSize(int width, int height) =>
+            new(D(width), D(height));
+
+        private int GetCurrentDpi()
+        {
+            if (IsHandleCreated)
+                return DeviceDpi;
+
+            using var graphics = Graphics.FromHwnd(IntPtr.Zero);
+            return Math.Max(96, (int)Math.Round(graphics.DpiX));
+        }
 
         public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink;
 
@@ -71,7 +89,8 @@ namespace XelLauncher
         {
             form = _form;
             InitializeComponent();
-            Size = new Size(600, 560);
+            _updateCardTargetHeight = UpdateCardCompactPixelHeight;
+            Size = DSize(600, 560);
             MinimumSize = Size;
             HideInternalUiOptions();
             ApplyModernLayout();
@@ -190,7 +209,7 @@ namespace XelLauncher
             panelLeft.BackColor = surface;
             panelRight.BackColor = surface;
             panelRight.Dock = DockStyle.Fill;
-            panelRight.Padding = new Padding(14, 66, 14, 12);
+            panelRight.Padding = new Padding(D(14), D(66), D(14), D(12));
             panelLog.BackColor = surface;
             panelUpdate.BackColor = surface;
             scrollSoftware.BackColor = surface;
@@ -216,7 +235,7 @@ namespace XelLauncher
             panelLog.Padding = Padding.Empty;
             _logCard = WrapTextBox(panelLog, txtLog, cardBack, border);
             _logCard.Dock = DockStyle.None;
-            _logCard.Padding = new Padding(12, 14, 12, 10);
+            _logCard.Padding = new Padding(D(12), D(14), D(12), D(10));
             BuildLogScrollBar(cardBack);
             BuildLogHeader(surface, normalText, subtleText);
             txtLog.Font = new Font("Consolas", 9F);
@@ -294,8 +313,8 @@ namespace XelLauncher
             _updateHeaderCard = new RoundedPanel
             {
                 Dock = DockStyle.Top,
-                Height = UpdateCardCompactHeight,
-                Padding = new Padding(18),
+                Height = UpdateCardCompactPixelHeight,
+                Padding = new Padding(D(18)),
                 FillColor = cardBack,
                 BorderColor = border,
                 AccentColor = Color.FromArgb(22, 119, 255),
@@ -306,30 +325,30 @@ namespace XelLauncher
             _updateHeaderTitle = new AntdUI.Label
             {
                 Text = L("App.Update.ModalTitle", "软件更新"),
-                Size = new Size(240, 30),
+                Size = DSize(240, 30),
                 Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
                 ForeColor = normalText,
             };
             _updateHeaderSubtitle = new AntdUI.Label
             {
                 Text = L("App.Update.CurrentVersion", "当前版本") + "：",
-                Size = new Size(IsEnglishUi ? 112 : 76, 24),
+                Size = DSize(IsEnglishUi ? 112 : 76, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
 
             lblCurrentVersionTitle.Text = "";
-            lblCurrentVersionTitle.Size = new Size(1, 1);
+            lblCurrentVersionTitle.Size = DSize(1, 1);
             lblCurrentVersionTitle.Dock = DockStyle.None;
             lblCurrentVersionTitle.Font = new Font("Microsoft YaHei UI", 9F);
-            lblCurrentVersion.Size = new Size(96, 24);
+            lblCurrentVersion.Size = DSize(96, 24);
             lblCurrentVersion.Dock = DockStyle.None;
             lblCurrentVersion.ForeColor = subtleText;
 
             _updateHeaderArrow = new AntdUI.Label
             {
                 Text = "",
-                Size = new Size(1, 1),
+                Size = DSize(1, 1),
                 TextAlign = ContentAlignment.MiddleCenter,
                 Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(22, 119, 255),
@@ -337,11 +356,11 @@ namespace XelLauncher
 
             lblLatestVersionTitle.LocalizationText = null;
             lblLatestVersionTitle.Text = L("App.Update.LatestVersion", "最新版本") + "：";
-            lblLatestVersionTitle.Size = new Size(IsEnglishUi ? 104 : 76, 24);
+            lblLatestVersionTitle.Size = DSize(IsEnglishUi ? 104 : 76, 24);
             lblLatestVersionTitle.Dock = DockStyle.None;
             lblLatestVersionTitle.Font = new Font("Microsoft YaHei UI", 9F);
             lblLatestVersionTitle.ForeColor = subtleText;
-            lblLatestVersion.Size = new Size(96, 24);
+            lblLatestVersion.Size = DSize(96, 24);
             lblLatestVersion.Dock = DockStyle.None;
             lblLatestVersion.ForeColor = LatestVersionStaticColor;
 
@@ -355,7 +374,7 @@ namespace XelLauncher
             _updateSectionTitle = new AntdUI.Label
             {
                 Text = L("App.Update.ReleaseNotes", "更新内容"),
-                Size = new Size(IsEnglishUi ? 150 : 120, 24),
+                Size = DSize(IsEnglishUi ? 150 : 120, 24),
                 Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
                 ForeColor = normalText,
             };
@@ -388,14 +407,14 @@ namespace XelLauncher
             _updateAutoOption = new AntdUI.Label
             {
                 Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示"),
-                Size = new Size(IsEnglishUi ? 260 : 220, 24),
+                Size = DSize(IsEnglishUi ? 260 : 220, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
             _updateNotifyOption = new AntdUI.Label
             {
                 Text = L("App.Update.UpdateSizePending", "更新大小：检查后显示"),
-                Size = new Size(IsEnglishUi ? 260 : 220, 24),
+                Size = DSize(IsEnglishUi ? 260 : 220, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
@@ -441,7 +460,7 @@ namespace XelLauncher
             _updateDetailsRevealTimer?.Stop();
             _updateCardHeightTimer?.Stop();
             _updateHeaderCard.Height = _updateCardTargetHeight;
-            SetUpdateDetailsVisible(_updateCardTargetHeight == UpdateCardExpandedHeight);
+            SetUpdateDetailsVisible(_updateCardTargetHeight == UpdateCardExpandedPixelHeight);
             if (_showUpdateButtonsAfterExpand)
                 panelUpdateButtons.Visible = true;
             LayoutUpdateHeader();
@@ -454,7 +473,7 @@ namespace XelLauncher
             if (_updateHeaderCard == null) return;
 
             _updateDetailsRevealTimer?.Stop();
-            _updateCardTargetHeight = expanded ? UpdateCardExpandedHeight : UpdateCardCompactHeight;
+            _updateCardTargetHeight = expanded ? UpdateCardExpandedPixelHeight : UpdateCardCompactPixelHeight;
             _showUpdateButtonsAfterExpand = expanded && showButtonsWhenExpanded;
             var shouldAnimate = animate &&
                 AntdUI.Config.Animation &&
@@ -523,95 +542,101 @@ namespace XelLauncher
             if (width <= 0) return;
             _lastUpdateHeaderLayoutWidth = width;
 
-            var contentWidth = Math.Max(300, width - 36);
-            _updateHeaderTitle.Location = new Point(18, 18);
+            var margin = D(18);
+            var contentWidth = Math.Max(D(300), width - margin * 2);
+            _updateHeaderTitle.Location = new Point(margin, D(18));
             var checkTextWidth = TextRenderer.MeasureText(
                 btnCheckUpdate.Text,
                 btnCheckUpdate.Font,
                 Size.Empty,
                 TextFormatFlags.NoPadding).Width;
-            var checkButtonMinWidth = IsEnglishUi ? 156 : 104;
+            var checkButtonMinWidth = D(IsEnglishUi ? 156 : 104);
             var checkButtonWidth = Math.Min(
-                Math.Max(checkButtonMinWidth, checkTextWidth + 44),
-                Math.Max(checkButtonMinWidth, contentWidth - 180));
-            btnCheckUpdate.Size = new Size(checkButtonWidth, 30);
-            btnCheckUpdate.Location = new Point(width - btnCheckUpdate.Width - 18, 22);
-            if (btnCheckUpdate.Left < _updateHeaderTitle.Right + 12)
-                btnCheckUpdate.Location = new Point(18, 48);
+                Math.Max(checkButtonMinWidth, checkTextWidth + D(44)),
+                Math.Max(checkButtonMinWidth, contentWidth - D(180)));
+            var buttonHeight = Math.Max(D(34), TextRenderer.MeasureText(btnCheckUpdate.Text, btnCheckUpdate.Font).Height + D(12));
+            btnCheckUpdate.Size = new Size(checkButtonWidth, buttonHeight);
+            btnCheckUpdate.Location = new Point(width - btnCheckUpdate.Width - margin, D(20));
+            if (btnCheckUpdate.Left < _updateHeaderTitle.Right + D(12))
+                btnCheckUpdate.Location = new Point(margin, D(52));
 
-            var versionTop = btnCheckUpdate.Top == 48 ? 86 : 56;
-            _updateHeaderSubtitle.Location = new Point(18, 56);
-            _updateHeaderSubtitle.Location = new Point(18, versionTop);
-            lblCurrentVersion.Location = new Point(_updateHeaderSubtitle.Right + 4, versionTop);
-            lblCurrentVersion.Size = new Size(100, 24);
-            lblLatestVersionTitle.Location = new Point(18, versionTop + 26);
-            lblLatestVersion.Location = new Point(lblLatestVersionTitle.Right + 4, versionTop + 26);
-            lblLatestVersion.Size = new Size(116, 28);
+            var stackedButton = btnCheckUpdate.Left == margin;
+            var versionTop = stackedButton ? btnCheckUpdate.Bottom + D(12) : D(58);
+            _updateHeaderSubtitle.Location = new Point(margin, versionTop);
+            lblCurrentVersion.Location = new Point(_updateHeaderSubtitle.Right + D(4), versionTop);
+            lblCurrentVersion.Size = DSize(100, 26);
+            lblLatestVersionTitle.Location = new Point(margin, versionTop + D(28));
+            lblLatestVersion.Location = new Point(lblLatestVersionTitle.Right + D(4), versionTop + D(28));
+            lblLatestVersion.Size = DSize(126, 30);
             lblCurrentVersionTitle.Visible = false;
             _updateHeaderArrow.Visible = false;
 
-            var notesTop = versionTop + 64;
-            _updateSectionTitle.Location = new Point(18, notesTop);
-            txtChangelog.Location = new Point(18, notesTop + 30);
-            txtChangelog.Size = new Size(contentWidth - 18, btnCheckUpdate.Top == 48 ? 120 : 150);
+            var notesTop = versionTop + D(70);
+            _updateSectionTitle.Location = new Point(margin, notesTop);
+            txtChangelog.Location = new Point(margin, notesTop + D(30));
+            txtChangelog.Size = new Size(Math.Max(D(120), contentWidth), stackedButton ? D(120) : D(150));
             if (_updateChangelogScrollBar != null)
             {
-                _updateChangelogScrollBar.Location = new Point(18 + contentWidth - 10, txtChangelog.Top + 4);
-                _updateChangelogScrollBar.Size = new Size(8, Math.Max(40, txtChangelog.Height - 8));
+                _updateChangelogScrollBar.Location = new Point(margin + contentWidth - D(10), txtChangelog.Top + D(4));
+                _updateChangelogScrollBar.Size = new Size(D(8), Math.Max(D(40), txtChangelog.Height - D(8)));
                 _updateChangelogScrollBar.BringToFront();
                 UpdateChangelogScrollBar();
             }
-            _updateAutoOption.Location = new Point(18, 316);
-            _updateNotifyOption.Location = new Point(18, 342);
+            _updateAutoOption.Location = new Point(margin, txtChangelog.Bottom + D(24));
+            _updateNotifyOption.Location = new Point(margin, _updateAutoOption.Bottom + D(2));
 
-            var downloadPanelHeight = _isDownloadingUpdate || progressDownload.Visible ? 68 : 34;
-            panelUpdateButtons.Location = new Point(18, downloadPanelHeight > 34 ? 398 : 410);
+            var downloadPanelHeight = _isDownloadingUpdate || progressDownload.Visible ? D(76) : D(38);
+            var downloadTop = _isDownloadingUpdate || progressDownload.Visible
+                ? UpdateCardExpandedPixelHeight - margin - downloadPanelHeight
+                : UpdateCardExpandedPixelHeight - margin - downloadPanelHeight;
+            panelUpdateButtons.Location = new Point(margin, Math.Max(_updateNotifyOption.Bottom + D(14), downloadTop));
             panelUpdateButtons.Size = new Size(contentWidth, downloadPanelHeight);
             if (btnDownloadSetup.Parent is Panel buttonPanel)
             {
                 buttonPanel.Dock = DockStyle.None;
                 buttonPanel.Location = new Point(0, 0);
-                buttonPanel.Size = new Size(contentWidth, 34);
-                var setupWidth = IsEnglishUi ? 126 : 108;
-                var portableWidth = IsEnglishUi ? 118 : 112;
+                buttonPanel.Size = new Size(contentWidth, D(38));
+                var setupWidth = Math.Max(D(IsEnglishUi ? 126 : 108), TextRenderer.MeasureText(btnDownloadSetup.Text, btnDownloadSetup.Font).Width + D(34));
+                var portableWidth = Math.Max(D(IsEnglishUi ? 118 : 112), TextRenderer.MeasureText(btnDownloadPortable.Text, btnDownloadPortable.Font).Width + D(34));
                 var cancelWidth = Math.Max(
-                    IsEnglishUi ? 152 : 104,
+                    D(IsEnglishUi ? 152 : 104),
                     TextRenderer.MeasureText(
                         btnCancelDownload.Text,
                         btnCancelDownload.Font,
                         Size.Empty,
-                        TextFormatFlags.NoPadding).Width + 34);
-                var gap = 16;
-                btnDownloadSetup.Size = new Size(setupWidth, 32);
-                btnDownloadSetup.Location = new Point(0, 1);
-                btnDownloadPortable.Size = new Size(portableWidth, 32);
-                btnDownloadPortable.Location = new Point(setupWidth + gap, 1);
-                btnFallback.Size = new Size(100, 32);
-                btnFallback.Location = new Point(setupWidth + portableWidth + gap * 2, 1);
-                btnCancelDownload.Size = new Size(cancelWidth, 32);
-                btnCancelDownload.Location = new Point(_isDownloadingUpdate ? 0 : setupWidth + portableWidth + gap * 2, 1);
+                        TextFormatFlags.NoPadding).Width + D(34));
+                var gap = D(12);
+                var smallButtonHeight = Math.Max(D(34), TextRenderer.MeasureText(btnDownloadSetup.Text, btnDownloadSetup.Font).Height + D(12));
+                btnDownloadSetup.Size = new Size(setupWidth, smallButtonHeight);
+                btnDownloadSetup.Location = new Point(0, D(1));
+                btnDownloadPortable.Size = new Size(portableWidth, smallButtonHeight);
+                btnDownloadPortable.Location = new Point(setupWidth + gap, D(1));
+                btnFallback.Size = new Size(Math.Max(D(100), TextRenderer.MeasureText(btnFallback.Text, btnFallback.Font).Width + D(34)), smallButtonHeight);
+                btnFallback.Location = new Point(setupWidth + portableWidth + gap * 2, D(1));
+                btnCancelDownload.Size = new Size(cancelWidth, smallButtonHeight);
+                btnCancelDownload.Location = new Point(_isDownloadingUpdate ? 0 : setupWidth + portableWidth + gap * 2, D(1));
             }
             lblDownloadStatus.Dock = DockStyle.None;
             if (_isDownloadingUpdate)
             {
                 var cancelWidth = Math.Max(
-                    IsEnglishUi ? 152 : 104,
+                    D(IsEnglishUi ? 152 : 104),
                     TextRenderer.MeasureText(
                         btnCancelDownload.Text,
                         btnCancelDownload.Font,
                         Size.Empty,
-                        TextFormatFlags.NoPadding).Width + 34);
-                lblDownloadStatus.Location = new Point(cancelWidth + 12, 5);
-                lblDownloadStatus.Size = new Size(Math.Max(80, contentWidth - cancelWidth - 12), 24);
+                        TextFormatFlags.NoPadding).Width + D(34));
+                lblDownloadStatus.Location = new Point(cancelWidth + D(12), D(5));
+                lblDownloadStatus.Size = new Size(Math.Max(D(80), contentWidth - cancelWidth - D(12)), D(24));
             }
             else
             {
-                lblDownloadStatus.Location = new Point(0, 38);
-                lblDownloadStatus.Size = new Size(contentWidth, 18);
+                lblDownloadStatus.Location = new Point(0, D(40));
+                lblDownloadStatus.Size = new Size(contentWidth, D(20));
             }
             progressDownload.Dock = DockStyle.None;
-            progressDownload.Location = new Point(0, _isDownloadingUpdate ? 44 : 58);
-            progressDownload.Size = new Size(Math.Max(160, contentWidth), 20);
+            progressDownload.Location = new Point(0, _isDownloadingUpdate ? D(48) : D(58));
+            progressDownload.Size = new Size(Math.Max(D(160), contentWidth), D(20));
             progressDownload.Animation = 220;
             progressDownload.LoadingFull = false;
         }
@@ -659,21 +684,21 @@ namespace XelLauncher
                 _tabBar = new Panel
                 {
                     Dock = DockStyle.None,
-                    Height = 46,
+                    Height = D(46),
                     BackColor = surface,
                     Padding = new Padding(0),
                 };
                 _settingTitle = new AntdUI.Label
                 {
                     Text = "设置",
-                    Size = new Size(120, 30),
+                    Size = DSize(120, 30),
                     Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold),
                     ForeColor = normalText,
                     Visible = false,
                 };
                 _tabUnderline = new AccentUnderline
                 {
-                    Size = new Size(34, 2),
+                    Size = DSize(34, 2),
                     BackColor = Color.Transparent,
                 };
                 panelRight.Controls.Add(_tabBar);
@@ -717,19 +742,19 @@ namespace XelLauncher
         {
             if (_tabBar == null) return;
 
-            _tabBar.Location = new Point(panelRight.Padding.Left, 14);
-            _tabBar.Width = Math.Max(180, panelRight.ClientSize.Width - panelRight.Padding.Left - panelRight.Padding.Right);
+            _tabBar.Location = new Point(panelRight.Padding.Left, D(14));
+            _tabBar.Width = Math.Max(D(180), panelRight.ClientSize.Width - panelRight.Padding.Left - panelRight.Padding.Right);
 
-            var y = 8;
+            var y = D(8);
             var x = 0;
-            var softwareWidth = Math.Max(64, TextRenderer.MeasureText(btnSoftware.Text ?? string.Empty, btnSoftware.Font, Size.Empty, TextFormatFlags.NoPadding).Width + 24);
-            var updateWidth = Math.Max(86, TextRenderer.MeasureText(btnUpdate.Text ?? string.Empty, btnUpdate.Font, Size.Empty, TextFormatFlags.NoPadding).Width + 24);
-            var logWidth = Math.Max(64, TextRenderer.MeasureText(btnLog.Text ?? string.Empty, btnLog.Font, Size.Empty, TextFormatFlags.NoPadding).Width + 24);
+            var softwareWidth = Math.Max(D(64), TextRenderer.MeasureText(btnSoftware.Text ?? string.Empty, btnSoftware.Font, Size.Empty, TextFormatFlags.NoPadding).Width + D(24));
+            var updateWidth = Math.Max(D(86), TextRenderer.MeasureText(btnUpdate.Text ?? string.Empty, btnUpdate.Font, Size.Empty, TextFormatFlags.NoPadding).Width + D(24));
+            var logWidth = Math.Max(D(64), TextRenderer.MeasureText(btnLog.Text ?? string.Empty, btnLog.Font, Size.Empty, TextFormatFlags.NoPadding).Width + D(24));
 
             LayoutTabButton(btnSoftware, x, y, softwareWidth);
-            x += btnSoftware.Width + 22;
+            x += btnSoftware.Width + D(22);
             LayoutTabButton(btnUpdate, x, y, updateWidth);
-            x += btnUpdate.Width + 22;
+            x += btnUpdate.Width + D(22);
             LayoutTabButton(btnLog, x, y, logWidth);
             PositionTabUnderline(animate: false);
         }
@@ -753,10 +778,10 @@ namespace XelLauncher
             button.MouseUp += (s, e) => panelRight.Focus();
         }
 
-        private static void LayoutTabButton(AntdUI.Button button, int x, int y, int width)
+        private void LayoutTabButton(AntdUI.Button button, int x, int y, int width)
         {
             button.Location = new Point(x, y);
-            button.Size = new Size(width, 28);
+            button.Size = new Size(width, Math.Max(D(28), TextRenderer.MeasureText(button.Text ?? string.Empty, button.Font).Height + D(8)));
         }
 
         private void UpdateTopTabState(int tab)
@@ -778,12 +803,12 @@ namespace XelLauncher
 
             var active = scrollSoftware.Visible ? btnSoftware : panelUpdate.Visible ? btnUpdate : btnLog;
             var textWidth = TextRenderer.MeasureText(active.Text, active.Font, Size.Empty, TextFormatFlags.NoPadding).Width;
-            var underlineWidth = Math.Max(24, Math.Min(active.Width - 14, (int)(textWidth * 0.72F)));
+            var underlineWidth = Math.Max(D(24), Math.Min(active.Width - D(14), (int)(textWidth * 0.72F)));
             _tabUnderlineTarget = new Rectangle(
                 active.Left + (active.Width - underlineWidth) / 2,
-                active.Bottom - 4,
+                active.Bottom - D(4),
                 underlineWidth,
-                3);
+                D(3));
 
             if (!animate || !_tabUnderlineInitialized)
             {
@@ -851,15 +876,15 @@ namespace XelLauncher
                 _softwareCard = new RoundedPanel
                 {
                     Dock = DockStyle.Top,
-                    Height = 286,
-                    Padding = new Padding(16, 14, 16, 12),
+                    Height = D(286),
+                    Padding = new Padding(D(16), D(14), D(16), D(12)),
                     FillColor = cardBack,
                     BorderColor = border,
                     Radius = 8,
                 };
                 tableSoftware.Dock = DockStyle.Top;
                 tableSoftware.AutoSize = false;
-                tableSoftware.Height = 260;
+                tableSoftware.Height = D(260);
                 _softwareCard.Controls.Add(tableSoftware);
                 scrollSoftware.Controls.Add(_softwareCard);
             }
@@ -867,7 +892,7 @@ namespace XelLauncher
             _softwareCard.FillColor = cardBack;
             _softwareCard.BorderColor = border;
             tableSoftware.BackColor = cardBack;
-            tableSoftware.ColumnStyles[1].Width = 72F;
+            tableSoftware.ColumnStyles[1].Width = D(72);
             label6.Text = "最小化到托盘";
             label7.Text = "开机自动运行";
             label8.Text = "启动游戏后关闭软件";
@@ -878,7 +903,13 @@ namespace XelLauncher
             for (int i = 5; i <= 10 && i < tableSoftware.RowStyles.Count; i++)
             {
                 tableSoftware.RowStyles[i].SizeType = SizeType.Absolute;
-                tableSoftware.RowStyles[i].Height = 43F;
+                tableSoftware.RowStyles[i].Height = D(43);
+            }
+
+            foreach (Control control in tableSoftware.Controls)
+            {
+                if (control is AntdUI.Switch sw)
+                    sw.Size = DSize(50, 30);
             }
         }
 
@@ -889,13 +920,13 @@ namespace XelLauncher
             _logHeader = new Panel
             {
                 Dock = DockStyle.None,
-                Height = 48,
+                Height = D(48),
                 BackColor = surface,
             };
             _logTitle = new AntdUI.Label
             {
                 Text = "软件日志",
-                Size = new Size(120, 24),
+                Size = DSize(120, 24),
                 Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold),
                 ForeColor = normalText,
             };
@@ -953,14 +984,14 @@ namespace XelLauncher
 
             var width = Math.Max(0, panelLog.ClientSize.Width);
             _logHeader.Location = new Point(0, 0);
-            _logHeader.Size = new Size(width, 48);
-            _logTitle.Location = new Point(0, 10);
+            _logHeader.Size = new Size(width, D(48));
+            _logTitle.Location = new Point(0, D(10));
 
             if (_logCard != null)
             {
-                const int top = 54;
+                int top = D(54);
                 _logCard.Location = new Point(0, top);
-                _logCard.Size = new Size(width, Math.Max(80, panelLog.ClientSize.Height - top));
+                _logCard.Size = new Size(width, Math.Max(D(80), panelLog.ClientSize.Height - top));
             }
 
             LayoutLogScrollBar();
@@ -970,8 +1001,8 @@ namespace XelLauncher
         {
             if (_logCard == null || _logScrollBar == null) return;
 
-            _logScrollBar.Location = new Point(Math.Max(0, _logCard.ClientSize.Width - 18), 14);
-            _logScrollBar.Size = new Size(8, Math.Max(24, _logCard.ClientSize.Height - 28));
+            _logScrollBar.Location = new Point(Math.Max(0, _logCard.ClientSize.Width - D(18)), D(14));
+            _logScrollBar.Size = new Size(D(8), Math.Max(D(24), _logCard.ClientSize.Height - D(28)));
             _logScrollBar.BringToFront();
             UpdateLogScrollBar();
         }
@@ -985,14 +1016,14 @@ namespace XelLauncher
             button.BorderWidth = 0;
         }
 
-        private static RoundedPanel WrapTextBox(Panel host, RichTextBox textBox, Color fill, Color border)
+        private RoundedPanel WrapTextBox(Panel host, RichTextBox textBox, Color fill, Color border)
         {
             host.Controls.Remove(textBox);
 
             var card = new RoundedPanel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(12, 10, 12, 10),
+                Padding = new Padding(D(12), D(10), D(12), D(10)),
                 FillColor = fill,
                 BorderColor = border,
                 Radius = 8,

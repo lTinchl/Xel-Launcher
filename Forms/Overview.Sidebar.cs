@@ -41,11 +41,12 @@ namespace XelLauncher.Forms
                     if (ico != null)
                     {
                         var src = ico.ToBitmap();
-                        var dst = new System.Drawing.Bitmap(44, 44);
+                        var iconSize = SidebarIconSize;
+                        var dst = new System.Drawing.Bitmap(iconSize, iconSize);
                         using var g2 = System.Drawing.Graphics.FromImage(dst);
                         g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        g2.DrawImage(src, 0, 0, 44, 44);
-                        btn.GameIcon = (g.IconName == "GlobalEndfield" || g.IconName == "PlayEndfield") ? ApplyRoundedCorners(dst, 10) : dst;
+                        g2.DrawImage(src, 0, 0, iconSize, iconSize);
+                        btn.GameIcon = (g.IconName == "GlobalEndfield" || g.IconName == "PlayEndfield") ? ApplyRoundedCorners(dst, ScaleForDpi(10)) : dst;
                     }
                 }
                 catch { }
@@ -296,7 +297,14 @@ namespace XelLauncher.Forms
         private void PositionSidebarSelectionIndicator(bool animate)
         {
             var active = _sidebarBtns.FirstOrDefault(x => x.Selected && !x.IsDisposed);
-            if (active == null || _sidebarSelectionIndicator == null || _sidebarSelectionIndicator.IsDisposed)
+            if (active == null ||
+                active.Parent == null ||
+                !active.Parent.IsHandleCreated ||
+                panelSidebar == null ||
+                panelSidebar.IsDisposed ||
+                !panelSidebar.IsHandleCreated ||
+                _sidebarSelectionIndicator == null ||
+                _sidebarSelectionIndicator.IsDisposed)
             {
                 _sidebarSelectionInitialized = false;
                 _sidebarSelectionTimer?.Stop();
@@ -306,12 +314,12 @@ namespace XelLauncher.Forms
 
             var point = panelSidebar.PointToClient(active.Parent.PointToScreen(new System.Drawing.Point(
                 active.Left + 6,
-                active.Top + (int)Math.Round((active.Height - 44F) / 2F))));
+                active.Top + (int)Math.Round((active.Height - SidebarIconSize) / 2F))));
             _sidebarSelectionTarget = new System.Drawing.RectangleF(
                 point.X,
                 point.Y,
-                4F,
-                44F);
+                ScaleForDpi(4),
+                SidebarIconSize);
             _sidebarSelectionIndicator.AccentColor = _sidebarSelectionColor;
             _sidebarSelectionIndicator.Visible = true;
             _sidebarSelectionIndicator.BringToFront();
@@ -361,7 +369,16 @@ namespace XelLauncher.Forms
 
         private void ApplySidebarSelectionIndicatorBounds()
         {
-            if (_sidebarSelectionIndicator == null || _sidebarSelectionIndicator.IsDisposed) return;
+            if (_sidebarSelectionIndicator == null ||
+                _sidebarSelectionIndicator.IsDisposed ||
+                _sidebarSelectionIndicator.Parent == null ||
+                panelSidebar == null ||
+                panelSidebar.IsDisposed)
+            {
+                _sidebarSelectionInitialized = false;
+                _sidebarSelectionTimer?.Stop();
+                return;
+            }
 
             _sidebarSelectionIndicator.Bounds = System.Drawing.Rectangle.Round(_sidebarSelectionBounds);
             _sidebarSelectionIndicator.Invalidate();

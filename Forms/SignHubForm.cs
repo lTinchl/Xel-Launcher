@@ -7,9 +7,9 @@ namespace XelLauncher.Forms
 {
     public class SignHubForm : UserControl
     {
-        private const int FormWidth = 1040;
+        private const int FormWidth = 920;
         private const int HeaderHeight = 58;
-        private const int ContentHeight = 662;
+        private const int ContentHeight = 582;
         private const int MarginSize = 28;
 
         private readonly Panel _contentHost;

@@ -74,20 +74,21 @@ namespace XelLauncher.Helpers
         {
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+            float scale = DeviceDpi / 96F;
 
             float active = Math.Max(_selectedProgress, _hoverProgress * 0.72F);
 
             if (active > 0.001F)
             {
-                float inset = 2F * (1F - active);
-                const int frameWidth = 60;
-                const int frameHeight = 54;
+                float inset = ScaleDpi(2F, scale) * (1F - active);
+                float frameWidth = ScaleDpi(60F, scale);
+                float frameHeight = ScaleDpi(54F, scale);
                 var rect = new RectangleF(
                     (Width - frameWidth) / 2F + inset,
                     (Height - frameHeight) / 2F + inset,
                     frameWidth - inset * 2F,
                     frameHeight - inset * 2F);
-                int radius = 9;
+                int radius = ScaleDpi(9, scale);
                 var color = _selectedProgress >= _hoverProgress
                     ? _accentColor
                     : Color.FromArgb(128, 128, 128);
@@ -104,17 +105,17 @@ namespace XelLauncher.Helpers
 
             if (ShowSelectionBar && _selectedProgress > 0.001F)
             {
-                float barHeight = 40F + 8F * _selectedProgress;
-                float barWidth = 2F + 1.5F * _selectedProgress;
-                var bar = new RectangleF(6F, (Height - barHeight) / 2F, barWidth, barHeight);
+                float barHeight = ScaleDpi(40F + 8F * _selectedProgress, scale);
+                float barWidth = ScaleDpi(2F + 1.5F * _selectedProgress, scale);
+                var bar = new RectangleF(ScaleDpi(6F, scale), (Height - barHeight) / 2F, barWidth, barHeight);
                 using var brush = new SolidBrush(Color.FromArgb((int)Math.Round(190 * _selectedProgress), _accentColor));
-                using var path = RoundRect(bar, 2);
+                using var path = RoundRect(bar, ScaleDpi(2, scale));
                 g.FillPath(brush, path);
             }
 
             if (GameIcon != null)
             {
-                int iconSize = 44;
+                int iconSize = Math.Min(ScaleDpi(44, scale), Math.Min(Width, Height) - ScaleDpi(12, scale));
                 int ix = (Width - iconSize) / 2;
                 int iy = (Height - iconSize) / 2;
                 g.DrawImage(GameIcon, new Rectangle(ix, iy, iconSize, iconSize));
@@ -170,6 +171,12 @@ namespace XelLauncher.Helpers
             return Math.Max(min, Math.Min(max, value));
         }
 
+        private static int ScaleDpi(int value, float scale) =>
+            Math.Max(1, (int)Math.Round(value * scale));
+
+        private static float ScaleDpi(float value, float scale) =>
+            value * scale;
+
         private static GraphicsPath RoundRect(RectangleF r, int radius)
         {
             int d = radius * 2;
@@ -213,7 +220,7 @@ namespace XelLauncher.Helpers
             base.OnPaint(e);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using var brush = new SolidBrush(Color.FromArgb(210, _accentColor));
-            using var path = RoundRect(new RectangleF(0, 0, Width, Height), 2);
+            using var path = RoundRect(new RectangleF(0, 0, Width, Height), Math.Max(2, (int)Math.Round(DeviceDpi / 96F * 2F)));
             e.Graphics.FillPath(brush, path);
         }
 

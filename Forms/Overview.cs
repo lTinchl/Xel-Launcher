@@ -17,10 +17,11 @@ namespace XelLauncher.Forms
         private bool _forceClose = false;
         private GamePage _currentGamePage = null;
         private bool _isSwitchingGame = false;
-        private const int SidebarButtonWidth = 108;
-        private const int SidebarButtonHeight = 72;
-        private const int SidebarButtonGap = 4;
-        private const int SidebarButtonTop = 4;
+        private int SidebarButtonWidth => ScaleForDpi(108);
+        private int SidebarButtonHeight => ScaleForDpi(72);
+        private int SidebarButtonGap => ScaleForDpi(4);
+        private int SidebarButtonTop => ScaleForDpi(4);
+        private int SidebarIconSize => ScaleForDpi(44);
 
         private SidebarButton _dragBtn = null;
         private System.Drawing.Point _dragStartPos;
@@ -37,13 +38,24 @@ namespace XelLauncher.Forms
         private System.Drawing.Color _sidebarSelectionColor = AntdUI.Style.Db.Primary;
         private bool _sidebarSelectionInitialized;
 
+        private int ScaleForDpi(int value) =>
+            Math.Max(1, (int)Math.Round(value * GetCurrentDpi() / 96D));
+
+        private int GetCurrentDpi()
+        {
+            if (IsHandleCreated)
+                return DeviceDpi;
+
+            using var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
+            return Math.Max(96, (int)Math.Round(graphics.DpiX));
+        }
+
         public Overview(bool top)
         {
             InitializeComponent();
             this.Icon = Properties.Resources.icon;
             windowBar.Text = "Xel Launcher ";
             AntdUI.Config.DropDownMarginFurther = true;
-            InstallCloseCommandFilter();
 
             TopMost = top;
             EnableDoubleBuffer(panelSidebar);
