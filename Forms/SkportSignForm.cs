@@ -40,8 +40,8 @@ namespace XelLauncher.Forms
 
         public SkportSignForm(Overview overview, bool embedded = false)
         {
-            const int formWidth = 1040;
-            const int formHeight = 720;
+            const int formWidth = 920;
+            const int formHeight = 640;
             const int headerHeight = 58;
             const int margin = 28;
             const int contentWidth = formWidth - margin * 2;
@@ -132,7 +132,7 @@ namespace XelLauncher.Forms
             var lblSign = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.AutoSign", "启动器运行时签到"),
-                Location = new Point(margin + 2, 294),
+                Location = new Point(margin + 2, 276),
                 Size = new Size(150, 28),
                 Font = new Font("Microsoft YaHei UI", 9.5F),
                 ForeColor = normalText,
@@ -140,14 +140,14 @@ namespace XelLauncher.Forms
 
             _switchEnabled = new AntdUI.Switch
             {
-                Location = new Point(220, 298),
+                Location = new Point(220, 280),
                 Size = new Size(44, 22),
             };
             var lblSwitchHint = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.AutoSignHint", "开启后启动器运行期间每日自动签到一次，并在右下角提示结果"),
-                Location = new Point(284, 294),
-                Size = new Size(700, 28),
+                Location = new Point(284, 276),
+                Size = new Size(contentWidth - 256, 28),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
@@ -155,7 +155,7 @@ namespace XelLauncher.Forms
             var lblStartupSign = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.StartupSign", "开机自动签到"),
-                Location = new Point(margin + 2, 340),
+                Location = new Point(margin + 2, 318),
                 Size = new Size(150, 28),
                 Font = new Font("Microsoft YaHei UI", 9.5F),
                 ForeColor = normalText,
@@ -163,14 +163,14 @@ namespace XelLauncher.Forms
 
             _switchStartupSign = new AntdUI.Switch
             {
-                Location = new Point(220, 344),
+                Location = new Point(220, 322),
                 Size = new Size(44, 22),
             };
             var lblStartupHint = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.StartupSignHint", "开机后后台执行一次签到，不显示主窗口，完成后用右下角通知提示"),
-                Location = new Point(284, 340),
-                Size = new Size(700, 28),
+                Location = new Point(284, 318),
+                Size = new Size(contentWidth - 256, 28),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
@@ -217,7 +217,7 @@ namespace XelLauncher.Forms
 
             var actions = new FlowLayoutPanel
             {
-                Location = new Point(margin, 184),
+                Location = new Point(margin, 178),
                 Size = new Size(contentWidth, 40),
                 BackColor = Color.Transparent,
                 FlowDirection = FlowDirection.LeftToRight,
@@ -230,7 +230,7 @@ namespace XelLauncher.Forms
             {
                 Text = AntdUI.Localization.Get("App.Skport.ClearLog", "清空日志"),
                 IconSvg = "DeleteOutlined",
-                Location = new Point(formWidth - margin - 102, 394),
+                Location = new Point(formWidth - margin - 102, 360),
                 Size = new Size(102, 34),
                 Radius = 6,
                 Type = AntdUI.TTypeMini.Error,
@@ -252,50 +252,50 @@ namespace XelLauncher.Forms
 
             var autoMark = new Panel
             {
-                Location = new Point(margin, 244),
+                Location = new Point(margin, 226),
                 Size = new Size(4, 22),
                 BackColor = accent,
             };
             var lblAuto = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.AutoConfigTitle", "自动签到配置"),
-                Location = new Point(margin + 12, 240),
+                Location = new Point(margin + 12, 222),
                 Size = new Size(180, 32),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
                 ForeColor = normalText,
             };
             var dividerAuto = new AntdUI.Divider
             {
-                Location = new Point(margin, 280),
+                Location = new Point(margin, 262),
                 Size = new Size(contentWidth, 1),
                 Thickness = 1F,
             };
 
             var logMark = new Panel
             {
-                Location = new Point(margin, 400),
+                Location = new Point(margin, 366),
                 Size = new Size(4, 22),
                 BackColor = accent,
             };
             var lblLog = new AntdUI.Label
             {
                 Text = AntdUI.Localization.Get("App.Skport.Log", "日志"),
-                Location = new Point(margin + 12, 396),
+                Location = new Point(margin + 12, 362),
                 Size = new Size(120, 32),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
                 ForeColor = normalText,
             };
             var dividerLog = new AntdUI.Divider
             {
-                Location = new Point(margin, 438),
+                Location = new Point(margin, 398),
                 Size = new Size(contentWidth, 1),
                 Thickness = 1F,
             };
 
             var logPanel = new Panel
             {
-                Location = new Point(margin, 458),
-                Size = new Size(contentWidth, 176),
+                Location = new Point(margin, 416),
+                Size = new Size(contentWidth, 148),
                 BackColor = Color.Transparent,
             };
             _logPanel = logPanel;
@@ -312,7 +312,7 @@ namespace XelLauncher.Forms
             _logBox = new NoCaretRichTextBox
             {
                 Location = new Point(12, 10),
-                Size = new Size(contentWidth - 42, 156),
+                Size = new Size(contentWidth - 42, 128),
                 ReadOnly = true,
                 BorderStyle = BorderStyle.None,
                 BackColor = logBack,
@@ -346,7 +346,7 @@ namespace XelLauncher.Forms
             _logScrollBar = new LogScrollBar(scrollTrackColor, scrollThumbColor)
             {
                 Location = new Point(contentWidth - 22, 14),
-                Size = new Size(8, 148),
+                Size = new Size(8, 120),
                 Visible = false,
             };
             _logScrollBar.ScrollRequested += ScrollLogToTrackTop;
@@ -903,7 +903,7 @@ namespace XelLauncher.Forms
 
             _btnLogin = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.Skport.LoginAndGetToken", "登录并获取 Token"),
+                Text = AntdUI.Localization.Get("App.Skport.LoginAndGetToken", "登录获取"),
                 IconSvg = "LoginOutlined",
                 Type = AntdUI.TTypeMini.Success,
                 Location = new Point(left + 304, 224),
@@ -973,7 +973,7 @@ namespace XelLauncher.Forms
                 {
                     _loggingIn = false;
                     _btnLogin.Loading = false;
-                    _btnLogin.Text = AntdUI.Localization.Get("App.Skport.LoginAndGetToken", "登录并获取 Token");
+                    _btnLogin.Text = AntdUI.Localization.Get("App.Skport.LoginAndGetToken", "登录获取");
                     _btnLogin.Enabled = true;
                     _inputAccount.ReadOnly = false;
                     _inputPassword.ReadOnly = false;
