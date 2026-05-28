@@ -69,7 +69,11 @@ namespace XelLauncher.Forms
             catch { }
 
             // ── 游戏名 ──
-            string displayName = game.GetLocalizedName();
+            string displayName = game.IconName == "PlayEndfield"
+                ? (AntdUI.Localization.CurrentLanguage.StartsWith("en")
+                    ? "Endfield (Google)"
+                    : "\u660e\u65e5\u65b9\u821f\uff1a\u7ec8\u672b\u5730(Google\u670d)")
+                : game.GetLocalizedName();
             var lblName = new AntdUI.Label
             {
                 Text = displayName,
@@ -176,6 +180,11 @@ namespace XelLauncher.Forms
                 if (Directory.Exists(path))
                     Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
             };
+
+            AntdUI.Divider dividerToken = null;
+            AntdUI.Label lblToken = null;
+            AntdUI.Input inputToken = null;
+            AntdUI.Button btnAutoToken = null;
 
             if (game.IconName == "BiliArknights")
             {
@@ -469,7 +478,7 @@ namespace XelLauncher.Forms
                 Controls.Add(btnReplace);
 
                 // ── Token 分割线 ──
-                var dividerToken = new AntdUI.Divider
+                dividerToken = new AntdUI.Divider
                 {
                     Location = new Point(20, 316),
                     Size = new Size(320, 1),
@@ -477,7 +486,7 @@ namespace XelLauncher.Forms
                 };
 
                 // ── Token 标题 ──
-                var lblToken = new AntdUI.Label
+                lblToken = new AntdUI.Label
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.SessionToken", "Session Token"),
                     Location = new Point(20, 330),
@@ -489,7 +498,7 @@ namespace XelLauncher.Forms
                 var cfgToken = ConfigHelper.Load();
                 var tokenEntry = cfgToken.Games.Find(g => g.IconName == game.IconName);
                 string savedToken = tokenEntry?.SessionToken ?? "";
-                var inputToken = new AntdUI.Input
+                inputToken = new AntdUI.Input
                 {
                     Text = savedToken,
                     Location = new Point(20, 358),
@@ -508,7 +517,7 @@ namespace XelLauncher.Forms
                 };
 
                 // ── 自动获取 Token ──
-                var btnAutoToken = new AntdUI.Button
+                btnAutoToken = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.AutoGetToken", "自动获取 Token"),
                     Location = new Point(20, 406),
@@ -672,7 +681,7 @@ namespace XelLauncher.Forms
             {
                 var syncForm = new SyncAppManagerForm(entryNow ?? game, _overview);
 
-                AntdUI.Drawer.open(new AntdUI.Drawer.Config(_overview.FindForm(), syncForm));
+                AntdUI.Drawer.open(_overview, syncForm, AntdUI.TAlignMini.Right);
             };
             swExtra.CheckedChanged += (s, e) =>
             {
@@ -886,7 +895,7 @@ namespace XelLauncher.Forms
                 int inputHeight = Math.Max(36, _inputPath.Font.Height + gapSmall * 2);
                 int buttonHeight = Math.Max(36, btnBrowse.Font.Height + gapSmall * 2);
 
-                int reservedScrollWidth = SystemInformation.VerticalScrollBarWidth + 24;
+                int reservedScrollWidth = game.IconName == "PlayEndfield" ? 0 : SystemInformation.VerticalScrollBarWidth + 24;
                 int viewportWidth = Math.Max(0, contentPanel.ClientSize.Width - reservedScrollWidth);
                 int sidePadding = viewportWidth >= 420 ? 32 : 24;
                 int contentWidth = Math.Min(560, Math.Max(260, viewportWidth - sidePadding * 2));
@@ -902,6 +911,8 @@ namespace XelLauncher.Forms
                 lblName.Top = picIcon.Top + 4;
                 lblVersion.Top = lblName.Bottom + 6;
                 lblName.Width = Math.Max(120, contentRight - lblName.Left);
+                if (lblName.PreferredSize.Width > lblName.Width)
+                    lblName.Font = new Font(lblName.Font.FontFamily, 12F, lblName.Font.Style);
                 lblVersion.Width = lblName.Width;
                 divider1.Left = margin;
                 divider1.Top = Math.Max(picIcon.Bottom, lblVersion.Bottom) + gapMedium;
@@ -938,6 +949,10 @@ namespace XelLauncher.Forms
                         control == _inputPath ||
                         control == btnBrowse ||
                         control == btnOpenDir ||
+                        control == dividerToken ||
+                        control == lblToken ||
+                        control == inputToken ||
+                        control == btnAutoToken ||
                         Array.IndexOf(lowerControls, control) >= 0)
                     {
                         continue;
@@ -965,6 +980,32 @@ namespace XelLauncher.Forms
                 }
                 btnBrowse.TextAlign = ContentAlignment.MiddleCenter;
                 btnOpenDir.TextAlign = ContentAlignment.MiddleCenter;
+
+                if (dividerToken != null)
+                {
+                    int tokenTop = actionTop + gapTiny;
+
+                    dividerToken.Left = margin;
+                    dividerToken.Top = tokenTop;
+                    dividerToken.Width = contentWidth;
+
+                    lblToken.Left = margin;
+                    lblToken.Top = dividerToken.Bottom + gapSmall;
+                    lblToken.Width = contentWidth;
+
+                    inputToken.Left = margin;
+                    inputToken.Top = lblToken.Bottom + gapSmall;
+                    inputToken.Width = contentWidth;
+                    inputToken.Height = inputHeight;
+
+                    btnAutoToken.Left = margin;
+                    btnAutoToken.Top = inputToken.Bottom + gapSmall;
+                    btnAutoToken.Width = contentWidth;
+                    btnAutoToken.Height = buttonHeight;
+                    btnAutoToken.TextAlign = ContentAlignment.MiddleCenter;
+
+                    actionTop = btnAutoToken.Bottom + gapSmall;
+                }
 
                 int lowerTop = Math.Max(btnOpenDir.Bottom + gapMedium, actionTop + gapMedium);
 
