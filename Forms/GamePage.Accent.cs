@@ -62,6 +62,8 @@ namespace XelLauncher.Forms
 
         private static void ApplyGlobalAccentPalette((Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) palette)
         {
+            AntdUI.Style.SetPrimary(palette.Primary);
+
             AntdUI.Style.Set(AntdUI.Colour.Primary.ToString(), palette.Primary, nameof(AntdUI.Button));
             AntdUI.Style.Set(AntdUI.Colour.PrimaryHover.ToString(), palette.PrimaryHover, nameof(AntdUI.Button));
             AntdUI.Style.Set(AntdUI.Colour.PrimaryActive.ToString(), palette.PrimaryActive, nameof(AntdUI.Button));

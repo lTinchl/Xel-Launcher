@@ -40,7 +40,7 @@ namespace XelLauncher.Forms
             string currentPath = latest?.RootPath ?? game.RootPath;
 
             Font = new Font("Microsoft YaHei UI", 9F);
-            var surfaceBack = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.FromArgb(245, 245, 245);
+            var surfaceBack = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White;
             BackColor = surfaceBack;
             Size = LogicalSize(380, 520);
             MinimumSize = LogicalSize(340, 320);
@@ -1081,6 +1081,11 @@ namespace XelLauncher.Forms
             var primary = palette?.Primary ?? GameTheme.GetAccent(_game.IconName);
             var hover = palette?.PrimaryHover ?? GameTheme.GetAccentHover(_game.IconName);
             var active = palette?.PrimaryActive ?? GameTheme.GetAccentActive(_game.IconName);
+
+            AntdUI.Style.SetPrimary(primary);
+            AntdUI.Style.Set(AntdUI.Colour.Primary.ToString(), primary, nameof(AntdUI.Button));
+            AntdUI.Style.Set(AntdUI.Colour.PrimaryHover.ToString(), hover, nameof(AntdUI.Button));
+            AntdUI.Style.Set(AntdUI.Colour.PrimaryActive.ToString(), active, nameof(AntdUI.Button));
 
             foreach (Control control in Controls)
                 ApplyGameAccentTheme(control, primary, hover, active);

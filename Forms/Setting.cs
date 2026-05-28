@@ -1420,8 +1420,7 @@ namespace XelLauncher
             if (hasUpdate)
             {
                 SetUpdateHeaderTitle(L("App.Update.NewVersionTitle", "发现新版本"));
-                StopLatestVersionColorAnimation();
-                lblLatestVersion.ForeColor = Color.FromArgb(40, 180, 120);
+                StartLatestVersionColorAnimation();
                 ShowChangelog(info.Changelog);
                 btnDownloadSetup.Visible = true;
                 btnDownloadPortable.Visible = true;
@@ -1471,20 +1470,24 @@ namespace XelLauncher
         {
             if (_latestVersionColorTimer == null)
             {
-                _latestVersionColorTimer = new System.Windows.Forms.Timer { Interval = 60 };
+                _latestVersionColorTimer = new System.Windows.Forms.Timer { Interval = 30 };
                 _latestVersionColorTimer.Tick += (s, e) =>
                 {
-                    _latestVersionHue = (_latestVersionHue + 2.8D) % 360D;
+                    _latestVersionHue = (_latestVersionHue + 1.2D) % 360D;
                     lblLatestVersion.ForeColor = ColorFromHsv(
                         _latestVersionHue,
-                        0.68D,
-                        AntdUI.Config.IsDark ? 0.98D : 0.72D);
+                        0.95D,
+                        AntdUI.Config.IsDark ? 1D : 0.86D);
                 };
             }
 
             if (!_latestVersionColorTimer.Enabled)
             {
-                _latestVersionHue = 210D;
+                _latestVersionHue = 0D;
+                lblLatestVersion.ForeColor = ColorFromHsv(
+                    _latestVersionHue,
+                    0.95D,
+                    AntdUI.Config.IsDark ? 1D : 0.86D);
                 _latestVersionColorTimer.Start();
             }
         }
