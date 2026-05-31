@@ -352,7 +352,6 @@ C:\Users\<用户名>\AppData\Local\XelLauncher\config.json
 - 首次配置后，分别启动一次各服务器入口，确认路径、切服和账号状态正常。
 - 手动替换服务器文件前，确认目标路径无误，并关闭游戏。
 - 账号切换前，先为当前账号执行一次 `保存账号`。
-- 重要账号数据建议定期备份 `%LocalAppData%\XelLauncher`。
 
 ## 免责声明
 
