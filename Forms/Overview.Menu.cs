@@ -8,7 +8,7 @@ namespace XelLauncher.Forms
         private void btn_setting_Click(object sender, EventArgs e)
         {
             var setting = new Setting(this);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "è®¾ç½®"), setting)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "ÉèÖÃ"), setting)
             {
                 BtnHeight = 0,
                 CloseIcon = true,
@@ -48,8 +48,8 @@ namespace XelLauncher.Forms
 
             btn_more.Items.Clear();
             btn_more.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "å¸®åŠ©"), "help").SetIcon("QuestionCircleOutlined"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "å…³äºŽ"),"info").SetIcon("InfoCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "°ïÖú"), "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "¹ØÓÚ"),"info").SetIcon("InfoCircleOutlined"),
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
             });
@@ -79,8 +79,8 @@ namespace XelLauncher.Forms
                         case "help":
                             TabHeaderForm.Open(
                                 AntdUI.Localization.CurrentLanguage.StartsWith("en", StringComparison.OrdinalIgnoreCase)
-                                    ? "https://github.com/lTinchl/Xel-Launcher/blob/master/README.md"
-                                    : "https://github.com/lTinchl/Xel-Launcher/blob/master/README.zh.md");
+                                    ? "https://github.com/lTinchl/Xel-Launcher/blob/master/docs/wiki.en-US.md"
+                                    : "https://github.com/lTinchl/Xel-Launcher/blob/master/docs/wiki.zh-CN.md");
                             break;
                         case "info":
                             AntdUI.Modal.open(new AntdUI.Modal.Config(this, "", new About())

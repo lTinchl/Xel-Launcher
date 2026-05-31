@@ -5,6 +5,8 @@
 
 [English](./README.md) | 中文
 
+[English Wiki](./docs/wiki.en-US.md) | [中文 Wiki](./docs/wiki.zh-CN.md)
+
 ![C#](https://img.shields.io/badge/C%23-13-square)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 [![License](https://img.shields.io/badge/license-Apache%202.0-4EB1BA.svg?style=flat-square)](http://www.apache.org/licenses/LICENSE-2.0)
