@@ -19,7 +19,7 @@ namespace XelLauncher.Helpers
 
         public static void Log(string message)
         {
-            string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}";
             lock (_entries) _entries.Add(line);
             WriteToFile(line);
             NotifyChanged();
@@ -27,18 +27,32 @@ namespace XelLauncher.Helpers
 
         public static void LogError(Exception ex, string context = null)
         {
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             string header = context != null
                 ? $"[ERROR] {context}: {ex.Message}"
                 : $"[ERROR] {ex.Message}";
-            string fullLine = $"[{DateTime.Now:HH:mm:ss}] {header}{Environment.NewLine}{ex}";
-            lock (_entries) _entries.Add($"[{DateTime.Now:HH:mm:ss}] {header}");
+            string fullLine = $"[{timestamp}] {header}{Environment.NewLine}{ex}";
+            lock (_entries) _entries.Add($"[{timestamp}] {header}");
             WriteToFile(fullLine);
             NotifyChanged();
         }
 
         public static string GetAll()
         {
-            lock (_entries) return string.Join(Environment.NewLine, _entries);
+            lock (_entries)
+            {
+                if (_entries.Count > 0)
+                    return string.Join(Environment.NewLine, _entries);
+            }
+
+            try
+            {
+                return File.Exists(LogFile) ? File.ReadAllText(LogFile, Encoding.UTF8) : "";
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private static void WriteToFile(string line)
