@@ -49,9 +49,10 @@ namespace XelLauncher.Forms
         private readonly List<AntdUI.Avatar> _subBtns = new();
 
         private EndfieldService _service;
-        private enum GameState { Unknown, NotInstalled, HasUpdate, Ready, Downloading, Paused }
+        private enum GameState { Unknown, NotInstalled, HasUpdate, Ready, Downloading, Paused, Repairing }
         private GameState _gameState = GameState.Unknown;
-        private CancellationTokenSource _downloadCts;
+        private ActiveGameUpdate _activeUpdate;
+        private string _repairingPath;
 
         public GamePage(GameEntry game, Overview overview)
         {
@@ -84,10 +85,39 @@ namespace XelLauncher.Forms
             try
             {
                 var cfg = ConfigHelper.Load();
-                if (cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached))
+                var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
+                var path = entry?.RootPath ?? _game.RootPath;
+                if (!string.IsNullOrEmpty(path))
                 {
+                    var activeUpdate = GameUpdateManager.Find(path);
+                    if (activeUpdate != null)
+                    {
+                        _activeUpdate = activeUpdate;
+                        _gameState = activeUpdate.IsCancellationRequested ? GameState.Paused : GameState.Downloading;
+                        if (IsHandleCreated)
+                            RefreshGameStartButton();
+                        else
+                            HandleCreated += (s, e) => RefreshGameStartButton();
+                        return;
+                    }
+
+                    if (GameUpdateManager.IsPaused(path))
+                    {
+                        _gameState = GameState.Paused;
+                        if (IsHandleCreated)
+                            RefreshGameStartButton();
+                        else
+                            HandleCreated += (s, e) => RefreshGameStartButton();
+                        return;
+                    }
+                }
+
+                if (cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached) &&
+                    IsSameInstallPath(cached.InstallPath, path))
+                {
+                    var hasUpdate = cfg.CheckGameUpdates && cached.HasUpdate;
                     _gameState = !cached.IsInstalled ? GameState.NotInstalled
-                               : cached.HasUpdate    ? GameState.HasUpdate
+                               : hasUpdate           ? GameState.HasUpdate
                                                      : GameState.Ready;
 
                     if (IsHandleCreated)
@@ -97,6 +127,21 @@ namespace XelLauncher.Forms
                 }
             }
             catch { }
+        }
+
+        private static bool IsSameInstallPath(string a, string b)
+        {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
+            try
+            {
+                var left = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var right = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
 

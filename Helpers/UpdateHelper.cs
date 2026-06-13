@@ -1,5 +1,6 @@
 // Helpers/UpdateHelper.cs
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -104,6 +105,12 @@ namespace XelLauncher.Helpers
             catch (TaskCanceledException ex)
             {
                 LogHelper.LogError(ex, "UpdateHelper.CheckAsync - Timeout");
+                return null;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden &&
+                                                  ex.Message.Contains("rate limit", StringComparison.OrdinalIgnoreCase))
+            {
+                LogHelper.Log("Update check skipped: GitHub API rate limit exceeded");
                 return null;
             }
             catch (Exception ex)

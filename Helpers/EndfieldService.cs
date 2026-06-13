@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -10,6 +11,8 @@ using Hi3Helper.Plugin.Arknights.Management;
 using Hi3Helper.Plugin.Arknights.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
+using Hi3Helper.Plugin.Core.Utility;
+using Hi3Helper.Hypergryph.Core.Management;
 using Hi3Helper.Plugin.Endfield.Management;
 using Hi3Helper.Plugin.Endfield.Management.PresetConfig;
 
@@ -29,6 +32,11 @@ namespace XelLauncher.Helpers
             Timeout = TimeSpan.FromSeconds(20)
         };
 
+        private static readonly HttpClient RepairHttpClient = new()
+        {
+            Timeout = Timeout.InfiniteTimeSpan
+        };
+
         private readonly string _iconName;
         private readonly PluginPresetConfigBase _preset;
 
@@ -43,7 +51,7 @@ namespace XelLauncher.Helpers
                 "BiliEndfield"   => new EndfieldBiliPresetConfig(),
                 "GlobalEndfield" => new EndfieldGlobalPresetConfig(),
                 "PlayEndfield"   => new EndfieldGlobalPresetConfig(), // GooglePlay 与国际服共用同一游戏文件
-                _ => throw new ArgumentException($"未知游戏类型：{iconName}", nameof(iconName))
+                _ => throw new ArgumentException($"Unknown game type: {iconName}", nameof(iconName))
             };
         }
 
@@ -53,16 +61,17 @@ namespace XelLauncher.Helpers
         /// </summary>
         public async Task<GameStatus?> CheckStatusAsync(string installPath, CancellationToken ct = default)
         {
-            int result = _preset.GameManager switch
-            {
-                EndfieldGameManager  em => await em.CheckWithPathAsync(installPath, ct).ConfigureAwait(false),
-                ArknightsGameManager am => await am.CheckWithPathAsync(installPath, ct).ConfigureAwait(false),
-                _ => -1
-            };
+            var manager = _preset.GameManager;
+            if (manager == null) return null;
+
+            manager.SetGamePath(installPath);
+
+            var cancelToken = Guid.NewGuid();
+            manager.InitAsync(in cancelToken, out var initResult);
+            int result = await initResult.AsTask<int>().ConfigureAwait(false);
 
             if (result != 0) return null;
 
-            var manager = _preset.GameManager!;
             manager.IsGameInstalled(out bool isInstalled);
             manager.IsGameHasUpdate(out bool hasUpdate);
             manager.GetCurrentGameVersion(out GameVersion localVer);
@@ -142,6 +151,9 @@ namespace XelLauncher.Helpers
             }
             catch (Exception ex)
             {
+                if (ex is OperationCanceledException)
+                    return new LauncherNoticeContent(Array.Empty<LauncherBannerItem>(), Array.Empty<LauncherNoticeItem>());
+
                 LogHelper.LogError(ex, $"EndfieldService.GetLauncherNoticeContentAsync({_iconName})");
                 return new LauncherNoticeContent(Array.Empty<LauncherBannerItem>(), Array.Empty<LauncherNoticeItem>());
             }
@@ -209,6 +221,9 @@ namespace XelLauncher.Helpers
             }
             catch (Exception ex)
             {
+                if (ex is OperationCanceledException)
+                    return null;
+
                 LogHelper.LogError(ex, $"EndfieldService.GetClientMainBackgroundImageUrlAsync({_iconName})");
             }
 
@@ -381,16 +396,78 @@ namespace XelLauncher.Helpers
                 onProgress(state, 0, 0);
             };
 
-            Task installTask = (isInstalled, installer) switch
+            var cancelToken = Guid.NewGuid();
+            using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
+            ct.ThrowIfCancellationRequested();
+
+            nint taskResult;
+            if (isInstalled)
+                installer.StartUpdateAsync(progressDelegate, stateDelegate, in cancelToken, out taskResult);
+            else
+                installer.StartInstallAsync(progressDelegate, stateDelegate, in cancelToken, out taskResult);
+
+            await taskResult.AsTask().ConfigureAwait(false);
+        }
+
+        public async Task RepairAsync(
+            string installPath,
+            Action<InstallProgressState, long, long> onProgress,
+            CancellationToken ct = default)
+        {
+            var manager = _preset.GameManager ?? throw new InvalidOperationException("GameManager 未初始化");
+            if (manager is not HgGameManager hgManager)
+                throw new InvalidOperationException("GameManager is not HgGameManager");
+
+            manager.SetGamePath(installPath);
+
+            var cancelToken = Guid.NewGuid();
+            using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
+            ct.ThrowIfCancellationRequested();
+
+            manager.InitAsync(in cancelToken, out var initResult);
+            int result = await initResult.AsTask<int>().ConfigureAwait(false);
+            if (result != 0)
+                throw new InvalidOperationException("游戏信息初始化失败");
+
+            manager.IsGameInstalled(out bool isInstalled);
+            if (!isInstalled)
+                throw new InvalidOperationException("未检测到已安装的游戏");
+
+            var currentState = InstallProgressState.Preparing;
+
+            InstallProgressDelegate progressDelegate = (in InstallProgress p) =>
+                onProgress(currentState, p.DownloadedBytes, p.TotalBytesToDownload);
+
+            InstallProgressStateDelegate stateDelegate = state =>
             {
-                (true,  EndfieldGameInstaller  ei) => ei.RunUpdateAsync(progressDelegate,  stateDelegate, ct),
-                (false, EndfieldGameInstaller  ei) => ei.RunInstallAsync(progressDelegate, stateDelegate, ct),
-                (true,  ArknightsGameInstaller ai) => ai.RunUpdateAsync(progressDelegate,  stateDelegate, ct),
-                (false, ArknightsGameInstaller ai) => ai.RunInstallAsync(progressDelegate, stateDelegate, ct),
-                _ => throw new InvalidOperationException($"不支持的 Installer 类型：{installer.GetType().Name}")
+                currentState = state;
+                onProgress(state, 0, 0);
             };
 
-            await installTask.ConfigureAwait(false);
+            var repairer = new HgGameRepairer(RepairHttpClient, hgManager, installPath);
+            await repairer.StartRepairAsync(progressDelegate, stateDelegate, ct).ConfigureAwait(false);
+        }
+
+        private static void TryCancelPluginToken(Guid cancelToken)
+        {
+            try
+            {
+                var vaultType = typeof(Hi3Helper.Plugin.Core.IPlugin).Assembly.GetType(
+                    "Hi3Helper.Plugin.Core.Utility.ComCancellationTokenVault");
+                var cancelMethod = vaultType?.GetMethod(
+                    "CancelToken",
+                    BindingFlags.Static | BindingFlags.NonPublic,
+                    null,
+                    new[] { typeof(Guid).MakeByRefType(), typeof(bool) },
+                    null);
+
+                object[] args = { cancelToken, true };
+                cancelMethod?.Invoke(null, args);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "EndfieldService.TryCancelPluginToken");
+            }
         }
 
         public void Dispose()

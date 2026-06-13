@@ -145,6 +145,7 @@ namespace XelLauncher.Forms
             cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
             cfg.UseHardLink = setting.UseHardLink;
             cfg.UseExternalBrowser = setting.UseExternalBrowser;
+            cfg.CheckGameUpdates = setting.CheckGameUpdates;
             ConfigHelper.Save(cfg);
             Setting.ApplyStartWithWindows(setting.StartWithWindows);
             LoadUpdateBadgeFromCache();

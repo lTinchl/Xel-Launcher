@@ -9,6 +9,7 @@ namespace XelLauncher.Models
         public bool HasUpdate { get; set; }
         public string LocalVersion { get; set; } = "";
         public string RemoteVersion { get; set; } = "";
+        public string InstallPath { get; set; } = "";
     }
 
     public class AppUpdateState
@@ -57,6 +58,7 @@ namespace XelLauncher.Models
         public string GlobalEndfieldDefaultAccount { get; set; } = "";
         public HashSet<string> GlobalEndfieldDisabledAccounts { get; set; } = new HashSet<string>();
         public string LastNotifiedVersion { get; set; } = "";               // 上次通知的版本号
+        public string LastReadStartupAnnouncementVersion { get; set; } = "";
         // 森空岛自动签到
         public bool SkylandSignEnabled { get; set; } = false;
         public bool SkylandStartupSignEnabled { get; set; } = false;
@@ -81,6 +83,7 @@ namespace XelLauncher.Models
         public bool HideToTrayOnLaunch { get; set; } = false;             // 启动游戏后隐藏至托盘，游戏关闭后恢复
         public string Language { get; set; } = "";                          // 用户选择的语言 (zh-CN / en-US)
         public bool UseExternalBrowser { get; set; } = false;              // 使用外部浏览器打开链接
+        public bool CheckGameUpdates { get; set; } = false;                // 检查游戏更新
         /// <summary>
         /// 主题模式："system"（跟随系统）、"light"（强制浅色）、"dark"（强制深色）
         /// </summary>

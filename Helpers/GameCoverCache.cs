@@ -264,6 +264,9 @@ namespace XelLauncher.Helpers
             catch (Exception ex)
             {
                 TryDelete(temp);
+                if (ex is OperationCanceledException)
+                    return cachedPath;
+
                 LogHelper.LogError(ex, $"GameCoverCache.UpdateAsync({iconName})");
                 return cachedPath;
             }
@@ -338,6 +341,9 @@ namespace XelLauncher.Helpers
             catch (Exception ex)
             {
                 TryDelete(temp);
+                if (ex is OperationCanceledException)
+                    return null;
+
                 LogHelper.LogError(ex, $"GameCoverCache.UpdateNoticeBannerAsync({iconName})");
                 return null;
             }
