@@ -14,7 +14,7 @@
 		<Product>XelLauncher</Product>
 		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<ApplicationIcon>Resources\Icon\icon.ico</ApplicationIcon>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -35,6 +35,7 @@
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 		</Content>
+		<Content Remove="Resources\i18n\*.resx" />
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -46,7 +47,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="H:\Vs Project\Hi3Helper.Plugin.Endfield\SevenZipExtractor\SevenZipExtractor\Lib\7z.dll">
+		<Content Include="H:\Vs Project\Hi3Helper.Plugin.Hypergryph\SevenZipExtractor\SevenZipExtractor\Lib\7z.dll">
 			<Link>Lib\7z.dll</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
@@ -56,7 +57,7 @@
 
 	<Target Name="CopySevenZipNativeLibraryToPublish" AfterTargets="Publish">
 		<MakeDir Directories="$(PublishDir)Lib" />
-		<Copy SourceFiles="H:\Vs Project\Hi3Helper.Plugin.Endfield\SevenZipExtractor\SevenZipExtractor\Lib\7z.dll" DestinationFiles="$(PublishDir)Lib\7z.dll" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="H:\Vs Project\Hi3Helper.Plugin.Hypergryph\SevenZipExtractor\SevenZipExtractor\Lib\7z.dll" DestinationFiles="$(PublishDir)Lib\7z.dll" SkipUnchangedFiles="true" />
 	</Target>
 
 	<ItemGroup>
@@ -73,9 +74,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="AntdUI" Version="2.3.0" />
-		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Arknights\Hi3Helper.Plugin.Arknights\Hi3Helper.Plugin.Arknights.csproj" />
-		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Core\Hi3Helper.Plugin.Core.csproj" />
-		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Endfield.csproj" />
+		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Hypergryph\Hi3Helper.Plugin.Arknights\Hi3Helper.Plugin.Arknights.csproj" />
+		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Hypergryph\Hi3Helper.Plugin.Core\Hi3Helper.Plugin.Core.csproj" />
+		<ProjectReference Include="H:\Vs Project\Hi3Helper.Plugin.Hypergryph\Hi3Helper.Plugin.Endfield\Hi3Helper.Plugin.Endfield.csproj" />
 		<PackageReference Include="AntdUI.EmojiFluentFlat" Version="*" />
 	</ItemGroup>
 
