@@ -1,0 +1,2295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="activities" xml:space="preserve">
+    <value>Activities</value>
+  </data>
+  <data name="Alert" xml:space="preserve">
+    <value>Alert</value>
+  </data>
+  <data name="Alert.alert14" xml:space="preserve">
+    <value>Nike Just Do It</value>
+  </data>
+  <data name="Alert.Description" xml:space="preserve">
+    <value>Display warning messages that require attention.</value>
+  </data>
+  <data name="Alert.divider1" xml:space="preserve">
+    <value>More types</value>
+  </data>
+  <data name="Alert.divider2" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Alert.divider3" xml:space="preserve">
+    <value>Loop Banner</value>
+  </data>
+  <data name="animals nature" xml:space="preserve">
+    <value>Animals &amp; Nature</value>
+  </data>
+  <data name="AnimationEnabled" xml:space="preserve">
+    <value>Animation Enabled</value>
+  </data>
+  <data name="App.Account.AddPlaceholder" xml:space="preserve">
+    <value>Enter account name</value>
+  </data>
+  <data name="App.Account.AddTitle" xml:space="preserve">
+    <value>Add Account</value>
+  </data>
+  <data name="App.Account.BadgeDisabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="App.Account.BadgeEnabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="App.Account.BtnAdd" xml:space="preserve">
+    <value>+ Add Account</value>
+  </data>
+  <data name="App.Account.BtnConfirmDelete" xml:space="preserve">
+    <value>Confirm Delete</value>
+  </data>
+  <data name="App.Account.BtnDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="App.Account.BtnDone" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="App.Account.BtnRecord" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="App.Account.BtnRename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="App.Account.BtnSetDefault" xml:space="preserve">
+    <value>Set Default</value>
+  </data>
+  <data name="App.Account.ColAction" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="App.Account.ColDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="App.Account.ColEnabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="App.Account.ColName" xml:space="preserve">
+    <value>Account Name</value>
+  </data>
+  <data name="App.Account.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="App.Account.RenamePlaceholder" xml:space="preserve">
+    <value>Enter new name</value>
+  </data>
+  <data name="App.Account.RenameTitle" xml:space="preserve">
+    <value>Rename Account</value>
+  </data>
+  <data name="App.Account.SaveLoading" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="App.Account.SaveOK" xml:space="preserve">
+    <value>Account \"{0}\" saved</value>
+  </data>
+  <data name="App.Account.TagDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="App.BgColor.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="App.BgColor.Custom" xml:space="preserve">
+    <value>Custom...</value>
+  </data>
+  <data name="App.BgColor.DialogTitle" xml:space="preserve">
+    <value>Custom Background Color</value>
+  </data>
+  <data name="App.BgColor.Mint" xml:space="preserve">
+    <value>Mint Green</value>
+  </data>
+  <data name="App.BgColor.OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="App.BgColor.Sky" xml:space="preserve">
+    <value>Sky Blue</value>
+  </data>
+  <data name="App.BgColor.Warm" xml:space="preserve">
+    <value>Warm Beige</value>
+  </data>
+  <data name="App.BgColor.White" xml:space="preserve">
+    <value>Pure White</value>
+  </data>
+  <data name="App.Browser.NoRuntime" xml:space="preserve">
+    <value>WebView2 Runtime not found, please install it first!</value>
+  </data>
+  <data name="App.Browser.Title" xml:space="preserve">
+    <value>Browser</value>
+  </data>
+  <data name="App.Game.AccountManage" xml:space="preserve">
+    <value>Account Management</value>
+  </data>
+  <data name="App.Game.ClearCacheFailed" xml:space="preserve">
+    <value>Clear Cache Failed</value>
+  </data>
+  <data name="App.Game.ClearCacheSuccess" xml:space="preserve">
+    <value>Clear Cache Success</value>
+  </data>
+  <data name="App.Game.Deledwonload" xml:space="preserve">
+    <value>Clear Download cache</value>
+  </data>
+  <data name="App.Game.ExeNotFound" xml:space="preserve">
+    <value>Could not find {0} in the selected directory</value>
+  </data>
+  <data name="App.Game.HardLinkTip" xml:space="preserve">
+    <value>Tip: Install the launcher on the same drive as your game to enable hard links for instant server switching</value>
+  </data>
+  <data name="App.Game.Install" xml:space="preserve">
+    <value>Install Game</value>
+  </data>
+  <data name="App.Game.Install.Completed" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="App.Game.Install.Init" xml:space="preserve">
+    <value>Install Init···</value>
+  </data>
+  <data name="App.Game.Install.Installing" xml:space="preserve">
+    <value>安装中...</value>
+  </data>
+  <data name="App.Game.Install.Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="App.Game.Install.Removing" xml:space="preserve">
+    <value>清理中...</value>
+  </data>
+  <data name="App.Game.Install.Success" xml:space="preserve">
+    <value>InstallUpdate Success</value>
+  </data>
+  <data name="App.Game.Install.Updating" xml:space="preserve">
+    <value>更新中...</value>
+  </data>
+  <data name="App.Game.Install.Verifying" xml:space="preserve">
+    <value>校验中...</value>
+  </data>
+  <data name="App.Game.LaunchSuccess" xml:space="preserve">
+    <value>Game launched successfully</value>
+  </data>
+  <data name="App.Game.Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="App.Game.NoCache" xml:space="preserve">
+    <value>No cache files found to delete</value>
+  </data>
+  <data name="App.Game.Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="App.Game.Resume" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="App.Game.SelectAccount" xml:space="preserve">
+    <value>  Select Account</value>
+  </data>
+  <data name="App.Game.SelectDirTitle" xml:space="preserve">
+    <value>Select [{0}] Game Root Directory</value>
+  </data>
+  <data name="App.Game.SelectInstallDir" xml:space="preserve">
+    <value>选择游戏安装目录</value>
+  </data>
+  <data name="App.Game.Setting" xml:space="preserve">
+    <value>Game Settings</value>
+  </data>
+  <data name="App.Game.Sign" xml:space="preserve">
+    <value>Skyland Sign</value>
+  </data>
+  <data name="App.Game.Repair" xml:space="preserve">
+    <value>Verify Game Integrity</value>
+  </data>
+  <data name="App.Game.Repair.Canceled" xml:space="preserve">
+    <value>Verification canceled</value>
+  </data>
+  <data name="App.Game.Repair.Init" xml:space="preserve">
+    <value>Preparing verification...</value>
+  </data>
+  <data name="App.Game.Repair.AlreadyRunning" xml:space="preserve">
+    <value>Game integrity verification is already running</value>
+  </data>
+  <data name="App.Game.Repair.Running" xml:space="preserve">
+    <value>Verifying...</value>
+  </data>
+  <data name="App.Game.Repair.Success" xml:space="preserve">
+    <value>Game integrity verification completed</value>
+  </data>
+  <data name="App.Game.Repair.UpdateRunning" xml:space="preserve">
+    <value>The game is updating or verifying. This action cannot run at the same time.</value>
+  </data>
+  <data name="App.Game.SkportSign" xml:space="preserve">
+    <value>SKPORT Sign</value>
+  </data>
+  <data name="App.Game.Start" xml:space="preserve">
+    <value>Game Start</value>
+  </data>
+  <data name="App.Game.SwitchingAccount" xml:space="preserve">
+    <value>Switching account...</value>
+  </data>
+  <data name="App.Game.Toolbox" xml:space="preserve">
+    <value>Toolbox</value>
+  </data>
+  <data name="App.Game.Update" xml:space="preserve">
+    <value>Update Game</value>
+  </data>
+  <data name="App.Game.WaitingProcess" xml:space="preserve">
+    <value>等待游戏进程...</value>
+  </data>
+  <data name="App.Game.WarnSelectDir" xml:space="preserve">
+    <value>Please select the game root directory first</value>
+  </data>
+  <data name="App.GameSetting.AccountSwitch" xml:space="preserve">
+    <value>Account switching function</value>
+  </data>
+  <data name="App.GameSetting.ArknightsWebsite" xml:space="preserve">
+    <value>Arknights Official Website</value>
+  </data>
+  <data name="App.GameSetting.AutoGetToken" xml:space="preserve">
+    <value>Auto Get Token</value>
+  </data>
+  <data name="App.GameSetting.BiliWebsite" xml:space="preserve">
+    <value>Arknights BiliBili Website</value>
+  </data>
+  <data name="App.GameSetting.ChangePath" xml:space="preserve">
+    <value>Change Path</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplace" xml:space="preserve">
+    <value>Confirm Replace</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplaceArkBili" xml:space="preserve">
+    <value>Replace the current Official server files with Bilibili server files? This will overwrite game files.</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplaceArkOfficial" xml:space="preserve">
+    <value>Replace the current directory with Official server files? This will overwrite game files.</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplaceEndBili" xml:space="preserve">
+    <value>Replace the current directory with Bilibili server files? This will overwrite game files.</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplaceGlobal" xml:space="preserve">
+    <value>Replace the current directory with Global server files? This will overwrite game files.</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplacePlay" xml:space="preserve">
+    <value>Replace the current directory with GooglePlay server files? This will overwrite game files.</value>
+  </data>
+  <data name="App.GameSetting.CustomLaunchArgs" xml:space="preserve">
+    <value>Customize startup parameters</value>
+  </data>
+  <data name="App.GameSetting.CustomLaunchArgsPlaceholder" xml:space="preserve">
+    <value>Enter startup parameters</value>
+  </data>
+  <data name="App.GameSetting.CustomSync" xml:space="preserve">
+    <value>Custom Launch Sync</value>
+  </data>
+  <data name="App.GameSetting.EndfieldBiliWebsite" xml:space="preserve">
+    <value>Endfield BiliBili Website</value>
+  </data>
+  <data name="App.GameSetting.EndfieldGlobalWebsite" xml:space="preserve">
+    <value>Endfield Global Website</value>
+  </data>
+  <data name="App.GameSetting.EndfieldPlayWebsite" xml:space="preserve">
+    <value>Endfield GooglePlay Website</value>
+  </data>
+  <data name="App.GameSetting.EndfieldWebsite" xml:space="preserve">
+    <value>Endfield Official Website</value>
+  </data>
+  <data name="App.GameSetting.InstallPath" xml:space="preserve">
+    <value>Game Install Path</value>
+  </data>
+  <data name="App.GameSetting.ManageSync" xml:space="preserve">
+    <value>Manage Sync Apps</value>
+  </data>
+  <data name="App.GameSetting.OpenDir" xml:space="preserve">
+    <value>Open File Directory</value>
+  </data>
+  <data name="App.GameSetting.PathInvalid" xml:space="preserve">
+    <value>Invalid Path</value>
+  </data>
+  <data name="App.GameSetting.PathInvalidMsg" xml:space="preserve">
+    <value>{0} not found in the selected folder. Please choose the correct game root directory.</value>
+  </data>
+  <data name="App.GameSetting.PathPlaceholder" xml:space="preserve">
+    <value>Path not set</value>
+  </data>
+  <data name="App.GameSetting.ReplaceBili" xml:space="preserve">
+    <value>Replace files with Bilibili server</value>
+  </data>
+  <data name="App.GameSetting.ReplaceFailed" xml:space="preserve">
+    <value>Replace failed: </value>
+  </data>
+  <data name="App.GameSetting.ReplaceGlobal" xml:space="preserve">
+    <value>Replace files with Global server</value>
+  </data>
+  <data name="App.GameSetting.ReplaceOfficial" xml:space="preserve">
+    <value>Replace files with Official server</value>
+  </data>
+  <data name="App.GameSetting.ReplacePlay" xml:space="preserve">
+    <value>Replace files with GooglePlay server</value>
+  </data>
+  <data name="App.GameSetting.ReplaceSuccess" xml:space="preserve">
+    <value>Success! Server resource package has been applied.</value>
+  </data>
+  <data name="App.GameSetting.Replacing" xml:space="preserve">
+    <value>Replacing...</value>
+  </data>
+  <data name="App.GameSetting.Reselect" xml:space="preserve">
+    <value>Reselect</value>
+  </data>
+  <data name="App.GameSetting.SessionToken" xml:space="preserve">
+    <value>Session Token</value>
+  </data>
+  <data name="App.GameSetting.SyncSuccess" xml:space="preserve">
+    <value>Path synced to Bilibili server.</value>
+  </data>
+  <data name="App.GameSetting.SyncSuccessAll" xml:space="preserve">
+    <value>Path synced to Bilibili, Global, and GooglePlay servers.</value>
+  </data>
+  <data name="App.GameSetting.SyncToAll" xml:space="preserve">
+    <value>Sync path to Bilibili / Global / GooglePlay server</value>
+  </data>
+  <data name="App.GameSetting.SyncToBili" xml:space="preserve">
+    <value>Sync path to Bilibili server</value>
+  </data>
+  <data name="App.GameSetting.TokenNotFound" xml:space="preserve">
+    <value>Token not found, please ensure the game is running</value>
+  </data>
+  <data name="App.GameSetting.TokenPlaceholder" xml:space="preserve">
+    <value>No Token Set</value>
+  </data>
+  <data name="App.GameSetting.TokenSuccess" xml:space="preserve">
+    <value>Token Retrieved</value>
+  </data>
+  <data name="App.GameSetting.Version" xml:space="preserve">
+    <value>Version:</value>
+  </data>
+  <data name="App.GameSetting.VersionChecking" xml:space="preserve">
+    <value>版本：N/A</value>
+  </data>
+  <data name="App.GameSetting.WarnSetBiliPath" xml:space="preserve">
+    <value>Please set the Bilibili server path first</value>
+  </data>
+  <data name="App.GameSetting.WarnSetGlobalPath" xml:space="preserve">
+    <value>Please set the Global server path first</value>
+  </data>
+  <data name="App.GameSetting.WarnSetOfficialPath" xml:space="preserve">
+    <value>Please set the Official server path first</value>
+  </data>
+  <data name="App.GameSetting.WarnSetPlayPath" xml:space="preserve">
+    <value>Please set the GooglePlay server path first</value>
+  </data>
+  <data name="App.GameSetting.ZipNotFoundOfficial" xml:space="preserve">
+    <value>Official server resource package (ArkOfficial.zip) not found. Check the load folder.</value>
+  </data>
+  <data name="App.Lang.Chinese" xml:space="preserve">
+    <value>中文</value>
+  </data>
+  <data name="App.Lang.English" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="App.Menu.About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="App.Menu.Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="App.Picker.AlreadyAdded" xml:space="preserve">
+    <value>\"{0}\" is already in the list.</value>
+  </data>
+  <data name="App.Picker.Title" xml:space="preserve">
+    <value>Select a game to add</value>
+  </data>
+  <data name="App.Setting.CloseAfterLaunch" xml:space="preserve">
+    <value>Close after launching game</value>
+  </data>
+  <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
+    <value>Check for game updates</value>
+  </data>
+  <data name="App.Setting.HideToTrayOnLaunch" xml:space="preserve">
+    <value>Hide to tray after launching game</value>
+  </data>
+  <data name="App.Setting.Log" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="App.Setting.MinimizeToTray" xml:space="preserve">
+    <value>Minimize to Tray</value>
+  </data>
+  <data name="App.Setting.Software" xml:space="preserve">
+    <value>Software</value>
+  </data>
+  <data name="App.Setting.StartWithWindows" xml:space="preserve">
+    <value>Boot Startup</value>
+  </data>
+  <data name="App.Setting.Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="App.Setting.UseExternalBrowser" xml:space="preserve">
+    <value>Use external browser for links</value>
+  </data>
+  <data name="App.Setting.UseHardLink" xml:space="preserve">
+    <value>Use hard links for server switching</value>
+  </data>
+  <data name="App.Sidebar.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="App.SignHub.Title" xml:space="preserve">
+    <value>Sign</value>
+  </data>
+  <data name="App.Skport.Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="App.Skport.AccountPlaceholder" xml:space="preserve">
+    <value>Enter Hypergryph phone number / email</value>
+  </data>
+  <data name="App.Skport.Action.GetBindings" xml:space="preserve">
+    <value>Get bound characters</value>
+  </data>
+  <data name="App.Skport.Action.GetCred" xml:space="preserve">
+    <value>Get cred</value>
+  </data>
+  <data name="App.Skport.Action.GetGrantCode" xml:space="preserve">
+    <value>Get grant code with token</value>
+  </data>
+  <data name="App.Skport.Action.PasswordLogin" xml:space="preserve">
+    <value>Password login</value>
+  </data>
+  <data name="App.Skport.Auto.AlreadyDone" xml:space="preserve">
+    <value>Auto sign-in already ran today. Skipped.</value>
+  </data>
+  <data name="App.Skport.Auto.Complete" xml:space="preserve">
+    <value>SKPORT auto sign-in complete.</value>
+  </data>
+  <data name="App.Skport.Auto.CompleteTitle" xml:space="preserve">
+    <value>SKPORT Auto Sign Complete</value>
+  </data>
+  <data name="App.Skport.Auto.Done" xml:space="preserve">
+    <value>Sign-in complete.</value>
+  </data>
+  <data name="App.Skport.Auto.FailedTitle" xml:space="preserve">
+    <value>SKPORT Auto Sign Failed</value>
+  </data>
+  <data name="App.Skport.Auto.MoreResults" xml:space="preserve">
+    <value>{0} more result(s).</value>
+  </data>
+  <data name="App.Skport.Auto.NoToken" xml:space="preserve">
+    <value>No token configured. Auto sign-in skipped.</value>
+  </data>
+  <data name="App.Skport.Auto.Start" xml:space="preserve">
+    <value>SKPORT auto sign-in started.</value>
+  </data>
+  <data name="App.Skport.Auto.Title" xml:space="preserve">
+    <value>SKPORT Auto Sign</value>
+  </data>
+  <data name="App.Skport.AutoConfigTitle" xml:space="preserve">
+    <value>Auto Sign Settings</value>
+  </data>
+  <data name="App.Skport.AutoSign" xml:space="preserve">
+    <value>Sign while launcher is running</value>
+  </data>
+  <data name="App.Skport.AutoSignHint" xml:space="preserve">
+    <value>After enabled, sign in once per day while the launcher is running and show the result in the notification area.</value>
+  </data>
+  <data name="App.Skport.ClearLog" xml:space="preserve">
+    <value>Clear Log</value>
+  </data>
+  <data name="App.Skport.ConfigTitle" xml:space="preserve">
+    <value>SKPORT Sign Settings</value>
+  </data>
+  <data name="App.Skport.Error.AccountRequired" xml:space="preserve">
+    <value>Please enter an account</value>
+  </data>
+  <data name="App.Skport.Error.ActionFailed" xml:space="preserve">
+    <value>{0} failed: {1}</value>
+  </data>
+  <data name="App.Skport.Error.CredMissing" xml:space="preserve">
+    <value>Failed to get cred: response is missing cred or token.</value>
+  </data>
+  <data name="App.Skport.Error.GrantCodeMissing" xml:space="preserve">
+    <value>Failed to get grant code with token: response is missing code.</value>
+  </data>
+  <data name="App.Skport.Error.PasswordRequired" xml:space="preserve">
+    <value>Please enter a password</value>
+  </data>
+  <data name="App.Skport.Error.TokenMissing" xml:space="preserve">
+    <value>{0} failed: response is missing token.</value>
+  </data>
+  <data name="App.Skport.Error.TokenRequiredEnv" xml:space="preserve">
+    <value>Please add SKPORT_TOKEN first.</value>
+  </data>
+  <data name="App.Skport.InputRequired" xml:space="preserve">
+    <value>Please enter account and password</value>
+  </data>
+  <data name="App.Skport.ListSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="App.Skport.Log" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="App.Skport.Log.Account" xml:space="preserve">
+    <value>Account {0}</value>
+  </data>
+  <data name="App.Skport.Log.AccountFailed" xml:space="preserve">
+    <value>[{0}] Sign-in failed: {1}</value>
+  </data>
+  <data name="App.Skport.Log.NoBindings" xml:space="preserve">
+    <value>[{0}] No bound Endfield character found for sign-in.</value>
+  </data>
+  <data name="App.Skport.Log.ProcessAccount" xml:space="preserve">
+    <value>Processing {0}...</value>
+  </data>
+  <data name="App.Skport.Log.RoleTitle" xml:space="preserve">
+    <value>[{0}] Role {1}({2})</value>
+  </data>
+  <data name="App.Skport.Log.SignFailed" xml:space="preserve">
+    <value>{0} sign-in failed: {1}</value>
+  </data>
+  <data name="App.Skport.Log.SignSuccess" xml:space="preserve">
+    <value>{0} signed in successfully, received {1}</value>
+  </data>
+  <data name="App.Skport.Log.WaitNext" xml:space="preserve">
+    <value>Waiting {0} seconds before processing the next account...</value>
+  </data>
+  <data name="App.Skport.LoggingIn" xml:space="preserve">
+    <value>Logging in...</value>
+  </data>
+  <data name="App.Skport.LoginAndGetToken" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="App.Skport.OperationCanceled" xml:space="preserve">
+    <value>Operation canceled.</value>
+  </data>
+  <data name="App.Skport.Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="App.Skport.PasswordFailedPrefix" xml:space="preserve">
+    <value>Password token retrieval failed: </value>
+  </data>
+  <data name="App.Skport.PasswordLogin" xml:space="preserve">
+    <value>Password Login</value>
+  </data>
+  <data name="App.Skport.PasswordLoginStart" xml:space="preserve">
+    <value>Logging in with account and password...</value>
+  </data>
+  <data name="App.Skport.PasswordPlaceholder" xml:space="preserve">
+    <value>Enter password</value>
+  </data>
+  <data name="App.Skport.PasswordSubtitle" xml:space="preserve">
+    <value>Sign in with your Hypergryph account. The token is saved automatically after success.</value>
+  </data>
+  <data name="App.Skport.PasswordSuccess" xml:space="preserve">
+    <value>Password login succeeded. Token saved.</value>
+  </data>
+  <data name="App.Skport.SignComplete" xml:space="preserve">
+    <value>========== SKPORT sign-in finished ==========</value>
+  </data>
+  <data name="App.Skport.SignFailedPrefix" xml:space="preserve">
+    <value>Sign-in failed: </value>
+  </data>
+  <data name="App.Skport.Signing" xml:space="preserve">
+    <value>Signing...</value>
+  </data>
+  <data name="App.Skport.SignNow" xml:space="preserve">
+    <value>Sign Now</value>
+  </data>
+  <data name="App.Skport.SignStart" xml:space="preserve">
+    <value>========== SKPORT sign-in started ==========</value>
+  </data>
+  <data name="App.Skport.StartupSign" xml:space="preserve">
+    <value>Sign in on Windows startup</value>
+  </data>
+  <data name="App.Skport.StartupSignHint" xml:space="preserve">
+    <value>Run one background sign-in after Windows starts, without showing the main window. Results are shown by notification.</value>
+  </data>
+  <data name="App.Skport.Title" xml:space="preserve">
+    <value>SKPORT Sign</value>
+  </data>
+  <data name="App.Skport.Token" xml:space="preserve">
+    <value>SKPORT Token</value>
+  </data>
+  <data name="App.Skport.TokenHint" xml:space="preserve">
+    <value>Separate tokens with semicolons (;). Multiple accounts are supported.</value>
+  </data>
+  <data name="App.Skport.TokenPlaceholder" xml:space="preserve">
+    <value>Enter SKPORT tokens, separated by semicolons (;)</value>
+  </data>
+  <data name="App.Skport.TokenRequired" xml:space="preserve">
+    <value>Please enter a SKPORT Token first</value>
+  </data>
+  <data name="App.Skport.TokenSaved" xml:space="preserve">
+    <value>Token saved</value>
+  </data>
+  <data name="App.Skyland.Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="App.Skyland.AccountPlaceholder" xml:space="preserve">
+    <value>Enter phone number / account</value>
+  </data>
+  <data name="App.Skyland.Action.CreateScanLogin" xml:space="preserve">
+    <value>Create QR login</value>
+  </data>
+  <data name="App.Skyland.Action.GetBindings" xml:space="preserve">
+    <value>Get bound characters</value>
+  </data>
+  <data name="App.Skyland.Action.GetCred" xml:space="preserve">
+    <value>Get cred</value>
+  </data>
+  <data name="App.Skyland.Action.GetGrantCode" xml:space="preserve">
+    <value>Get grant code with token</value>
+  </data>
+  <data name="App.Skyland.Action.PasswordLogin" xml:space="preserve">
+    <value>Password login</value>
+  </data>
+  <data name="App.Skyland.Action.ScanLogin" xml:space="preserve">
+    <value>QR login</value>
+  </data>
+  <data name="App.Skyland.Action.SendCode" xml:space="preserve">
+    <value>Send verification code</value>
+  </data>
+  <data name="App.Skyland.Action.SmsLogin" xml:space="preserve">
+    <value>SMS login</value>
+  </data>
+  <data name="App.Skyland.Auto.AlreadyDone" xml:space="preserve">
+    <value>Auto sign-in already ran today. Skipped.</value>
+  </data>
+  <data name="App.Skyland.Auto.Complete" xml:space="preserve">
+    <value>Skyland auto sign-in complete.</value>
+  </data>
+  <data name="App.Skyland.Auto.CompleteTitle" xml:space="preserve">
+    <value>Skyland Auto Sign Complete</value>
+  </data>
+  <data name="App.Skyland.Auto.Done" xml:space="preserve">
+    <value>Sign-in complete.</value>
+  </data>
+  <data name="App.Skyland.Auto.FailedTitle" xml:space="preserve">
+    <value>Skyland Auto Sign Failed</value>
+  </data>
+  <data name="App.Skyland.Auto.MoreResults" xml:space="preserve">
+    <value>{0} more result(s).</value>
+  </data>
+  <data name="App.Skyland.Auto.NoToken" xml:space="preserve">
+    <value>No token configured. Auto sign-in skipped.</value>
+  </data>
+  <data name="App.Skyland.Auto.Start" xml:space="preserve">
+    <value>Skyland auto sign-in started.</value>
+  </data>
+  <data name="App.Skyland.Auto.Title" xml:space="preserve">
+    <value>Skyland Auto Sign</value>
+  </data>
+  <data name="App.Skyland.AutoConfigTitle" xml:space="preserve">
+    <value>Auto Sign Settings</value>
+  </data>
+  <data name="App.Skyland.AutoSign" xml:space="preserve">
+    <value>Sign while launcher is running</value>
+  </data>
+  <data name="App.Skyland.AutoSignHint" xml:space="preserve">
+    <value>After enabled, sign in once per day while the launcher is running and show the result in the notification area.</value>
+  </data>
+  <data name="App.Skyland.ClearLog" xml:space="preserve">
+    <value>Clear Log</value>
+  </data>
+  <data name="App.Skyland.Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="App.Skyland.CodeSent" xml:space="preserve">
+    <value>Verification code sent.</value>
+  </data>
+  <data name="App.Skyland.CodeSentToast" xml:space="preserve">
+    <value>Verification code sent</value>
+  </data>
+  <data name="App.Skyland.ConfigTitle" xml:space="preserve">
+    <value>Skyland Settings</value>
+  </data>
+  <data name="App.Skyland.Document" xml:space="preserve">
+    <value>Docs</value>
+  </data>
+  <data name="App.Skyland.Error.AccountRequired" xml:space="preserve">
+    <value>Please enter an account</value>
+  </data>
+  <data name="App.Skyland.Error.ActionFailed" xml:space="preserve">
+    <value>{0} failed: {1}</value>
+  </data>
+  <data name="App.Skyland.Error.CodeRequired" xml:space="preserve">
+    <value>Please enter the SMS verification code.</value>
+  </data>
+  <data name="App.Skyland.Error.CredMissing" xml:space="preserve">
+    <value>Failed to get cred: response is missing cred or token.</value>
+  </data>
+  <data name="App.Skyland.Error.GrantCodeMissing" xml:space="preserve">
+    <value>Failed to get grant code with token: response is missing code.</value>
+  </data>
+  <data name="App.Skyland.Error.PasswordRequired" xml:space="preserve">
+    <value>Please enter a password</value>
+  </data>
+  <data name="App.Skyland.Error.PhoneRequired" xml:space="preserve">
+    <value>Please enter a phone number</value>
+  </data>
+  <data name="App.Skyland.Error.QrExpired" xml:space="preserve">
+    <value>The QR code has expired. Please generate a new one.</value>
+  </data>
+  <data name="App.Skyland.Error.ScanMissing" xml:space="preserve">
+    <value>Failed to create QR login: response is missing scanId or scanUrl.</value>
+  </data>
+  <data name="App.Skyland.Error.ScanTimeout" xml:space="preserve">
+    <value>QR login timed out. Please generate a new QR code.</value>
+  </data>
+  <data name="App.Skyland.Error.ScanTokenMissing" xml:space="preserve">
+    <value>QR login failed: response is missing token.</value>
+  </data>
+  <data name="App.Skyland.Error.TokenMissing" xml:space="preserve">
+    <value>{0} failed: response is missing token.</value>
+  </data>
+  <data name="App.Skyland.Error.TokenRequiredEnv" xml:space="preserve">
+    <value>Please add SKYLAND_TOKEN first.</value>
+  </data>
+  <data name="App.Skyland.ListSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="App.Skyland.Log" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="App.Skyland.Log.Account" xml:space="preserve">
+    <value>Account {0}</value>
+  </data>
+  <data name="App.Skyland.Log.AccountFailed" xml:space="preserve">
+    <value>[{0}] Sign-in failed: {1}</value>
+  </data>
+  <data name="App.Skyland.Log.NoBindings" xml:space="preserve">
+    <value>[{0}] No bound Arknights or Endfield character found for sign-in.</value>
+  </data>
+  <data name="App.Skyland.Log.ProcessAccount" xml:space="preserve">
+    <value>Processing {0}...</value>
+  </data>
+  <data name="App.Skyland.Log.RoleTitle" xml:space="preserve">
+    <value>[{0}] Role {1}({2})</value>
+  </data>
+  <data name="App.Skyland.Log.SignFailed" xml:space="preserve">
+    <value>{0} sign-in failed: {1}</value>
+  </data>
+  <data name="App.Skyland.Log.SignSuccess" xml:space="preserve">
+    <value>{0} signed in successfully, received {1}</value>
+  </data>
+  <data name="App.Skyland.Log.WaitNext" xml:space="preserve">
+    <value>Waiting {0} seconds before processing the next account...</value>
+  </data>
+  <data name="App.Skyland.LoggingIn" xml:space="preserve">
+    <value>Logging in...</value>
+  </data>
+  <data name="App.Skyland.LoginGet" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="App.Skyland.OperationCanceled" xml:space="preserve">
+    <value>Operation canceled.</value>
+  </data>
+  <data name="App.Skyland.Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="App.Skyland.PasswordFailedPrefix" xml:space="preserve">
+    <value>Password token retrieval failed: </value>
+  </data>
+  <data name="App.Skyland.PasswordLogging" xml:space="preserve">
+    <value>Logging in with account and password...</value>
+  </data>
+  <data name="App.Skyland.PasswordLogin" xml:space="preserve">
+    <value>Password Login</value>
+  </data>
+  <data name="App.Skyland.PasswordPlaceholder" xml:space="preserve">
+    <value>Enter password</value>
+  </data>
+  <data name="App.Skyland.PasswordSubtitle" xml:space="preserve">
+    <value>Sign in with your Skyland account. The token is saved automatically after success.</value>
+  </data>
+  <data name="App.Skyland.PasswordSuccess" xml:space="preserve">
+    <value>Password login succeeded. Token saved.</value>
+  </data>
+  <data name="App.Skyland.PasswordTitle" xml:space="preserve">
+    <value>Get Token by Password</value>
+  </data>
+  <data name="App.Skyland.Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="App.Skyland.PhonePlaceholder" xml:space="preserve">
+    <value>Enter phone number</value>
+  </data>
+  <data name="App.Skyland.Progress.ScanStatus" xml:space="preserve">
+    <value>Waiting for QR status: {0} {1}</value>
+  </data>
+  <data name="App.Skyland.Progress.WaitConfirm" xml:space="preserve">
+    <value>Scanned. Waiting for confirmation in the Skyland app...</value>
+  </data>
+  <data name="App.Skyland.Progress.WaitScan" xml:space="preserve">
+    <value>Waiting for QR scan...</value>
+  </data>
+  <data name="App.Skyland.QrHint" xml:space="preserve">
+    <value>Scan with the Skyland app, confirm login in the app, then click OK.</value>
+  </data>
+  <data name="App.Skyland.ResendInSeconds" xml:space="preserve">
+    <value>Resend in {0}s</value>
+  </data>
+  <data name="App.Skyland.ScanChecking" xml:space="preserve">
+    <value>Checking QR login status...</value>
+  </data>
+  <data name="App.Skyland.ScanCreating" xml:space="preserve">
+    <value>Creating Skyland QR login...</value>
+  </data>
+  <data name="App.Skyland.ScanFailedPrefix" xml:space="preserve">
+    <value>QR token retrieval failed: </value>
+  </data>
+  <data name="App.Skyland.ScanLogin" xml:space="preserve">
+    <value>QR Login</value>
+  </data>
+  <data name="App.Skyland.ScanSuccess" xml:space="preserve">
+    <value>QR login succeeded. Token saved.</value>
+  </data>
+  <data name="App.Skyland.ScanSuccessToast" xml:space="preserve">
+    <value>QR login succeeded. Token saved</value>
+  </data>
+  <data name="App.Skyland.SendCode" xml:space="preserve">
+    <value>Send Code</value>
+  </data>
+  <data name="App.Skyland.SendCodeFailedPrefix" xml:space="preserve">
+    <value>Failed to send verification code: </value>
+  </data>
+  <data name="App.Skyland.Sending" xml:space="preserve">
+    <value>Sending...</value>
+  </data>
+  <data name="App.Skyland.SignCanceled" xml:space="preserve">
+    <value>Sign-in canceled.</value>
+  </data>
+  <data name="App.Skyland.SignComplete" xml:space="preserve">
+    <value>Skyland sign-in complete</value>
+  </data>
+  <data name="App.Skyland.SignEnd" xml:space="preserve">
+    <value>========== Skyland sign-in finished ==========</value>
+  </data>
+  <data name="App.Skyland.SignFailedPrefix" xml:space="preserve">
+    <value>Sign-in failed: </value>
+  </data>
+  <data name="App.Skyland.SignNow" xml:space="preserve">
+    <value>Sign Now</value>
+  </data>
+  <data name="App.Skyland.SignStart" xml:space="preserve">
+    <value>========== Skyland sign-in started ==========</value>
+  </data>
+  <data name="App.Skyland.SmsFailedPrefix" xml:space="preserve">
+    <value>SMS token retrieval failed: </value>
+  </data>
+  <data name="App.Skyland.SmsLogging" xml:space="preserve">
+    <value>Logging in with SMS code...</value>
+  </data>
+  <data name="App.Skyland.SmsLogin" xml:space="preserve">
+    <value>SMS Login</value>
+  </data>
+  <data name="App.Skyland.SmsSubtitle" xml:space="preserve">
+    <value>Enter the phone number bound to Skyland. Login starts after the code is entered.</value>
+  </data>
+  <data name="App.Skyland.SmsSuccess" xml:space="preserve">
+    <value>SMS login succeeded. Token saved.</value>
+  </data>
+  <data name="App.Skyland.SmsTitle" xml:space="preserve">
+    <value>Get Token by SMS Code</value>
+  </data>
+  <data name="App.Skyland.StartupSign" xml:space="preserve">
+    <value>Sign in on Windows startup</value>
+  </data>
+  <data name="App.Skyland.StartupSignHint" xml:space="preserve">
+    <value>Run one background sign-in after Windows starts, without showing the main window. Results are shown by notification.</value>
+  </data>
+  <data name="App.Skyland.Title" xml:space="preserve">
+    <value>Skyland Sign</value>
+  </data>
+  <data name="App.Skyland.Token" xml:space="preserve">
+    <value>Skyland Token</value>
+  </data>
+  <data name="App.Skyland.TokenHint" xml:space="preserve">
+    <value>Separate tokens with semicolons (;). Multiple accounts are supported.</value>
+  </data>
+  <data name="App.Skyland.TokenPlaceholder" xml:space="preserve">
+    <value>Enter Skyland tokens, separated by semicolons (;)</value>
+  </data>
+  <data name="App.Skyland.TokenRequired" xml:space="preserve">
+    <value>Please enter a Skyland Token first</value>
+  </data>
+  <data name="App.Skyland.TokenSaved" xml:space="preserve">
+    <value>Token saved</value>
+  </data>
+  <data name="App.StartupAnnouncement.Button" xml:space="preserve">
+    <value>已阅读</value>
+  </data>
+  <data name="App.StartupAnnouncement.ModalTitle" xml:space="preserve">
+    <value>版本信息</value>
+  </data>
+  <data name="App.Switch.ConfirmMsg" xml:space="preserve">
+    <value>Switching servers requires closing the running game. Continue?</value>
+  </data>
+  <data name="App.Switch.ConfirmOk" xml:space="preserve">
+    <value>Close &amp; Switch</value>
+  </data>
+  <data name="App.Switch.ConfirmTitle" xml:space="preserve">
+    <value>Switch Server</value>
+  </data>
+  <data name="App.Switch.Copying" xml:space="preserve">
+    <value>Copying files...</value>
+  </data>
+  <data name="App.Switch.DoneCopy" xml:space="preserve">
+    <value>Server switched</value>
+  </data>
+  <data name="App.Switch.DoneHardLink" xml:space="preserve">
+    <value>Server switched</value>
+  </data>
+  <data name="App.Switch.Extracting" xml:space="preserve">
+    <value>Extracting files...</value>
+  </data>
+  <data name="App.Switch.KillingProcess" xml:space="preserve">
+    <value>Stopping game process...</value>
+  </data>
+  <data name="App.Switch.Linking" xml:space="preserve">
+    <value>Switching server...</value>
+  </data>
+  <data name="App.Switch.NoPayload" xml:space="preserve">
+    <value>Server resources not found (no folder or ZIP in load directory)</value>
+  </data>
+  <data name="App.Sync.AddSuccess" xml:space="preserve">
+    <value>Added: {0}</value>
+  </data>
+  <data name="App.Sync.AlreadyAdded" xml:space="preserve">
+    <value>This app is already in the list</value>
+  </data>
+  <data name="App.Sync.BtnAdd" xml:space="preserve">
+    <value>+ Add</value>
+  </data>
+  <data name="App.Sync.BtnBack" xml:space="preserve">
+    <value>← Back</value>
+  </data>
+  <data name="App.Sync.BtnDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="App.Sync.DialogFilter" xml:space="preserve">
+    <value>Executable files (*)|*</value>
+  </data>
+  <data name="App.Sync.DialogTitle" xml:space="preserve">
+    <value>Select a program to launch</value>
+  </data>
+  <data name="App.Sync.Empty" xml:space="preserve">
+    <value>No sync apps yet</value>
+  </data>
+  <data name="App.Sync.EmptySub" xml:space="preserve">
+    <value>Click \"+ Add\" in the top right to add an app</value>
+  </data>
+  <data name="App.Sync.Title" xml:space="preserve">
+    <value>Sync App Manager</value>
+  </data>
+  <data name="App.Tray.Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="App.Tray.Show" xml:space="preserve">
+    <value>Show Window</value>
+  </data>
+  <data name="App.Update.AlreadyLatest" xml:space="preserve">
+    <value>You are on the latest version</value>
+  </data>
+  <data name="App.Update.CancelDownload" xml:space="preserve">
+    <value>Cancel Download</value>
+  </data>
+  <data name="App.Update.Canceling" xml:space="preserve">
+    <value>Canceling...</value>
+  </data>
+  <data name="App.Update.ChangelogHint" xml:space="preserve">
+    <value>Click \"Check for Updates\" to see the latest release notes</value>
+  </data>
+  <data name="App.Update.CheckFailed" xml:space="preserve">
+    <value>Check failed. Please check your network connection.</value>
+  </data>
+  <data name="App.Update.CheckFailedTitle" xml:space="preserve">
+    <value>Update Check Failed</value>
+  </data>
+  <data name="App.Update.Checking" xml:space="preserve">
+    <value>Checking...</value>
+  </data>
+  <data name="App.Update.CheckUpdate" xml:space="preserve">
+    <value>Check for Updates</value>
+  </data>
+  <data name="App.Update.CurrentVersion" xml:space="preserve">
+    <value>Current Version</value>
+  </data>
+  <data name="App.Update.DisableReminder" xml:space="preserve">
+    <value>Don't remind</value>
+  </data>
+  <data name="App.Update.DownloadCanceled" xml:space="preserve">
+    <value>Canceled</value>
+  </data>
+  <data name="App.Update.DownloadDone" xml:space="preserve">
+    <value>Download complete!</value>
+  </data>
+  <data name="App.Update.DownloadedMB" xml:space="preserve">
+    <value>{0:F1} MB downloaded</value>
+  </data>
+  <data name="App.Update.DownloadErrorPrefix" xml:space="preserve">
+    <value>Error: </value>
+  </data>
+  <data name="App.Update.DownloadFailed" xml:space="preserve">
+    <value>Download failed</value>
+  </data>
+  <data name="App.Update.DownloadNow" xml:space="preserve">
+    <value>Update Now</value>
+  </data>
+  <data name="App.Update.DownloadPortable" xml:space="preserve">
+    <value>⬇ Download Portable</value>
+  </data>
+  <data name="App.Update.DownloadSetup" xml:space="preserve">
+    <value>⬇ Download Installer</value>
+  </data>
+  <data name="App.Update.ErrorPrefix" xml:space="preserve">
+    <value>Unexpected error: </value>
+  </data>
+  <data name="App.Update.Fallback" xml:space="preserve">
+    <value>Open Download Page</value>
+  </data>
+  <data name="App.Update.LatestVersion" xml:space="preserve">
+    <value>Latest Version</value>
+  </data>
+  <data name="App.Update.ModalTitle" xml:space="preserve">
+    <value>Software Update</value>
+  </data>
+  <data name="App.Update.NewVersionTitle" xml:space="preserve">
+    <value>New Version Available</value>
+  </data>
+  <data name="App.Update.NoChangelog" xml:space="preserve">
+    <value>No release notes available.</value>
+  </data>
+  <data name="App.Update.NoUpdateTitle" xml:space="preserve">
+    <value>You're Up to Date</value>
+  </data>
+  <data name="App.Update.Portable" xml:space="preserve">
+    <value>Portable</value>
+  </data>
+  <data name="App.Update.Preparing" xml:space="preserve">
+    <value>Preparing download...</value>
+  </data>
+  <data name="App.Update.ReleaseDate" xml:space="preserve">
+    <value>Release date: {0}</value>
+  </data>
+  <data name="App.Update.ReleaseDateFailed" xml:space="preserve">
+    <value>Release date: check failed</value>
+  </data>
+  <data name="App.Update.ReleaseDatePending" xml:space="preserve">
+    <value>Release date: shown after check</value>
+  </data>
+  <data name="App.Update.ReleaseNotes" xml:space="preserve">
+    <value>Release Notes</value>
+  </data>
+  <data name="App.Update.ReminderSubtitle" xml:space="preserve">
+    <value>Current v{0}, update to v{1}</value>
+  </data>
+  <data name="App.Update.ReminderTitle" xml:space="preserve">
+    <value>New version v{0}</value>
+  </data>
+  <data name="App.Update.SavePortableFilter" xml:space="preserve">
+    <value>ZIP Archive|*.zip</value>
+  </data>
+  <data name="App.Update.SavePortableTitle" xml:space="preserve">
+    <value>Save Portable Package</value>
+  </data>
+  <data name="App.Update.SizeBoth" xml:space="preserve">
+    <value>Installer {0} / portable {1}</value>
+  </data>
+  <data name="App.Update.SkipVersion" xml:space="preserve">
+    <value>Skip</value>
+  </data>
+  <data name="App.Update.Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="App.Update.UpdateSize" xml:space="preserve">
+    <value>Update size: {0}</value>
+  </data>
+  <data name="App.Update.UpdateSizeFailed" xml:space="preserve">
+    <value>Update size: check failed</value>
+  </data>
+  <data name="App.Update.UpdateSizePending" xml:space="preserve">
+    <value>Update size: shown after check</value>
+  </data>
+  <data name="Avatar" xml:space="preserve">
+    <value>Avatar</value>
+  </data>
+  <data name="Avatar.avatar5" xml:space="preserve">
+    <value>N</value>
+  </data>
+  <data name="Avatar.Description" xml:space="preserve">
+    <value>Used to represent users or things, supporting the display of images, icons, or characters.</value>
+  </data>
+  <data name="Badge" xml:space="preserve">
+    <value>Badge</value>
+  </data>
+  <data name="Badge.Description" xml:space="preserve">
+    <value>Small numerical value or status descriptor for UI elements.</value>
+  </data>
+  <data name="Badge.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Badge.divider2" xml:space="preserve">
+    <value>More</value>
+  </data>
+  <data name="Badge.tag1" xml:space="preserve">
+    <value>GAMES</value>
+  </data>
+  <data name="Battery" xml:space="preserve">
+    <value>Battery</value>
+  </data>
+  <data name="Battery.Add" xml:space="preserve">
+    <value>Power up</value>
+  </data>
+  <data name="Battery.Description" xml:space="preserve">
+    <value>Display device battery level.</value>
+  </data>
+  <data name="Battery.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Battery.divider2" xml:space="preserve">
+    <value>No text</value>
+  </data>
+  <data name="Battery.divider3" xml:space="preserve">
+    <value>Point size</value>
+  </data>
+  <data name="Battery.Subtract" xml:space="preserve">
+    <value>Reduce</value>
+  </data>
+  <data name="Breadcrumb" xml:space="preserve">
+    <value>Breadcrumb</value>
+  </data>
+  <data name="Breadcrumb.Description" xml:space="preserve">
+    <value>Display the current location within a hierarchy. And allow going back to states higher up in the hierarchy.</value>
+  </data>
+  <data name="Button" xml:space="preserve">
+    <value>Button</value>
+  </data>
+  <data name="Button.Description" xml:space="preserve">
+    <value>To trigger an operation.</value>
+  </data>
+  <data name="Button.divider1" xml:space="preserve">
+    <value>Color &amp; Type</value>
+  </data>
+  <data name="Button.divider2" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="Button.divider3" xml:space="preserve">
+    <value>Link</value>
+  </data>
+  <data name="Button.divider4" xml:space="preserve">
+    <value>IconPosition</value>
+  </data>
+  <data name="Button.divider5" xml:space="preserve">
+    <value>Multiple Buttons</value>
+  </data>
+  <data name="Button.divider6" xml:space="preserve">
+    <value>Shape</value>
+  </data>
+  <data name="Button.Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Calendar" xml:space="preserve">
+    <value>Calendar</value>
+  </data>
+  <data name="Calendar.Description" xml:space="preserve">
+    <value>A container that displays data in calendar form.</value>
+  </data>
+  <data name="Calendar.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Carousel" xml:space="preserve">
+    <value>Carousel</value>
+  </data>
+  <data name="Carousel.Description" xml:space="preserve">
+    <value>A set of carousel areas.</value>
+  </data>
+  <data name="Chart" xml:space="preserve">
+    <value>Chart</value>
+  </data>
+  <data name="Chart.Description" xml:space="preserve">
+    <value>Visual chart library.</value>
+  </data>
+  <data name="Checkbox" xml:space="preserve">
+    <value>Checkbox</value>
+  </data>
+  <data name="Checkbox.Description" xml:space="preserve">
+    <value>Collect user's choices.</value>
+  </data>
+  <data name="Checkbox.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Checkbox.divider2" xml:space="preserve">
+    <value>Custom color</value>
+  </data>
+  <data name="Checkbox.divider3" xml:space="preserve">
+    <value>Linkage</value>
+  </data>
+  <data name="Click:" xml:space="preserve">
+    <value>Click:</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Collapse" xml:space="preserve">
+    <value>Collapse</value>
+  </data>
+  <data name="Collapse.Description" xml:space="preserve">
+    <value>A content area which can be collapsed and expanded.</value>
+  </data>
+  <data name="Collapse.divider1" xml:space="preserve">
+    <value>Collapse</value>
+  </data>
+  <data name="Collapse.divider2" xml:space="preserve">
+    <value>Borderless</value>
+  </data>
+  <data name="ColorPicker" xml:space="preserve">
+    <value>ColorPicker</value>
+  </data>
+  <data name="ColorPicker.Description" xml:space="preserve">
+    <value>Used for color selection.</value>
+  </data>
+  <data name="ContextMenuStrip" xml:space="preserve">
+    <value>ContextMenuStrip</value>
+  </data>
+  <data name="ContextMenuStrip.Description" xml:space="preserve">
+    <value>Right click on the current page at will</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>copy failed</value>
+  </data>
+  <data name="CopyOK" xml:space="preserve">
+    <value>copied</value>
+  </data>
+  <data name="DataDisplay" xml:space="preserve">
+    <value>Data Display</value>
+  </data>
+  <data name="DataEntry" xml:space="preserve">
+    <value>Data Entry</value>
+  </data>
+  <data name="DatePicker" xml:space="preserve">
+    <value>DatePicker</value>
+  </data>
+  <data name="DatePicker.Description" xml:space="preserve">
+    <value>To select or input a date.</value>
+  </data>
+  <data name="DatePicker.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="DatePicker.divider2" xml:space="preserve">
+    <value>Range Picker</value>
+  </data>
+  <data name="DatePicker.divider3" xml:space="preserve">
+    <value>Time/Preset</value>
+  </data>
+  <data name="DatePicker.PlaceholderE" xml:space="preserve">
+    <value>End date</value>
+  </data>
+  <data name="DatePicker.PlaceholderS" xml:space="preserve">
+    <value>Start date</value>
+  </data>
+  <data name="DatePicker.PlaceholderText" xml:space="preserve">
+    <value>Select a date</value>
+  </data>
+  <data name="Divider" xml:space="preserve">
+    <value>Divider</value>
+  </data>
+  <data name="Divider.Description" xml:space="preserve">
+    <value>A divider line separates different content.</value>
+  </data>
+  <data name="Drawer" xml:space="preserve">
+    <value>Drawer</value>
+  </data>
+  <data name="Drawer.Description" xml:space="preserve">
+    <value>A panel that slides out from the edge of the screen.</value>
+  </data>
+  <data name="Drawer.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Dropdown" xml:space="preserve">
+    <value>Dropdown</value>
+  </data>
+  <data name="Dropdown.Description" xml:space="preserve">
+    <value>A dropdown list.</value>
+  </data>
+  <data name="Dropdown.divider1" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Dropdown.divider2" xml:space="preserve">
+    <value>Placement</value>
+  </data>
+  <data name="Dropdown.dropdown1" xml:space="preserve">
+    <value>Subs menu</value>
+  </data>
+  <data name="Feedback" xml:space="preserve">
+    <value>Feedback</value>
+  </data>
+  <data name="Filled" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Filter.Blank" xml:space="preserve">
+    <value>(Blank)</value>
+  </data>
+  <data name="Filter.Clean" xml:space="preserve">
+    <value>Clean</value>
+  </data>
+  <data name="Filter.Contain" xml:space="preserve">
+    <value>Contain</value>
+  </data>
+  <data name="Filter.Equal" xml:space="preserve">
+    <value>Equal</value>
+  </data>
+  <data name="Filter.Greater" xml:space="preserve">
+    <value>Greater</value>
+  </data>
+  <data name="Filter.Less" xml:space="preserve">
+    <value>Less</value>
+  </data>
+  <data name="Filter.None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Filter.NotContain" xml:space="preserve">
+    <value>NotContain</value>
+  </data>
+  <data name="Filter.NotEqual" xml:space="preserve">
+    <value>NotEqual</value>
+  </data>
+  <data name="Filter.Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Filter.SelectAll" xml:space="preserve">
+    <value>(Select All)</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="flags" xml:space="preserve">
+    <value>Flags</value>
+  </data>
+  <data name="FloatButton" xml:space="preserve">
+    <value>FloatButton</value>
+  </data>
+  <data name="FloatButton.1" xml:space="preserve">
+    <value>Search for</value>
+  </data>
+  <data name="FloatButton.2" xml:space="preserve">
+    <value>Don't be ridiculous</value>
+  </data>
+  <data name="FloatButton.3" xml:space="preserve">
+    <value>Help me</value>
+  </data>
+  <data name="FloatButton.4" xml:space="preserve">
+    <value>Hopeless</value>
+  </data>
+  <data name="FloatButton.Arrow" xml:space="preserve">
+    <value>Expand</value>
+  </data>
+  <data name="food drink" xml:space="preserve">
+    <value>Food &amp; Drink</value>
+  </data>
+  <data name="Fri" xml:space="preserve">
+    <value>Fri</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="GridPanel" xml:space="preserve">
+    <value>GridPanel</value>
+  </data>
+  <data name="GridPanel.Describe" xml:space="preserve">
+    <value>-The column width attribute is before, and the row height attribute is after; grouping. Each row represents the number of row height attributes corresponding to the number of rows, with spaces separating each number</value>
+  </data>
+  <data name="GridPanel.Description" xml:space="preserve">
+    <value>Grid layout container with precise division of areas.</value>
+  </data>
+  <data name="GridPanel.Prefix" xml:space="preserve">
+    <value>Span Attribute</value>
+  </data>
+  <data name="HyperlinkLabel" xml:space="preserve">
+    <value>HyperlinkLabel</value>
+  </data>
+  <data name="HyperlinkLabel.Description" xml:space="preserve">
+    <value>Hyperlink text&lt;a&gt;</value>
+  </data>
+  <data name="HyperlinkLabel.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="HyperlinkLabel.divider2" xml:space="preserve">
+    <value>Center alignment</value>
+  </data>
+  <data name="HyperlinkLabel.divider3" xml:space="preserve">
+    <value>Link with badge</value>
+  </data>
+  <data name="HyperlinkLabel.divider4" xml:space="preserve">
+    <value>Custom Style</value>
+  </data>
+  <data name="HyperlinkLabel.divider5" xml:space="preserve">
+    <value>Multiple links</value>
+  </data>
+  <data name="Icon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="Icon.Application" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Icon.Data" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Icon.Description" xml:space="preserve">
+    <value>Semantic vector graphics.</value>
+  </data>
+  <data name="Icon.Directional" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Icon.Editor" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Icon.Logos" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Icon.PlaceholderText" xml:space="preserve">
+    <value>Search icons here, click icon to copy code</value>
+  </data>
+  <data name="Icon.Suggested" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>en-US</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Input.Code" xml:space="preserve">
+    <value>Please enter verification code</value>
+  </data>
+  <data name="Input.Code2" xml:space="preserve">
+    <value>Code: </value>
+  </data>
+  <data name="Input.Description" xml:space="preserve">
+    <value>Through mouse or keyboard input content, it is the most basic form field wrapper.</value>
+  </data>
+  <data name="Input.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Input.divider2" xml:space="preserve">
+    <value>Pre / Post tab</value>
+  </data>
+  <data name="Input.divider3" xml:space="preserve">
+    <value>Variant</value>
+  </data>
+  <data name="Input.divider4" xml:space="preserve">
+    <value>Multiline</value>
+  </data>
+  <data name="Input.divider5" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Input.divider6" xml:space="preserve">
+    <value>Combination</value>
+  </data>
+  <data name="Input.input10" xml:space="preserve">
+    <value>input search text</value>
+  </data>
+  <data name="Input.input13" xml:space="preserve">
+    <value>Enter your password</value>
+  </data>
+  <data name="Input.input14" xml:space="preserve">
+    <value>Clear button</value>
+  </data>
+  <data name="Input.input18" xml:space="preserve">
+    <value>input search text</value>
+  </data>
+  <data name="Input.input19" xml:space="preserve">
+    <value>input search text</value>
+  </data>
+  <data name="Input.input2" xml:space="preserve">
+    <value>Clear button</value>
+  </data>
+  <data name="Input.input3" xml:space="preserve">
+    <value>Round</value>
+  </data>
+  <data name="Input.input4" xml:space="preserve">
+    <value>Bold border</value>
+  </data>
+  <data name="Input.input5" xml:space="preserve">
+    <value>Please input something</value>
+  </data>
+  <data name="Input.Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Input.Tao" xml:space="preserve">
+    <value>Tao, I like it</value>
+  </data>
+  <data name="InputNumber" xml:space="preserve">
+    <value>InputNumber</value>
+  </data>
+  <data name="InputNumber.Description" xml:space="preserve">
+    <value>Enter a number within certain range with the mouse or keyboard.</value>
+  </data>
+  <data name="InputNumber.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="InputNumber.input3" xml:space="preserve">
+    <value>Enter number</value>
+  </data>
+  <data name="ItemsPerPage" xml:space="preserve">
+    <value>Per/Page</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>LOADING</value>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>Loading in progress...</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="Menu.collapse" xml:space="preserve">
+    <value>Collapse</value>
+  </data>
+  <data name="Menu.Description" xml:space="preserve">
+    <value>A versatile menu for navigation.</value>
+  </data>
+  <data name="Menu.divider1" xml:space="preserve">
+    <value>Top Navigation</value>
+  </data>
+  <data name="Menu.divider2" xml:space="preserve">
+    <value>Inline menu</value>
+  </data>
+  <data name="Menu.divider3" xml:space="preserve">
+    <value>Vertical menu</value>
+  </data>
+  <data name="Menu.expand" xml:space="preserve">
+    <value>Expand</value>
+  </data>
+  <data name="Menu.flatten" xml:space="preserve">
+    <value>Flatten</value>
+  </data>
+  <data name="Menu.indent" xml:space="preserve">
+    <value>Indent</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Message.Description" xml:space="preserve">
+    <value>Display global messages as feedback in response to user operations.</value>
+  </data>
+  <data name="Message.divider1" xml:space="preserve">
+    <value>More types</value>
+  </data>
+  <data name="Message.divider2" xml:space="preserve">
+    <value>Message with loading indicator</value>
+  </data>
+  <data name="Message.divider3" xml:space="preserve">
+    <value>System Sound</value>
+  </data>
+  <data name="Modal" xml:space="preserve">
+    <value>Modal</value>
+  </data>
+  <data name="Modal.Description" xml:space="preserve">
+    <value>Display a modal dialog box, providing a title, content area, and action buttons.</value>
+  </data>
+  <data name="Modal.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Mon" xml:space="preserve">
+    <value>Mon</value>
+  </data>
+  <data name="Navigation" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="NoData" xml:space="preserve">
+    <value>No data</value>
+  </data>
+  <data name="Notification" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="Notification.Description" xml:space="preserve">
+    <value>Prompt notification message globally.</value>
+  </data>
+  <data name="Notification.divider1" xml:space="preserve">
+    <value>Placement</value>
+  </data>
+  <data name="Notification.divider2" xml:space="preserve">
+    <value>More types</value>
+  </data>
+  <data name="Notification.divider3" xml:space="preserve">
+    <value>System Sound</value>
+  </data>
+  <data name="Now" xml:space="preserve">
+    <value>Now</value>
+  </data>
+  <data name="objects" xml:space="preserve">
+    <value>Objects</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Outlined" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Overview.txt_search" xml:space="preserve">
+    <value>Keywords to search</value>
+  </data>
+  <data name="PageHeader" xml:space="preserve">
+    <value>PageHeader</value>
+  </data>
+  <data name="PageHeader.Description" xml:space="preserve">
+    <value>A header with common actions and design elements built in.</value>
+  </data>
+  <data name="PageHeader.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="PageHeader.divider2" xml:space="preserve">
+    <value>CloseButton</value>
+  </data>
+  <data name="PageHeader.Type" xml:space="preserve">
+    <value>ShowBack</value>
+  </data>
+  <data name="Pagination" xml:space="preserve">
+    <value>Pagination</value>
+  </data>
+  <data name="Pagination.Description" xml:space="preserve">
+    <value>A long list can be divided into several pages, and only one page will be loaded at a time.</value>
+  </data>
+  <data name="Panel" xml:space="preserve">
+    <value>Panel</value>
+  </data>
+  <data name="Panel.Description" xml:space="preserve">
+    <value>A container for displaying information.</value>
+  </data>
+  <data name="people body" xml:space="preserve">
+    <value>People &amp; Body</value>
+  </data>
+  <data name="PleaseWait" xml:space="preserve">
+    <value>Please be patient and wait</value>
+  </data>
+  <data name="Popover" xml:space="preserve">
+    <value>Popover</value>
+  </data>
+  <data name="Popover.button1" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Popover.button2" xml:space="preserve">
+    <value>Custom Control Content</value>
+  </data>
+  <data name="Popover.Description" xml:space="preserve">
+    <value>The floating card pops up when clicking/mouse hovering over an element.</value>
+  </data>
+  <data name="Popover.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Popover.divider2" xml:space="preserve">
+    <value>Placement</value>
+  </data>
+  <data name="PopupWindow" xml:space="preserve">
+    <value>Popup in the window</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Preview.button1" xml:space="preserve">
+    <value>Single Image</value>
+  </data>
+  <data name="Preview.button2" xml:space="preserve">
+    <value>Multiple Images</value>
+  </data>
+  <data name="Preview.button3" xml:space="preserve">
+    <value>Dynamic Load Images</value>
+  </data>
+  <data name="Preview.button4" xml:space="preserve">
+    <value>Multiple images and Text previews</value>
+  </data>
+  <data name="Preview.Description" xml:space="preserve">
+    <value>Picture preview box.</value>
+  </data>
+  <data name="Preview.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="Progress.Description" xml:space="preserve">
+    <value>Display the current progress of the operation.</value>
+  </data>
+  <data name="Progress.divider1" xml:space="preserve">
+    <value>Standard progress bar</value>
+  </data>
+  <data name="Progress.divider2" xml:space="preserve">
+    <value>Circular progress bar</value>
+  </data>
+  <data name="Progress.divider3" xml:space="preserve">
+    <value>Mini size progress bar</value>
+  </data>
+  <data name="Progress.divider4" xml:space="preserve">
+    <value>Responsive circular progress bar</value>
+  </data>
+  <data name="Progress.divider5" xml:space="preserve">
+    <value>Progress bar with steps</value>
+  </data>
+  <data name="Radio" xml:space="preserve">
+    <value>Radio</value>
+  </data>
+  <data name="Radio.Description" xml:space="preserve">
+    <value>Used to select a single state from multiple options.</value>
+  </data>
+  <data name="Radio.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Radio.divider2" xml:space="preserve">
+    <value>Custom color</value>
+  </data>
+  <data name="Radio.divider3" xml:space="preserve">
+    <value>Linkage</value>
+  </data>
+  <data name="Rate" xml:space="preserve">
+    <value>Rate</value>
+  </data>
+  <data name="Rate.Description" xml:space="preserve">
+    <value>Used for rating operation on something.</value>
+  </data>
+  <data name="Rate.rate5" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="Rate.rate6" xml:space="preserve">
+    <value>NB</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Result.Description" xml:space="preserve">
+    <value>Used to feedback the processing results of a series of operations.</value>
+  </data>
+  <data name="Sat" xml:space="preserve">
+    <value>Sat</value>
+  </data>
+  <data name="ScrollBarHidden" xml:space="preserve">
+    <value>ScrollBar Hidden Style</value>
+  </data>
+  <data name="Segmented" xml:space="preserve">
+    <value>Segmented</value>
+  </data>
+  <data name="Segmented.Description" xml:space="preserve">
+    <value>Display multiple options and allow users to select a single option.</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="Select.Description" xml:space="preserve">
+    <value>A dropdown menu for displaying choices.</value>
+  </data>
+  <data name="Select.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Select.divider2" xml:space="preserve">
+    <value>Combination</value>
+  </data>
+  <data name="Select.divider3" xml:space="preserve">
+    <value>More</value>
+  </data>
+  <data name="Select.select4" xml:space="preserve">
+    <value>No text</value>
+  </data>
+  <data name="Select.select5" xml:space="preserve">
+    <value>Show Arrow</value>
+  </data>
+  <data name="Select.select6" xml:space="preserve">
+    <value>Enter search freely</value>
+  </data>
+  <data name="Select.select7" xml:space="preserve">
+    <value>Enter search freely</value>
+  </data>
+  <data name="Select.select8" xml:space="preserve">
+    <value>(Select)</value>
+  </data>
+  <data name="Select.sub menu 1" xml:space="preserve">
+    <value>Sub menu 1</value>
+  </data>
+  <data name="Select.sub menu 2" xml:space="preserve">
+    <value>Sub menu 2</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Setting</value>
+  </data>
+  <data name="ShadowEnabled" xml:space="preserve">
+    <value>Shadow Enabled</value>
+  </data>
+  <data name="Shield" xml:space="preserve">
+    <value>Shield</value>
+  </data>
+  <data name="Shield.Description" xml:space="preserve">
+    <value>Concise, consistent, and legible badges.</value>
+  </data>
+  <data name="Shield.qq" xml:space="preserve">
+    <value>QQ Group</value>
+  </data>
+  <data name="Signal" xml:space="preserve">
+    <value>Signal</value>
+  </data>
+  <data name="Signal.Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Signal.Description" xml:space="preserve">
+    <value>Display device signals.</value>
+  </data>
+  <data name="Signal.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Signal.divider2" xml:space="preserve">
+    <value>Line style</value>
+  </data>
+  <data name="Signal.divider3" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+  <data name="Signal.Subtract" xml:space="preserve">
+    <value>Subtract</value>
+  </data>
+  <data name="Slider" xml:space="preserve">
+    <value>Slider</value>
+  </data>
+  <data name="Slider.Description" xml:space="preserve">
+    <value>A Slider component for displaying current value and intervals in range.</value>
+  </data>
+  <data name="Slider.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Slider.divider2" xml:space="preserve">
+    <value>Mark Dot</value>
+  </data>
+  <data name="Spin" xml:space="preserve">
+    <value>Spin</value>
+  </data>
+  <data name="Spin.btnControl" xml:space="preserve">
+    <value>Control above</value>
+  </data>
+  <data name="Spin.btnPanel" xml:space="preserve">
+    <value>Current container</value>
+  </data>
+  <data name="Spin.btnWindow" xml:space="preserve">
+    <value>Entire window</value>
+  </data>
+  <data name="Spin.buttonError" xml:space="preserve">
+    <value>Error callback</value>
+  </data>
+  <data name="Spin.Description" xml:space="preserve">
+    <value>Used for the loading status of a page or a block.</value>
+  </data>
+  <data name="Spin.divider1" xml:space="preserve">
+    <value>Direct use</value>
+  </data>
+  <data name="Spin.divider2" xml:space="preserve">
+    <value>Display Text</value>
+  </data>
+  <data name="Spin.divider3" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Splitter" xml:space="preserve">
+    <value>Splitter</value>
+  </data>
+  <data name="Splitter.Description" xml:space="preserve">
+    <value>Split panels to isolate</value>
+  </data>
+  <data name="Steps" xml:space="preserve">
+    <value>Steps</value>
+  </data>
+  <data name="Steps.CurrentCompleted" xml:space="preserve">
+    <value>Current Completed</value>
+  </data>
+  <data name="Steps.CurrentProcessing" xml:space="preserve">
+    <value>Current Processing</value>
+  </data>
+  <data name="Steps.Description" xml:space="preserve">
+    <value>A navigation bar that guides users through the steps of a task.</value>
+  </data>
+  <data name="Sun" xml:space="preserve">
+    <value>Sun</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="Switch.Description" xml:space="preserve">
+    <value>Used to toggle between two states.</value>
+  </data>
+  <data name="symbols" xml:space="preserve">
+    <value>Symbols</value>
+  </data>
+  <data name="Table" xml:space="preserve">
+    <value>Table</value>
+  </data>
+  <data name="Table.checkAddressLineBreak" xml:space="preserve">
+    <value>AddressLineBreak</value>
+  </data>
+  <data name="Table.checkBordered" xml:space="preserve">
+    <value>Bordered</value>
+  </data>
+  <data name="Table.checkboxFocusNavigation" xml:space="preserve">
+    <value>FocusNavigation</value>
+  </data>
+  <data name="Table.checkboxSummaryCustomize" xml:space="preserve">
+    <value>CustomSummary</value>
+  </data>
+  <data name="Table.checkColumnDragSort" xml:space="preserve">
+    <value>ColumnDragSort</value>
+  </data>
+  <data name="Table.checkEnableHeaderResizing" xml:space="preserve">
+    <value>EnableHeaderResizing</value>
+  </data>
+  <data name="Table.checkFilter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Table.checkFixedHeader" xml:space="preserve">
+    <value>FixedHeader</value>
+  </data>
+  <data name="Table.checkRowsDragSort" xml:space="preserve">
+    <value>RowsDragSort</value>
+  </data>
+  <data name="Table.checkScrollBarAvoidHeader" xml:space="preserve">
+    <value>ScrollBar AvoidHeader</value>
+  </data>
+  <data name="Table.checkSetRowStyle" xml:space="preserve">
+    <value>SetRowStyle</value>
+  </data>
+  <data name="Table.checkSortOrder" xml:space="preserve">
+    <value>SortOrder</value>
+  </data>
+  <data name="Table.checkTree" xml:space="preserve">
+    <value>Tree</value>
+  </data>
+  <data name="Table.checkVisibleHeader" xml:space="preserve">
+    <value>VisibleHeader</value>
+  </data>
+  <data name="Table.Column.address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="Table.Column.age" xml:space="preserve">
+    <value>Age</value>
+  </data>
+  <data name="Table.Column.btns" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Table.Column.checkTitle" xml:space="preserve">
+    <value>No Title</value>
+  </data>
+  <data name="Table.Column.date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Table.Column.enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Table.Column.hobby" xml:space="preserve">
+    <value>Hobby</value>
+  </data>
+  <data name="Table.Column.imgs" xml:space="preserve">
+    <value>Imgs</value>
+  </data>
+  <data name="Table.Column.name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Table.Column.online" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="Table.Column.radio" xml:space="preserve">
+    <value>Radio</value>
+  </data>
+  <data name="Table.Data.Address1" xml:space="preserve">
+    <value>London, Park Lane no.1</value>
+  </data>
+  <data name="Table.Data.Address2" xml:space="preserve">
+    <value>New York No.1 Lake Park</value>
+  </data>
+  <data name="Table.Data.Address3" xml:space="preserve">
+    <value>London No. 1 Lake Park</value>
+  </data>
+  <data name="Table.Data.Address4" xml:space="preserve">
+    <value>Sydney No. 1 Lake Park</value>
+  </data>
+  <data name="Table.Data.AddressNum" xml:space="preserve">
+    <value>London, Park Lane no.</value>
+  </data>
+  <data name="Table.Data.Books" xml:space="preserve">
+    <value>Books</value>
+  </data>
+  <data name="Table.Data.FormatSummary" xml:space="preserve">
+    <value>{0} {1} in total</value>
+  </data>
+  <data name="Table.Data.Name1" xml:space="preserve">
+    <value>John Brown</value>
+  </data>
+  <data name="Table.Data.Name2" xml:space="preserve">
+    <value>Jim Green</value>
+  </data>
+  <data name="Table.Data.Name3" xml:space="preserve">
+    <value>Joe Black</value>
+  </data>
+  <data name="Table.Data.Online" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="Table.Data.Online.Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Table.Data.Online.Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Table.Data.Online.Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+  <data name="Table.Data.Online.Warn" xml:space="preserve">
+    <value>Warn</value>
+  </data>
+  <data name="Table.Data.Social" xml:space="preserve">
+    <value>Social</value>
+  </data>
+  <data name="Table.Data.Sports" xml:space="preserve">
+    <value>Sports</value>
+  </data>
+  <data name="Table.Data.Travel" xml:space="preserve">
+    <value>Travel</value>
+  </data>
+  <data name="Table.Description" xml:space="preserve">
+    <value>A table displays rows of data.</value>
+  </data>
+  <data name="Table.selectEditMode" xml:space="preserve">
+    <value>EditMode</value>
+  </data>
+  <data name="Table.selectEditStyle" xml:space="preserve">
+    <value>EditStyle</value>
+  </data>
+  <data name="Table.selectFocusedStyle" xml:space="preserve">
+    <value>FocusedStyle</value>
+  </data>
+  <data name="Table.Summary.AVG" xml:space="preserve">
+    <value>AVG</value>
+  </data>
+  <data name="Table.Summary.COUNT" xml:space="preserve">
+    <value>COUNT</value>
+  </data>
+  <data name="Table.Summary.MAX" xml:space="preserve">
+    <value>MAX</value>
+  </data>
+  <data name="Table.Summary.MIN" xml:space="preserve">
+    <value>MIN</value>
+  </data>
+  <data name="Table.Summary.NONE" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Table.Summary.SUM" xml:space="preserve">
+    <value>SUM</value>
+  </data>
+  <data name="Tabs" xml:space="preserve">
+    <value>Tabs</value>
+  </data>
+  <data name="Tabs.Description" xml:space="preserve">
+    <value>Tabs make it easy to explore and switch between different views.</value>
+  </data>
+  <data name="Tabs.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Tabs.divider2" xml:space="preserve">
+    <value>Card style</value>
+  </data>
+  <data name="Tabs.divider3" xml:space="preserve">
+    <value>Center position</value>
+  </data>
+  <data name="Tag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="Tag.Description" xml:space="preserve">
+    <value>Used for marking and categorization.</value>
+  </data>
+  <data name="Tag.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Tag.divider2" xml:space="preserve">
+    <value>Colorful Tag</value>
+  </data>
+  <data name="Tag.divider3" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="Tag.tag16" xml:space="preserve">
+    <value>Custom Icon</value>
+  </data>
+  <data name="TextRenderingHighQuality" xml:space="preserve">
+    <value>TextRendering HighQuality</value>
+  </data>
+  <data name="Thu" xml:space="preserve">
+    <value>Thu</value>
+  </data>
+  <data name="Timeline" xml:space="preserve">
+    <value>Timeline</value>
+  </data>
+  <data name="Timeline.Description" xml:space="preserve">
+    <value>Vertical display timeline.</value>
+  </data>
+  <data name="TimePicker" xml:space="preserve">
+    <value>TimePicker</value>
+  </data>
+  <data name="TimePicker.Description" xml:space="preserve">
+    <value>To select/input a time.</value>
+  </data>
+  <data name="TimePicker.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="ToDay" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="Tooltip" xml:space="preserve">
+    <value>Tooltip</value>
+  </data>
+  <data name="Tooltip.Description" xml:space="preserve">
+    <value>Simple text popup box.</value>
+  </data>
+  <data name="Tooltip.divider1" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="Tooltip.divider2" xml:space="preserve">
+    <value>Placement</value>
+  </data>
+  <data name="Tooltip.label4" xml:space="preserve">
+    <value>Simplest usage</value>
+  </data>
+  <data name="Tour" xml:space="preserve">
+    <value>Tour</value>
+  </data>
+  <data name="Tour.Description" xml:space="preserve">
+    <value>A popup component for guiding users through a product.</value>
+  </data>
+  <data name="Transfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="Transfer.Content" xml:space="preserve">
+    <value>content</value>
+  </data>
+  <data name="Transfer.Description" xml:space="preserve">
+    <value>Double column transfer choice box.</value>
+  </data>
+  <data name="Transfer.Items" xml:space="preserve">
+    <value> items</value>
+  </data>
+  <data name="Transfer.One" xml:space="preserve">
+    <value>One Way</value>
+  </data>
+  <data name="Transfer.Option" xml:space="preserve">
+    <value>option</value>
+  </data>
+  <data name="Transfer.Reload" xml:space="preserve">
+    <value>Reload</value>
+  </data>
+  <data name="Transfer.search" xml:space="preserve">
+    <value>Search here</value>
+  </data>
+  <data name="Transfer.Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Transfer.SourceT" xml:space="preserve">
+    <value>Source: </value>
+  </data>
+  <data name="Transfer.Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Transfer.TargetT" xml:space="preserve">
+    <value>Target: </value>
+  </data>
+  <data name="travel places" xml:space="preserve">
+    <value>Travel &amp; Places</value>
+  </data>
+  <data name="Tree" xml:space="preserve">
+    <value>Tree</value>
+  </data>
+  <data name="Tree.Description" xml:space="preserve">
+    <value>Multiple-level structure list.</value>
+  </data>
+  <data name="Tree.Loading" xml:space="preserve">
+    <value>Load animation, click pause</value>
+  </data>
+  <data name="Tue" xml:space="preserve">
+    <value>Tue</value>
+  </data>
+  <data name="VirtualPanel" xml:space="preserve">
+    <value>VirtualPanel</value>
+  </data>
+  <data name="VirtualPanel.checkbox1" xml:space="preserve">
+    <value>Waterfall</value>
+  </data>
+  <data name="VirtualPanel.Description" xml:space="preserve">
+    <value>Layout container detached from Winform framework.</value>
+  </data>
+  <data name="Watermark" xml:space="preserve">
+    <value>Watermark</value>
+  </data>
+  <data name="Watermark.btnClear" xml:space="preserve">
+    <value>Clear watermark</value>
+  </data>
+  <data name="Watermark.btnForm" xml:space="preserve">
+    <value>Window watermark</value>
+  </data>
+  <data name="Watermark.btnFormError" xml:space="preserve">
+    <value>Error occurred while creating form watermark:</value>
+  </data>
+  <data name="Watermark.btnFormFailed" xml:space="preserve">
+    <value>Form watermark creation failed</value>
+  </data>
+  <data name="Watermark.btnFormOK" xml:space="preserve">
+    <value>Form watermark created successfully!</value>
+  </data>
+  <data name="Watermark.btnPanel" xml:space="preserve">
+    <value>Panel watermark</value>
+  </data>
+  <data name="Watermark.btnPanelError" xml:space="preserve">
+    <value>Error occurred while creating panel watermark:</value>
+  </data>
+  <data name="Watermark.btnPanelFailed" xml:space="preserve">
+    <value>Panel watermark creation failed</value>
+  </data>
+  <data name="Watermark.btnPanelOK" xml:space="preserve">
+    <value>Panel watermark created successfully!</value>
+  </data>
+  <data name="Watermark.Description" xml:space="preserve">
+    <value>Add specific text or patterns to the page.</value>
+  </data>
+  <data name="Watermark.lblContent" xml:space="preserve">
+    <value>Watermark content:</value>
+  </data>
+  <data name="Watermark.lblForeColor" xml:space="preserve">
+    <value>Watermark color:</value>
+  </data>
+  <data name="Watermark.lblGap" xml:space="preserve">
+    <value>Gap:</value>
+  </data>
+  <data name="Watermark.lblOpacity" xml:space="preserve">
+    <value>Opacity:</value>
+  </data>
+  <data name="Watermark.lblRotate" xml:space="preserve">
+    <value>Rotation angle:</value>
+  </data>
+  <data name="Watermark.lblSub" xml:space="preserve">
+    <value>Sub content:</value>
+  </data>
+  <data name="Wed" xml:space="preserve">
+    <value>Wed</value>
+  </data>
+</root>
