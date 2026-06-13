@@ -40,6 +40,16 @@ namespace XelLauncher
                 return;
             }
 
+            if (!IsWindows10Version22H2OrLater())
+            {
+                MessageBox.Show(
+                    "XelLauncher 需要 Windows 10 22H2（内部版本 19045）或更高版本。\r\n\r\n请升级系统后再运行。",
+                    "系统版本不受支持",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
             try
             {
                 _ = Microsoft.Web.WebView2.Core.CoreWebView2Environment
@@ -65,7 +75,7 @@ namespace XelLauncher
             var lang = !string.IsNullOrEmpty(cfg.Language)
                 ? cfg.Language
                 : AntdUI.Localization.CurrentLanguage;
-            if (lang.StartsWith("en")) AntdUI.Localization.Provider = new Localizer();
+            AntdUI.Localization.Provider = new Localizer();
             AntdUI.Localization.SetLanguage(lang);
             AntdUI.Config.Theme()
                 .Dark(AppTheme.DarkBackground, AppTheme.DarkForeground)
@@ -88,6 +98,11 @@ namespace XelLauncher
             if (command == "m") Application.Run(new Main());
             else if (command == "tab") Application.Run(new TabHeaderForm());
             else Application.Run(new Overview(command == "t"));
+        }
+
+        static bool IsWindows10Version22H2OrLater()
+        {
+            return OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19045);
         }
 
         static bool IsSystemDarkMode()
