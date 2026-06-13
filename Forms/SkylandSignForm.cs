@@ -236,7 +236,7 @@ namespace XelLauncher.Forms
                 WrapContents = false,
             };
             _btnScan = CreateActionButton(AntdUI.Localization.Get("App.Skyland.ScanLogin", "扫码登录"), "QrcodeOutlined", AntdUI.TTypeMini.Primary);
-            _btnSms = CreateActionButton(AntdUI.Localization.Get("App.Skyland.SmsLogin", "手机验证码登录"), "MessageOutlined", AntdUI.TTypeMini.Default, 120);
+            _btnSms = CreateActionButton(AntdUI.Localization.Get("App.Skyland.SmsLogin", "手机验证码登录"), "MessageOutlined", AntdUI.TTypeMini.Default, 138);
             _btnPassword = CreateActionButton(AntdUI.Localization.Get("App.Skyland.PasswordLogin", "账号密码登录"), "KeyOutlined", AntdUI.TTypeMini.Default, 132);
             _btnSign = CreateActionButton(AntdUI.Localization.Get("App.Skyland.SignNow", "立即签到"), "CheckCircleOutlined", AntdUI.TTypeMini.Success);
             var btnClear = new AntdUI.Button

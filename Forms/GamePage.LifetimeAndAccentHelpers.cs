@@ -21,7 +21,6 @@ namespace XelLauncher.Forms
             {
                 try { _coverCts.Cancel(); } catch { }
                 _coverCts.Dispose();
-                _downloadCts?.Dispose();
                 _leftTooltip?.Dispose();
                 _topTooltip?.Dispose();
                 _bottomTooltip?.Dispose();

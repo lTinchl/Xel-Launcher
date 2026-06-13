@@ -17,6 +17,7 @@ namespace XelLauncher.Forms
         private bool _forceClose = false;
         private GamePage _currentGamePage = null;
         private bool _isSwitchingGame = false;
+        private static readonly bool StartupAnnouncementEnabled = false;
         private int SidebarButtonWidth => ScaleForDpi(108);
         private int SidebarButtonHeight => ScaleForDpi(72);
         private int SidebarButtonGap => ScaleForDpi(4);
@@ -103,6 +104,8 @@ namespace XelLauncher.Forms
                 _ = RefreshUpdateStateOnStartupAsync();
                 _ = RunSkylandAutoSignOnLaunchAsync();
                 _ = RunSkportAutoSignOnLaunchAsync();
+                if (StartupAnnouncementEnabled)
+                    BeginInvoke(new Action(ShowStartupAnnouncementIfNeeded));
             };
             windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
         }

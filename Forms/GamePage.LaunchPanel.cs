@@ -122,6 +122,19 @@ namespace XelLauncher.Forms
                     });
                 }
             };
+            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Repair", "校验游戏完整性"), "repair").SetIcon("SafetyCertificateOutlined"));
+            floatMenu.SelectedValueChanged += (s, e) =>
+            {
+                if (e.Value is string v && v == "repair")
+                {
+                    BeginInvoke(() =>
+                    {
+                        ResetFloatMenuVisualState();
+                        RepairGameIntegrity();
+                    });
+                }
+            };
+
             floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Deledwonload", "清理下载缓存"), "Deledwonload").SetIcon("DeleteOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {

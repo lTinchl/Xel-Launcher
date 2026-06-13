@@ -22,7 +22,7 @@ namespace XelLauncher.Forms
                 "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield" => "End.jpg",
                 _ => "Arknights.jpg",
             };
-            string fallbackPath = Path.Combine(AppContext.BaseDirectory, "Resources", imgFile);
+            string fallbackPath = FindIconResourceFile(imgFile);
 
             var img = LoadCoverImage(fallbackPath);
             if (img == null) return;
@@ -88,6 +88,14 @@ namespace XelLauncher.Forms
         {
             if (_coverPictureBox == null || _coverPictureBox.IsDisposed) return;
             _coverPictureBox.Bounds = new Rectangle(-2, -2, Width + 4, Height + 4);
+        }
+
+        private static string FindIconResourceFile(string fileName)
+        {
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "Resources", "Icon", fileName);
+            if (File.Exists(iconPath)) return iconPath;
+
+            return Path.Combine(AppContext.BaseDirectory, "Resources", fileName);
         }
 
         private Image LoadCoverImage(string fallbackPath)

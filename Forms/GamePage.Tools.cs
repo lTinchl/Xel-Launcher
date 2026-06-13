@@ -262,6 +262,9 @@ namespace XelLauncher.Forms
         {
             var candidates = new List<string>
             {
+                Path.Combine(AppContext.BaseDirectory, "Resources", "Icon", fileName),
+                Path.Combine(Application.StartupPath, "Resources", "Icon", fileName),
+                Path.Combine(Environment.CurrentDirectory, "Resources", "Icon", fileName),
                 Path.Combine(AppContext.BaseDirectory, "Resources", fileName),
                 Path.Combine(Application.StartupPath, "Resources", fileName),
                 Path.Combine(Environment.CurrentDirectory, "Resources", fileName),
@@ -269,7 +272,10 @@ namespace XelLauncher.Forms
 
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 8 && dir != null; i++, dir = dir.Parent)
+            {
+                candidates.Add(Path.Combine(dir.FullName, "Resources", "Icon", fileName));
                 candidates.Add(Path.Combine(dir.FullName, "Resources", fileName));
+            }
 
             return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
         }

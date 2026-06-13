@@ -83,7 +83,7 @@ namespace XelLauncher
             return Math.Max(96, (int)Math.Round(graphics.DpiX));
         }
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates;
 
         public Setting(AntdUI.BaseForm _form)
         {
@@ -121,6 +121,7 @@ namespace XelLauncher
             switch9.Checked = HideToTrayOnLaunch = ConfigHelper.Load().HideToTrayOnLaunch;
             switch10.Checked = UseExternalBrowser = ConfigHelper.Load().UseExternalBrowser;
             switch11.Checked = UseHardLink = ConfigHelper.Load().UseHardLink;
+            switch12.Checked = CheckGameUpdates = ConfigHelper.Load().CheckGameUpdates;
 
             switch1.CheckedChanged += (s, e) => { Animation = e.Value; };
             switch2.CheckedChanged += (s, e) => { ShadowEnabled = e.Value; };
@@ -133,6 +134,7 @@ namespace XelLauncher
             switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
             switch10.CheckedChanged += (s, e) => { UseExternalBrowser = e.Value; };
             switch11.CheckedChanged += (s, e) => { UseHardLink = e.Value; };
+            switch12.CheckedChanged += (s, e) => { CheckGameUpdates = e.Value; };
 
             BindUpdatePanel();
             Load += (s, e) => LoadUpdateFromCache();
@@ -876,7 +878,7 @@ namespace XelLauncher
                 _softwareCard = new RoundedPanel
                 {
                     Dock = DockStyle.Top,
-                    Height = D(286),
+                    Height = D(1),
                     Padding = new Padding(D(16), D(14), D(16), D(12)),
                     FillColor = cardBack,
                     BorderColor = border,
@@ -884,7 +886,7 @@ namespace XelLauncher
                 };
                 tableSoftware.Dock = DockStyle.Top;
                 tableSoftware.AutoSize = false;
-                tableSoftware.Height = D(260);
+                tableSoftware.Height = D(1);
                 _softwareCard.Controls.Add(tableSoftware);
                 scrollSoftware.Controls.Add(_softwareCard);
             }
@@ -900,11 +902,26 @@ namespace XelLauncher
             label10.Text = "使用外部浏览器";
             label11.Text = "使用硬链接切服";
 
-            for (int i = 5; i <= 10 && i < tableSoftware.RowStyles.Count; i++)
+            const int firstVisibleRow = 5;
+            var maxVisibleRow = firstVisibleRow - 1;
+            foreach (Control control in tableSoftware.Controls)
+            {
+                if (!control.Visible) continue;
+                var row = tableSoftware.GetRow(control);
+                if (row >= firstVisibleRow)
+                    maxVisibleRow = Math.Max(maxVisibleRow, row);
+            }
+
+            var rowHeight = D(43);
+            for (int i = firstVisibleRow; i <= maxVisibleRow && i < tableSoftware.RowStyles.Count; i++)
             {
                 tableSoftware.RowStyles[i].SizeType = SizeType.Absolute;
-                tableSoftware.RowStyles[i].Height = D(43);
+                tableSoftware.RowStyles[i].Height = rowHeight;
             }
+
+            var visibleRows = Math.Max(0, maxVisibleRow - firstVisibleRow + 1);
+            tableSoftware.Height = visibleRows * rowHeight;
+            _softwareCard.Height = tableSoftware.Height + _softwareCard.Padding.Top + _softwareCard.Padding.Bottom;
 
             foreach (Control control in tableSoftware.Controls)
             {
@@ -935,6 +952,7 @@ namespace XelLauncher
             _logHeader.Resize += (s, e) => LayoutLogHeader();
             panelLog.Resize += (s, e) => LayoutLogHeader();
             panelLog.Controls.Add(_logHeader);
+            _logHeader.Visible = false;
             _logHeader.BringToFront();
             LayoutLogHeader();
         }
@@ -984,12 +1002,12 @@ namespace XelLauncher
 
             var width = Math.Max(0, panelLog.ClientSize.Width);
             _logHeader.Location = new Point(0, 0);
-            _logHeader.Size = new Size(width, D(48));
+            _logHeader.Size = new Size(width, 0);
             _logTitle.Location = new Point(0, D(10));
 
             if (_logCard != null)
             {
-                int top = D(54);
+                int top = 0;
                 _logCard.Location = new Point(0, top);
                 _logCard.Size = new Size(width, Math.Max(D(80), panelLog.ClientSize.Height - top));
             }

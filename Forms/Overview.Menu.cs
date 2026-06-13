@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
@@ -8,7 +8,7 @@ namespace XelLauncher.Forms
         private void btn_setting_Click(object sender, EventArgs e)
         {
             var setting = new Setting(this);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "ÉèÖÃ"), setting)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "è®¾ç½®"), setting)
             {
                 BtnHeight = 0,
                 CloseIcon = true,
@@ -28,6 +28,7 @@ namespace XelLauncher.Forms
             cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
             cfg.UseHardLink = setting.UseHardLink;
             cfg.UseExternalBrowser = setting.UseExternalBrowser;
+            cfg.CheckGameUpdates = setting.CheckGameUpdates;
             ConfigHelper.Save(cfg);
             Setting.ApplyStartWithWindows(setting.StartWithWindows);
             LoadUpdateBadgeFromCache();
@@ -48,8 +49,8 @@ namespace XelLauncher.Forms
 
             btn_more.Items.Clear();
             btn_more.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "°ïÖú"), "help").SetIcon("QuestionCircleOutlined"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "¹ØÓÚ"),"info").SetIcon("InfoCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "å¸®åŠ©"), "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "å…³äºŽ"),"info").SetIcon("InfoCircleOutlined"),
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
             });

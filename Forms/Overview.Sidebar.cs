@@ -416,7 +416,7 @@ namespace XelLauncher.Forms
         {
             try
             {
-                string basePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Resources");
+                string basePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Resources", "Icon");
                 string file = iconName switch
                 {
                     "Arknights" => "Arknights.ico",
@@ -430,6 +430,8 @@ namespace XelLauncher.Forms
                 };
                 if (file == null) return null;
                 string fullPath = System.IO.Path.Combine(basePath, file);
+                if (!System.IO.File.Exists(fullPath))
+                    fullPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Resources", file);
                 if (!System.IO.File.Exists(fullPath)) return null;
                 return new System.Drawing.Icon(fullPath, new System.Drawing.Size(256, 256));
             }

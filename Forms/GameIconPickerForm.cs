@@ -181,7 +181,7 @@ namespace XelLauncher.Forms
             {
                 try
                 {
-                    string basePath = Path.Combine(AppContext.BaseDirectory, "Resources");
+                    string basePath = Path.Combine(AppContext.BaseDirectory, "Resources", "Icon");
                     string file = key switch
                     {
                         "Arknights"      => "Arknights.ico",
@@ -194,6 +194,8 @@ namespace XelLauncher.Forms
                     };
                     if (file == null) return null;
                     string full = Path.Combine(basePath, file);
+                    if (!File.Exists(full))
+                        full = Path.Combine(AppContext.BaseDirectory, "Resources", file);
                     if (!File.Exists(full)) return null;
                     using var ico = new Icon(full, new Size(256, 256));
                     var src = ico.ToBitmap();

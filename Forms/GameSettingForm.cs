@@ -191,6 +191,9 @@ namespace XelLauncher.Forms
                 var btnReplaceOfficial = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
+                    IconSvg = "CopyOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -300,6 +303,9 @@ namespace XelLauncher.Forms
                 var btnReplace = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
+                    IconSvg = "CopyOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -348,22 +354,15 @@ namespace XelLauncher.Forms
                     });
                 };
                 Controls.Add(btnReplace);
-
-                var btn = new AntdUI.Button
-                {
-                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldBiliWebsite", "Endfield BiliBili官网"),
-                    Location = new Point(20, 316),
-                    Size = new Size(320, 36),
-                    Ghost = true,
-                };
-                // Website button hidden.
-                Size = LogicalSize(360, 386);
             }
             else if (game.IconName == "GlobalEndfield")
             {
                 var btnReplace = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.ReplaceGlobal", "将文件替换为国际服"),
+                    IconSvg = "CopyOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -412,22 +411,15 @@ namespace XelLauncher.Forms
                     });
                 };
                 Controls.Add(btnReplace);
-
-                var btn = new AntdUI.Button
-                {
-                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldGlobalWebsite", "Endfield 国际服官网"),
-                    Location = new Point(20, 316),
-                    Size = new Size(320, 36),
-                    Ghost = true,
-                };
-                // Website button hidden.
-                Size = LogicalSize(360, 386);
             }
             else if (game.IconName == "PlayEndfield")
             {
                 var btnReplace = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.ReplacePlay", "将文件替换为GooglePlay服"),
+                    IconSvg = "CopyOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -528,16 +520,12 @@ namespace XelLauncher.Forms
                 {
                     try
                     {
-                        // 1. 定义你的原始 PowerShell 命令（在 C# 字符串里怎么写舒服就怎么写）
                         string rawCommand = "(Get-CimInstance Win32_Process -Filter \"Name = 'Games.exe'\").CommandLine";
-
-                        // 2. 转换成 PowerShell 要求的 Base64 格式 (必须是 Unicode/UTF-16LE)
                         byte[] commandBytes = System.Text.Encoding.Unicode.GetBytes(rawCommand);
                         string encodedCommand = Convert.ToBase64String(commandBytes);
 
                         var psi = new ProcessStartInfo("powershell")
                         {
-                            // 3. 使用 -EncodedCommand 参数
                             Arguments = $"-NoProfile -ExecutionPolicy Bypass -EncodedCommand {encodedCommand}",
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
@@ -594,28 +582,9 @@ namespace XelLauncher.Forms
                 Controls.Add(lblToken);
                 Controls.Add(inputToken);
                 Controls.Add(btnAutoToken);
-
-                var btn = new AntdUI.Button
-                {
-                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldPlayWebsite", "Endfield GooglePlay 官网"),
-                    Location = new Point(20, 454),
-                    Size = new Size(320, 36),
-                    Ghost = true,
-                };
-                // Website button hidden.
-                Size = LogicalSize(360, 524);
             }
             else
             {
-                var btnguan = new AntdUI.Button
-                {
-                    Text = AntdUI.Localization.Get("App.GameSetting.ArknightsWebsite", "Arknights 官网"),
-                    Location = new Point(20, 268),
-                    Size = new Size(320, 36),
-                    Ghost = true,
-                };
-                // Website button hidden.
-
                 var btnSync = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.SyncToBili", "同步路径到 BillBili服"),
@@ -1137,7 +1106,7 @@ namespace XelLauncher.Forms
         {
             try
             {
-                string basePath = Path.Combine(AppContext.BaseDirectory, "Resources");
+                string basePath = Path.Combine(AppContext.BaseDirectory, "Resources", "Icon");
                 string file = iconName switch
                 {
                     "Arknights"      => "Arknights.ico",
@@ -1150,6 +1119,8 @@ namespace XelLauncher.Forms
                 };
                 if (file == null) return null;
                 string full = Path.Combine(basePath, file);
+                if (!File.Exists(full))
+                    full = Path.Combine(AppContext.BaseDirectory, "Resources", file);
                 return File.Exists(full) ? new System.Drawing.Icon(full, new Size(256, 256)) : null;
             }
             catch { return null; }
