@@ -31,7 +31,7 @@
   <span> | </span>
   <a href="#how-to-use">How To Use</a>
   <span> | </span>
-  <a href="#documentation">Documentation</a>
+  <a href="./docs/wiki.en-US.md">Document</a>
   <span> | </span>
   <a href="#project-structure">Project Structure</a>
   <span> | </span>
@@ -56,12 +56,6 @@
 ## How to Use
 
 Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Launcher/releases), install and open the application, then follow the on-screen prompts to add your game path. Server switching will then be available.
-
-## Documentation
-
-- User guide: [English Wiki](./docs/wiki.en-US.md)
-- 中文文档：[中文 Wiki](./docs/wiki.zh-CN.md)
-- Installer downloads: [Releases](https://github.com/lTinchl/Xel-Launcher/releases)
 
 ## Project Structure
 

@@ -31,7 +31,7 @@
   <span> | </span>
   <a href="#如何使用">如何使用</a>
   <span> | </span>
-  <a href="#文档入口">文档</a>
+  <a href="./docs/wiki.zh-CN.md">文档</a>
   <span> | </span>
   <a href="#项目结构">项目结构</a>
   <span> | </span>
@@ -57,11 +57,6 @@
 
 在 [Releases](https://github.com/lTinchl/Xel-Launcher/releases) 下载最新版本安装包，安装后打开软件，按照提示添加游戏路径，即可使用切服功能。
 
-## 文档入口
-
-- 使用说明：[中文 Wiki](./docs/wiki.zh-CN.md)
-- 英文文档：[English Wiki](./docs/wiki.en-US.md)
-- 安装包下载：[Releases](https://github.com/lTinchl/Xel-Launcher/releases)
 
 ## 项目结构
 
