@@ -55,6 +55,8 @@ namespace XelLauncher
         private AntdUI.Label _updateHeaderArrow;
         private AntdUI.Label _updateAutoOption;
         private AntdUI.Label _updateNotifyOption;
+        private AntdUI.Label _archiveLauncherImagesLabel;
+        private AntdUI.Switch _archiveLauncherImagesSwitch;
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
         private static bool IsEnglishUi =>
@@ -83,12 +85,13 @@ namespace XelLauncher
             return Math.Max(96, (int)Math.Round(graphics.DpiX));
         }
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages;
 
         public Setting(AntdUI.BaseForm _form)
         {
             form = _form;
             InitializeComponent();
+            AddArchiveLauncherImagesOption();
             _updateCardTargetHeight = UpdateCardCompactPixelHeight;
             Size = DSize(600, 560);
             MinimumSize = Size;
@@ -115,13 +118,15 @@ namespace XelLauncher
             switch3.Checked = ShowInWindow = AntdUI.Config.ShowInWindow;
             switch4.Checked = ScrollBarHide = AntdUI.Config.ScrollBarHide;
             switch5.Checked = TextRenderingHighQuality = AntdUI.Config.TextRenderingHighQuality;
-            switch6.Checked = MinimizeToTray = ConfigHelper.Load().MinimizeToTray;
+            var cfg = ConfigHelper.Load();
+            switch6.Checked = MinimizeToTray = cfg.MinimizeToTray;
             switch7.Checked = StartWithWindows = GetStartWithWindows();
-            switch8.Checked = CloseAfterLaunch = ConfigHelper.Load().CloseAfterLaunch;
-            switch9.Checked = HideToTrayOnLaunch = ConfigHelper.Load().HideToTrayOnLaunch;
-            switch10.Checked = UseExternalBrowser = ConfigHelper.Load().UseExternalBrowser;
-            switch11.Checked = UseHardLink = ConfigHelper.Load().UseHardLink;
-            switch12.Checked = CheckGameUpdates = ConfigHelper.Load().CheckGameUpdates;
+            switch8.Checked = CloseAfterLaunch = cfg.CloseAfterLaunch;
+            switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
+            switch10.Checked = UseExternalBrowser = cfg.UseExternalBrowser;
+            switch11.Checked = UseHardLink = cfg.UseHardLink;
+            switch12.Checked = CheckGameUpdates = cfg.CheckGameUpdates;
+            _archiveLauncherImagesSwitch.Checked = ArchiveLauncherImages = cfg.ArchiveLauncherImages;
 
             switch1.CheckedChanged += (s, e) => { Animation = e.Value; };
             switch2.CheckedChanged += (s, e) => { ShadowEnabled = e.Value; };
@@ -135,9 +140,41 @@ namespace XelLauncher
             switch10.CheckedChanged += (s, e) => { UseExternalBrowser = e.Value; };
             switch11.CheckedChanged += (s, e) => { UseHardLink = e.Value; };
             switch12.CheckedChanged += (s, e) => { CheckGameUpdates = e.Value; };
+            _archiveLauncherImagesSwitch.CheckedChanged += (s, e) => { ArchiveLauncherImages = e.Value; };
 
             BindUpdatePanel();
             Load += (s, e) => LoadUpdateFromCache();
+        }
+
+        private void AddArchiveLauncherImagesOption()
+        {
+            _archiveLauncherImagesLabel = new AntdUI.Label
+            {
+                Dock = DockStyle.Fill,
+                Name = "labelArchiveLauncherImages",
+                Text = "保存启动器新图片",
+                LocalizationText = "App.Setting.ArchiveLauncherImages",
+                TabIndex = 0,
+            };
+            _archiveLauncherImagesSwitch = new AntdUI.Switch
+            {
+                Anchor = AnchorStyles.None,
+                Name = "switchArchiveLauncherImages",
+                Size = new Size(50, 30),
+                TabIndex = 0,
+            };
+
+            if (tableSoftware.RowCount < 14)
+                tableSoftware.RowCount = 14;
+            while (tableSoftware.RowStyles.Count < tableSoftware.RowCount)
+                tableSoftware.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
+
+            tableSoftware.RowStyles[12].SizeType = SizeType.Absolute;
+            tableSoftware.RowStyles[12].Height = 46F;
+            tableSoftware.RowStyles[13].SizeType = SizeType.Absolute;
+            tableSoftware.RowStyles[13].Height = 20F;
+            tableSoftware.Controls.Add(_archiveLauncherImagesLabel, 0, 12);
+            tableSoftware.Controls.Add(_archiveLauncherImagesSwitch, 1, 12);
         }
 
         private void HideInternalUiOptions()
@@ -901,6 +938,9 @@ namespace XelLauncher
             label9.Text = "启动游戏后隐藏至托盘";
             label10.Text = "使用外部浏览器";
             label11.Text = "使用硬链接切服";
+
+            if (_archiveLauncherImagesLabel != null)
+                _archiveLauncherImagesLabel.Text = L("App.Setting.ArchiveLauncherImages", "保存启动器新图片");
 
             const int firstVisibleRow = 5;
             var maxVisibleRow = firstVisibleRow - 1;

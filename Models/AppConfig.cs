@@ -84,6 +84,7 @@ namespace XelLauncher.Models
         public string Language { get; set; } = "";                          // 用户选择的语言 (zh-CN / en-US)
         public bool UseExternalBrowser { get; set; } = false;              // 使用外部浏览器打开链接
         public bool CheckGameUpdates { get; set; } = false;                // 检查游戏更新
+        public bool ArchiveLauncherImages { get; set; } = false;           // 保存 API 新启动器图片
         /// <summary>
         /// 主题模式："system"（跟随系统）、"light"（强制浅色）、"dark"（强制深色）
         /// </summary>

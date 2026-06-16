@@ -224,6 +224,7 @@ namespace XelLauncher.Helpers
                     if (TryConvertImageToPng(temp, pngPath))
                     {
                         TryDelete(temp);
+                        ArchiveLauncherImageIfEnabled(iconName, imageUrl, pngPath, "client-cover");
                         CleanupOldCovers(dir, pngPath);
                         SaveClientCoverMetadata(baseTarget, response);
                         LogHelper.Log($"Game cover cached: {iconName} -> {pngPath}");
@@ -232,6 +233,7 @@ namespace XelLauncher.Helpers
 
                     var webpPath = baseTarget + ".webp";
                     MoveReplacing(temp, webpPath);
+                    ArchiveLauncherImageIfEnabled(iconName, imageUrl, webpPath, "client-cover");
                     CleanupOldCovers(dir, webpPath);
                     SaveClientCoverMetadata(baseTarget, response);
                     LogHelper.Log($"Game cover cached (WebP fallback): {iconName} -> {webpPath}");
@@ -245,6 +247,7 @@ namespace XelLauncher.Helpers
                     if (TryConvertImageToPng(temp, pngPath))
                     {
                         TryDelete(temp);
+                        ArchiveLauncherImageIfEnabled(iconName, imageUrl, pngPath, "client-cover");
                         CleanupOldCovers(dir, pngPath);
                         SaveClientCoverMetadata(baseTarget, response);
                         LogHelper.Log($"Game cover cached: {iconName} -> {pngPath}");
@@ -256,6 +259,7 @@ namespace XelLauncher.Helpers
                 }
 
                 MoveReplacing(temp, target);
+                ArchiveLauncherImageIfEnabled(iconName, imageUrl, target, "client-cover");
                 CleanupOldCovers(dir, target);
                 SaveClientCoverMetadata(baseTarget, response);
                 LogHelper.Log($"Game cover cached: {iconName} -> {target}");
@@ -309,12 +313,14 @@ namespace XelLauncher.Helpers
                     if (TryConvertImageToPng(temp, pngPath))
                     {
                         TryDelete(temp);
+                        ArchiveLauncherImageIfEnabled(iconName, imageUrl, pngPath, "notice-banner");
                         LogHelper.Log($"Notice banner cached: {iconName} -> {pngPath}");
                         return pngPath;
                     }
 
                     var webpPath = baseTarget + ".webp";
                     MoveReplacing(temp, webpPath);
+                    ArchiveLauncherImageIfEnabled(iconName, imageUrl, webpPath, "notice-banner");
                     LogHelper.Log($"Notice banner cached (WebP fallback): {iconName} -> {webpPath}");
                     return webpPath;
                 }
@@ -326,6 +332,7 @@ namespace XelLauncher.Helpers
                     if (TryConvertImageToPng(temp, pngPath))
                     {
                         TryDelete(temp);
+                        ArchiveLauncherImageIfEnabled(iconName, imageUrl, pngPath, "notice-banner");
                         LogHelper.Log($"Notice banner cached: {iconName} -> {pngPath}");
                         return pngPath;
                     }
@@ -335,6 +342,7 @@ namespace XelLauncher.Helpers
                 }
 
                 MoveReplacing(temp, target);
+                ArchiveLauncherImageIfEnabled(iconName, imageUrl, target, "notice-banner");
                 LogHelper.Log($"Notice banner cached: {iconName} -> {target}");
                 return target;
             }
@@ -452,6 +460,50 @@ namespace XelLauncher.Helpers
                 _ => iconName
             };
             return Path.Combine(ConfigHelper.ConfigDir, "GameCovers", SanitizeFileName(normalizedName));
+        }
+
+        private static void ArchiveLauncherImageIfEnabled(string iconName, string imageUrl, string sourcePath, string kind)
+        {
+            try
+            {
+                if (!ConfigHelper.Load().ArchiveLauncherImages) return;
+                if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath)) return;
+
+                var now = DateTime.Now;
+                var archiveDir = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "img",
+                    NormalizeArchiveGameName(iconName),
+                    now.ToString("yyyy-MM-dd"));
+                Directory.CreateDirectory(archiveDir);
+
+                var extension = NormalizeImageExtension(Path.GetExtension(sourcePath));
+                if (string.IsNullOrWhiteSpace(extension)) extension = ".png";
+
+                var targetPath = Path.Combine(
+                    archiveDir,
+                    $"{now:HHmmss}-{kind}-{HashUrl(imageUrl)}{extension}");
+
+                if (File.Exists(targetPath)) return;
+
+                File.Copy(sourcePath, targetPath, overwrite: false);
+                LogHelper.Log($"Launcher image archived: {iconName} -> {targetPath}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GameCoverCache.ArchiveLauncherImageIfEnabled({iconName})");
+            }
+        }
+
+        private static string NormalizeArchiveGameName(string iconName)
+        {
+            return iconName switch
+            {
+                "Arknights" or "BiliArknights" => "Arknights",
+                "Endfield" or "BiliEndfield" => "Endfield",
+                "GlobalEndfield" or "PlayEndfield" => "GlobalEndfield",
+                _ => SanitizeFileName(iconName)
+            };
         }
 
         private static bool IsCacheExpired(string path, TimeSpan? refreshAfter)
