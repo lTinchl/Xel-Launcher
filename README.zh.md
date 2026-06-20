@@ -29,8 +29,6 @@
 <p align="center">
   <a href="#已支持功能">功能</a>
   <span> | </span>
-  <a href="#如何使用">如何使用</a>
-  <span> | </span>
   <a href="./docs/wiki.zh-CN.md">文档</a>
   <span> | </span>
   <a href="#项目结构">项目结构</a>
@@ -52,11 +50,6 @@
 - [x] 联动软件启动
 - [x] 自定义参数启动
 - [x] 森空岛签到
-
-## 如何使用
-
-在 [Releases](https://github.com/lTinchl/Xel-Launcher/releases) 下载最新版本安装包，安装后打开软件，按照提示添加游戏路径，即可使用切服功能。
-
 
 ## 项目结构
 

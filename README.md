@@ -29,8 +29,6 @@
 <p align="center">
   <a href="#supported-features">Features</a>
   <span> | </span>
-  <a href="#how-to-use">How To Use</a>
-  <span> | </span>
   <a href="./docs/wiki.en-US.md">Document</a>
   <span> | </span>
   <a href="#project-structure">Project Structure</a>
@@ -52,10 +50,6 @@
 - [x] Companion app launching
 - [x] Custom launch parameters
 - [x] Skyland Sign
-
-## How to Use
-
-Download the latest installer from [Releases](https://github.com/lTinchl/Xel-Launcher/releases), install and open the application, then follow the on-screen prompts to add your game path. Server switching will then be available.
 
 ## Project Structure
 
