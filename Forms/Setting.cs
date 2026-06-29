@@ -540,7 +540,7 @@ namespace XelLauncher
 
             if (_updateCardHeightTimer == null)
             {
-                _updateCardHeightTimer = new System.Windows.Forms.Timer { Interval = 15 };
+                _updateCardHeightTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
                 _updateCardHeightTimer.Tick += (s, e) =>
                 {
                     if (_updateHeaderCard == null || _updateHeaderCard.IsDisposed)
@@ -561,6 +561,7 @@ namespace XelLauncher
                 };
             }
 
+            AnimationFrameHelper.ApplyFrameInterval(_updateCardHeightTimer, this);
             _updateCardHeightTimer.Start();
             if (expanded)
             {
@@ -869,10 +870,11 @@ namespace XelLauncher
 
             if (_tabUnderlineTimer == null)
             {
-                _tabUnderlineTimer = new System.Windows.Forms.Timer { Interval = 15 };
+                _tabUnderlineTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
                 _tabUnderlineTimer.Tick += (s, e) => AnimateTabUnderline();
             }
 
+            AnimationFrameHelper.ApplyFrameInterval(_tabUnderlineTimer, this);
             if (!_tabUnderlineTimer.Enabled)
                 _tabUnderlineTimer.Start();
         }
@@ -887,9 +889,9 @@ namespace XelLauncher
 
             var current = _tabUnderline.Bounds;
             var next = new Rectangle(
-                EaseUnderlineValue(current.X, _tabUnderlineTarget.X),
+                EaseUnderlineValue(current.X, _tabUnderlineTarget.X, _tabUnderlineTimer),
                 _tabUnderlineTarget.Y,
-                EaseUnderlineValue(current.Width, _tabUnderlineTarget.Width),
+                EaseUnderlineValue(current.Width, _tabUnderlineTarget.Width, _tabUnderlineTimer),
                 _tabUnderlineTarget.Height);
 
             if (Math.Abs(next.X - _tabUnderlineTarget.X) <= 1 &&
@@ -904,8 +906,8 @@ namespace XelLauncher
             }
         }
 
-        private static int EaseUnderlineValue(int current, int target) =>
-            current + (int)Math.Round((target - current) * 0.32D);
+        private static int EaseUnderlineValue(int current, int target, System.Windows.Forms.Timer timer) =>
+            current + (int)Math.Round((target - current) * AnimationFrameHelper.ScaleEase(0.32F, timer));
 
         private void BuildSoftwareCard(Color cardBack, Color border, Color normalText, Color subtleText)
         {
@@ -1528,10 +1530,11 @@ namespace XelLauncher
         {
             if (_latestVersionColorTimer == null)
             {
-                _latestVersionColorTimer = new System.Windows.Forms.Timer { Interval = 30 };
+                _latestVersionColorTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
                 _latestVersionColorTimer.Tick += (s, e) =>
                 {
-                    _latestVersionHue = (_latestVersionHue + 1.2D) % 360D;
+                    double hueStep = 1.2D * Math.Max(1, _latestVersionColorTimer.Interval) / 30D;
+                    _latestVersionHue = (_latestVersionHue + hueStep) % 360D;
                     lblLatestVersion.ForeColor = ColorFromHsv(
                         _latestVersionHue,
                         0.95D,
@@ -1546,6 +1549,7 @@ namespace XelLauncher
                     _latestVersionHue,
                     0.95D,
                     AntdUI.Config.IsDark ? 1D : 0.86D);
+                AnimationFrameHelper.ApplyFrameInterval(_latestVersionColorTimer, this);
                 _latestVersionColorTimer.Start();
             }
         }

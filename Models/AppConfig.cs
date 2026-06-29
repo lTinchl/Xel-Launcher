@@ -28,6 +28,14 @@ namespace XelLauncher.Models
         public string SkippedVersion { get; set; } = "";
     }
 
+    public class CustomToolLink
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Url { get; set; } = "";
+        public string IconPath { get; set; } = "";
+    }
+
     public class AppConfig
     {
         public List<GameEntry> Games { get; set; } = new List<GameEntry>
@@ -91,6 +99,8 @@ namespace XelLauncher.Models
         public string ThemeMode { get; set; } = "system";
         public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
+        public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
+        public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();
         public AppUpdateState UpdateState { get; set; } = new();
 
     }

@@ -2397,4 +2397,28 @@
   <data name="Wed" xml:space="preserve">
     <value>周三</value>
   </data>
+  <data name="App.Game.CustomToolAdd" xml:space="preserve">
+    <value>添加自定义工具</value>
+  </data>
+  <data name="App.Game.CustomToolChooseIcon" xml:space="preserve">
+    <value>选择图标</value>
+  </data>
+  <data name="App.Game.CustomToolIconFilter" xml:space="preserve">
+    <value>图片文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.ico|所有文件|*.*</value>
+  </data>
+  <data name="App.Game.CustomToolIconInvalid" xml:space="preserve">
+    <value>无法读取该图片</value>
+  </data>
+  <data name="App.Game.CustomToolInvalid" xml:space="preserve">
+    <value>请输入有效的名称和链接</value>
+  </data>
+  <data name="App.Game.CustomToolName" xml:space="preserve">
+    <value>工具名称</value>
+  </data>
+  <data name="App.Game.CustomToolUrl" xml:space="preserve">
+    <value>https://example.com</value>
+  </data>
+  <data name="App.Game.Notice" xml:space="preserve">
+    <value>公告</value>
+  </data>
 </root>

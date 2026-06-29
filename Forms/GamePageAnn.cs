@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
+using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
 {
@@ -77,8 +79,27 @@ private readonly List<NoticeBannerItem> _banners;
         private RectangleF _categoryUnderlineBounds;
         private RectangleF _categoryUnderlineTarget;
         private bool _categoryUnderlineInitialized;
+        private Rectangle _collapseToggleRect;
 
         public event NoticeClickHandler NoticeClick;
+        public event EventHandler CollapsedChanged;
+
+        public bool IsCollapsed { get; private set; }
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Color ToggleBackColor { get; set; } = Color.FromArgb(92, 255, 255, 255);
+
+        public void SetCollapsed(bool collapsed)
+        {
+            if (IsCollapsed == collapsed) return;
+            IsCollapsed = collapsed;
+            _bannerTouching = false;
+            _bannerTouchMoved = false;
+            _scrollDragging = false;
+            _touchScrolling = false;
+            Capture = false;
+            Invalidate();
+        }
 
         public NoticeCarouselPanel(List<NoticeBannerItem> banners, List<NoticeItem> notices)
         {
@@ -96,11 +117,11 @@ private readonly List<NoticeBannerItem> _banners;
 
             _timer = new System.Windows.Forms.Timer { Interval = 4200 };
             _timer.Tick += (s, e) => Next();
-            _slideTimer = new System.Windows.Forms.Timer { Interval = 15 };
+            _slideTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _slideTimer.Tick += (s, e) => UpdateBannerSlide();
-            _categoryUnderlineTimer = new System.Windows.Forms.Timer { Interval = 15 };
+            _categoryUnderlineTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _categoryUnderlineTimer.Tick += (s, e) => UpdateCategoryUnderline();
-            _categoryTextTimer = new System.Windows.Forms.Timer { Interval = 15 };
+            _categoryTextTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _categoryTextTimer.Tick += (s, e) => UpdateCategoryTextAnimation();
             if (_banners.Count > 1) _timer.Start();
         }
@@ -171,6 +192,14 @@ private readonly List<NoticeBannerItem> _banners;
             base.OnMouseDown(e);
             if (!IsInsidePanel(e.Location)) return;
 
+            if (_collapseToggleRect.Contains(e.Location))
+            {
+                ToggleCollapsed();
+                return;
+            }
+
+            if (IsCollapsed) return;
+
             foreach (var hit in _categoryHits)
             {
                 if (!hit.Rect.Contains(e.Location)) continue;
@@ -234,6 +263,7 @@ private readonly List<NoticeBannerItem> _banners;
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
+            if (IsCollapsed) return;
             if (_scrollDragging)
             {
                 SetScrollFromThumbTop(e.Y - _scrollDragOffset);
@@ -270,6 +300,15 @@ private readonly List<NoticeBannerItem> _banners;
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
+            if (IsCollapsed)
+            {
+                _bannerTouching = false;
+                _bannerTouchMoved = false;
+                _scrollDragging = false;
+                _touchScrolling = false;
+                Capture = false;
+                return;
+            }
             if (_bannerTouching && !_bannerTouchMoved && _bannerRect.Contains(e.Location) && _banners.Count > 0)
             {
                 var url = _banners[_selectedBannerIndex].Url;
@@ -303,6 +342,7 @@ private readonly List<NoticeBannerItem> _banners;
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
+            if (IsCollapsed) return;
             if (FilteredNotices.Count <= VisibleNoticeRows) return;
 
             _noticeScroll += e.Delta < 0 ? 1 : -1;
@@ -340,6 +380,13 @@ private readonly List<NoticeBannerItem> _banners;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             _noticeHits.Clear();
             _categoryHits.Clear();
+            _collapseToggleRect = Rectangle.Empty;
+
+            if (IsCollapsed)
+            {
+                PaintCollapsed(g);
+                return;
+            }
 
             var rect = new Rectangle(1, 1, Width - 3, Height - 3);
             using (var path = RoundedRect(rect, 16))
@@ -349,6 +396,8 @@ private readonly List<NoticeBannerItem> _banners;
                 g.FillPath(bg, path);
                 g.DrawPath(border, path);
             }
+
+            PaintCollapseToggle(g, false);
 
             int pad = 8;
             int thumbW = Width >= 560 ? 242 : 154;
@@ -421,6 +470,108 @@ private readonly List<NoticeBannerItem> _banners;
             PaintScrollBar(g, textX + textW - 8, rowTop + 3, rowCount * rowH - 6);
         }
 
+        private void ToggleCollapsed()
+        {
+            IsCollapsed = !IsCollapsed;
+            _bannerTouching = false;
+            _bannerTouchMoved = false;
+            _scrollDragging = false;
+            _touchScrolling = false;
+            Capture = false;
+            Invalidate();
+            CollapsedChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void PaintCollapsed(Graphics g)
+        {
+            var rect = new Rectangle(1, 1, Width - 3, Height - 3);
+            _collapseToggleRect = rect;
+            using (var shadow = new SolidBrush(Color.FromArgb(42, 0, 0, 0)))
+            using (var shadowPath = RoundedRect(new Rectangle(rect.X + 1, rect.Y + 2, rect.Width, rect.Height), 18))
+            {
+                g.FillPath(shadow, shadowPath);
+            }
+
+            using (var path = RoundedRect(rect, 18))
+            using (var bg = new LinearGradientBrush(rect,
+                BlendWithAlpha(ToggleBackColor, Color.FromArgb(18, 21, 28), 0.72F, 222),
+                BlendWithAlpha(ToggleBackColor, Color.FromArgb(18, 21, 28), 0.86F, 226),
+                LinearGradientMode.Vertical))
+            using (var border = new Pen(Color.FromArgb(54, 185, 206, 230), 1F))
+            {
+                g.FillPath(bg, path);
+                g.DrawPath(border, path);
+            }
+
+            using var titleFont = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold);
+            TextRenderer.DrawText(g,
+                NoticeTitle,
+                titleFont,
+                new Rectangle(18, 1, Math.Max(40, Width - 68), Height - 2),
+                Color.White,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+
+            PaintCollapseToggle(g, true);
+        }
+
+        private void PaintCollapseToggle(Graphics g, bool collapsed)
+        {
+            int size = collapsed ? 22 : 28;
+            int x = collapsed ? Width - size - 17 : Width - size - 10;
+            int y = collapsed ? (Height - size) / 2 : 9;
+            var iconRect = new Rectangle(x, y, size, size);
+            if (!collapsed) _collapseToggleRect = iconRect;
+
+            using var path = RoundedRect(iconRect, size / 2);
+            if (collapsed)
+            {
+                using var hover = new SolidBrush(Color.FromArgb(22, 255, 255, 255));
+                g.FillPath(hover, path);
+            }
+            else
+            {
+                using var bg = new SolidBrush(Color.FromArgb(54, 255, 255, 255));
+                g.FillPath(bg, path);
+            }
+
+            using var pen = new Pen(Color.FromArgb(225, 255, 255, 255), 2F)
+            {
+                StartCap = LineCap.Round,
+                EndCap = LineCap.Round,
+                LineJoin = LineJoin.Round,
+            };
+
+            if (collapsed)
+            {
+                using var arrowPen = new Pen(Color.FromArgb(224, 255, 255, 255), 1.8F)
+                {
+                    StartCap = LineCap.Round,
+                    EndCap = LineCap.Round,
+                    LineJoin = LineJoin.Round,
+                };
+                var p1 = new PointF(iconRect.Left + size * 0.32F, iconRect.Top + size * 0.58F);
+                var p2 = new PointF(iconRect.Left + size * 0.50F, iconRect.Top + size * 0.40F);
+                var p3 = new PointF(iconRect.Left + size * 0.68F, iconRect.Top + size * 0.58F);
+                g.DrawLines(arrowPen, new[] { p1, p2, p3 });
+            }
+            else
+            {
+                var p1 = new PointF(iconRect.Left + size * 0.28F, iconRect.Top + size * 0.40F);
+                var p2 = new PointF(iconRect.Left + size * 0.50F, iconRect.Top + size * 0.62F);
+                var p3 = new PointF(iconRect.Left + size * 0.72F, iconRect.Top + size * 0.40F);
+                g.DrawLines(pen, new[] { p1, p2, p3 });
+            }
+        }
+
+        private static Color BlendWithAlpha(Color baseColor, Color mixColor, float amount, int alpha)
+        {
+            amount = Math.Max(0F, Math.Min(1F, amount));
+            int r = (int)Math.Round(baseColor.R + (mixColor.R - baseColor.R) * amount);
+            int g = (int)Math.Round(baseColor.G + (mixColor.G - baseColor.G) * amount);
+            int b = (int)Math.Round(baseColor.B + (mixColor.B - baseColor.B) * amount);
+            return Color.FromArgb(Math.Max(0, Math.Min(255, alpha)), r, g, b);
+        }
+
         private Image CurrentBannerImage =>
             _banners.Count == 0 ? null : _banners[Math.Min(_selectedBannerIndex, _banners.Count - 1)].Image;
 
@@ -463,6 +614,7 @@ private readonly List<NoticeBannerItem> _banners;
             _bannerSlideStep = step;
             _bannerSlideStartTick = Environment.TickCount64;
             _bannerDragOffset = startOffset;
+            AnimationFrameHelper.ApplyFrameInterval(_slideTimer, this);
             _slideTimer.Start();
             Invalidate();
         }
@@ -574,6 +726,7 @@ private readonly List<NoticeBannerItem> _banners;
         private void StartCategoryTextAnimation()
         {
             EnsureCategoryTextProgress();
+            AnimationFrameHelper.ApplyFrameInterval(_categoryTextTimer, this);
             if (!_categoryTextTimer.Enabled)
                 _categoryTextTimer.Start();
         }
@@ -585,7 +738,7 @@ private readonly List<NoticeBannerItem> _banners;
             {
                 float target = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
                 float current = _categoryTextProgress.TryGetValue(category, out var value) ? value : target;
-                float next = Ease(current, target);
+                float next = Ease(current, target, _categoryTextTimer);
                 if (Math.Abs(next - target) <= 0.02F)
                     next = target;
                 else
@@ -613,6 +766,7 @@ private readonly List<NoticeBannerItem> _banners;
             if (NearlySame(_categoryUnderlineTarget, target)) return;
 
             _categoryUnderlineTarget = target;
+            AnimationFrameHelper.ApplyFrameInterval(_categoryUnderlineTimer, this);
             if (!_categoryUnderlineTimer.Enabled)
                 _categoryUnderlineTimer.Start();
         }
@@ -620,9 +774,9 @@ private readonly List<NoticeBannerItem> _banners;
         private void UpdateCategoryUnderline()
         {
             _categoryUnderlineBounds = new RectangleF(
-                Ease(_categoryUnderlineBounds.X, _categoryUnderlineTarget.X),
+                Ease(_categoryUnderlineBounds.X, _categoryUnderlineTarget.X, _categoryUnderlineTimer),
                 _categoryUnderlineTarget.Y,
-                Ease(_categoryUnderlineBounds.Width, _categoryUnderlineTarget.Width),
+                Ease(_categoryUnderlineBounds.Width, _categoryUnderlineTarget.Width, _categoryUnderlineTimer),
                 _categoryUnderlineTarget.Height);
 
             if (NearlySame(_categoryUnderlineBounds, _categoryUnderlineTarget, 0.5F))
@@ -634,8 +788,8 @@ private readonly List<NoticeBannerItem> _banners;
             Invalidate();
         }
 
-        private static float Ease(float current, float target) =>
-            current + (target - current) * 0.28F;
+        private static float Ease(float current, float target, System.Windows.Forms.Timer timer) =>
+            current + (target - current) * AnimationFrameHelper.ScaleEase(0.28F, timer);
 
         private static bool NearlySame(RectangleF a, RectangleF b, float tolerance = 0.1F) =>
             Math.Abs(a.X - b.X) <= tolerance &&
@@ -645,6 +799,9 @@ private readonly List<NoticeBannerItem> _banners;
 
         private static int ClampAlpha(int value) =>
             Math.Max(0, Math.Min(255, value));
+
+        private static string NoticeTitle =>
+            AntdUI.Localization.Get("App.Game.Notice", "公告");
 
         private void PaintScrollBar(Graphics g, int x, int y, int height)
         {
@@ -704,12 +861,12 @@ private readonly List<NoticeBannerItem> _banners;
         private void RebuildCategories()
         {
             _categories = _notices
-                .Select(x => string.IsNullOrWhiteSpace(x.Tag) ? "公告" : x.Tag)
+                .Select(x => string.IsNullOrWhiteSpace(x.Tag) ? NoticeTitle : x.Tag)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Take(4)
                 .ToList();
 
-            if (_categories.Count == 0) _categories.Add("公告");
+            if (_categories.Count == 0) _categories.Add(NoticeTitle);
             if (string.IsNullOrEmpty(_selectedCategory) || !_categories.Contains(_selectedCategory))
                 _selectedCategory = _categories[0];
             _noticeScroll = 0;

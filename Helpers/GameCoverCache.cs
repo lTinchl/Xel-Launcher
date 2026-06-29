@@ -142,14 +142,17 @@ namespace XelLauncher.Helpers
             var dir = GetGameCoverDir(iconName);
             var today = DateTime.Now.ToString("yyyy-MM-dd");
             var attemptKey = $"{dir}|{today}";
+            var cachedPath = GetCachedCoverPath(iconName);
+            var archiveBackfillNeeded = IsLauncherImageArchiveBackfillNeeded(iconName, cachedPath, "client-cover");
 
             lock (CoverRefreshLock)
             {
-                if (CoverRefreshAttempts.Contains(attemptKey))
+                if (CoverRefreshAttempts.Contains(attemptKey) && !archiveBackfillNeeded)
                     return false;
 
-                var cachedPath = GetCachedCoverPath(iconName);
-                if (!string.IsNullOrEmpty(cachedPath) && string.Equals(ReadCoverRefreshStamp(dir), today, StringComparison.Ordinal))
+                if (!archiveBackfillNeeded &&
+                    !string.IsNullOrEmpty(cachedPath) &&
+                    string.Equals(ReadCoverRefreshStamp(dir), today, StringComparison.Ordinal))
                     return false;
 
                 CoverRefreshAttempts.Add(attemptKey);
@@ -181,7 +184,11 @@ namespace XelLauncher.Helpers
             var urlExtension = GetImageExtension(imageUrl);
             var baseTarget = Path.Combine(dir, $"client-cover-{HashUrl(imageUrl)}");
             var cachedPath = TryGetCachedPath(baseTarget, urlExtension);
-            if (cachedPath != null && !forceRefresh && !IsCacheExpired(cachedPath, refreshAfter)) return cachedPath;
+            if (cachedPath != null && !forceRefresh && !IsCacheExpired(cachedPath, refreshAfter))
+            {
+                ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
+                return cachedPath;
+            }
 
             var temp = baseTarget + ".download.tmp";
             try
@@ -189,6 +196,7 @@ namespace XelLauncher.Helpers
                 var metadata = LoadClientCoverMetadata(baseTarget);
                 if (cachedPath != null && await IsRemoteCoverUnchangedAsync(imageUrl, metadata, ct).ConfigureAwait(false))
                 {
+                    ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
                     LogHelper.Log($"Game cover unchanged, skip download: {iconName} -> {cachedPath}");
                     return cachedPath;
                 }
@@ -199,6 +207,7 @@ namespace XelLauncher.Helpers
                 using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
                 if (response.StatusCode == HttpStatusCode.NotModified && cachedPath != null)
                 {
+                    ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
                     LogHelper.Log($"Game cover not modified, skip download: {iconName} -> {cachedPath}");
                     return cachedPath;
                 }
@@ -272,6 +281,7 @@ namespace XelLauncher.Helpers
                     return cachedPath;
 
                 LogHelper.LogError(ex, $"GameCoverCache.UpdateAsync({iconName})");
+                ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
                 return cachedPath;
             }
         }
@@ -286,7 +296,11 @@ namespace XelLauncher.Helpers
             var urlExtension = GetImageExtension(imageUrl);
             var baseTarget = Path.Combine(dir, $"notice-banner-{HashUrl(imageUrl)}");
             var cachedPath = TryGetCachedPath(baseTarget, urlExtension);
-            if (cachedPath != null) return cachedPath;
+            if (cachedPath != null)
+            {
+                ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "notice-banner");
+                return cachedPath;
+            }
 
             var temp = baseTarget + ".download.tmp";
             try
@@ -484,6 +498,7 @@ namespace XelLauncher.Helpers
                     archiveDir,
                     $"{now:HHmmss}-{kind}-{HashUrl(imageUrl)}{extension}");
 
+                if (HasArchivedLauncherImage(archiveDir, kind, imageUrl)) return;
                 if (File.Exists(targetPath)) return;
 
                 File.Copy(sourcePath, targetPath, overwrite: false);
@@ -492,6 +507,35 @@ namespace XelLauncher.Helpers
             catch (Exception ex)
             {
                 LogHelper.LogError(ex, $"GameCoverCache.ArchiveLauncherImageIfEnabled({iconName})");
+            }
+        }
+
+        private static bool HasArchivedLauncherImage(string archiveDir, string kind, string imageUrl)
+        {
+            var hash = HashUrl(imageUrl);
+            return Directory.EnumerateFiles(archiveDir, $"*-{kind}-{hash}.*").Any();
+        }
+
+        private static bool IsLauncherImageArchiveBackfillNeeded(string iconName, string cachedPath, string kind)
+        {
+            try
+            {
+                if (!ConfigHelper.Load().ArchiveLauncherImages) return false;
+                if (string.IsNullOrWhiteSpace(cachedPath) || !File.Exists(cachedPath)) return false;
+
+                var archiveDir = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "img",
+                    NormalizeArchiveGameName(iconName),
+                    DateTime.Now.ToString("yyyy-MM-dd"));
+
+                return !Directory.Exists(archiveDir) ||
+                       !Directory.EnumerateFiles(archiveDir, $"*-{kind}-*.*").Any();
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GameCoverCache.IsLauncherImageArchiveBackfillNeeded({iconName})");
+                return false;
             }
         }
 

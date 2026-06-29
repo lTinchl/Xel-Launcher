@@ -259,28 +259,28 @@
     <value>Install Game</value>
   </data>
   <data name="App.Game.Install.Completed" xml:space="preserve">
-    <value>完成</value>
+    <value>Completed</value>
   </data>
   <data name="App.Game.Install.Init" xml:space="preserve">
-    <value>Install Init···</value>
+    <value>Initializing...</value>
   </data>
   <data name="App.Game.Install.Installing" xml:space="preserve">
-    <value>安装中...</value>
+    <value>Installing...</value>
   </data>
   <data name="App.Game.Install.Paused" xml:space="preserve">
     <value>Paused</value>
   </data>
   <data name="App.Game.Install.Removing" xml:space="preserve">
-    <value>清理中...</value>
+    <value>Cleaning up...</value>
   </data>
   <data name="App.Game.Install.Success" xml:space="preserve">
-    <value>InstallUpdate Success</value>
+    <value>Install/update completed</value>
   </data>
   <data name="App.Game.Install.Updating" xml:space="preserve">
-    <value>更新中...</value>
+    <value>Updating...</value>
   </data>
   <data name="App.Game.Install.Verifying" xml:space="preserve">
-    <value>校验中...</value>
+    <value>Verifying...</value>
   </data>
   <data name="App.Game.LaunchSuccess" xml:space="preserve">
     <value>Game launched successfully</value>
@@ -304,7 +304,7 @@
     <value>Select [{0}] Game Root Directory</value>
   </data>
   <data name="App.Game.SelectInstallDir" xml:space="preserve">
-    <value>选择游戏安装目录</value>
+    <value>Select game install directory</value>
   </data>
   <data name="App.Game.Setting" xml:space="preserve">
     <value>Game Settings</value>
@@ -349,7 +349,7 @@
     <value>Update Game</value>
   </data>
   <data name="App.Game.WaitingProcess" xml:space="preserve">
-    <value>等待游戏进程...</value>
+    <value>Waiting for game process...</value>
   </data>
   <data name="App.Game.WarnSelectDir" xml:space="preserve">
     <value>Please select the game root directory first</value>
@@ -478,7 +478,7 @@
     <value>Version:</value>
   </data>
   <data name="App.GameSetting.VersionChecking" xml:space="preserve">
-    <value>版本：N/A</value>
+    <value>Version: N/A</value>
   </data>
   <data name="App.GameSetting.WarnSetBiliPath" xml:space="preserve">
     <value>Please set the Bilibili server path first</value>
@@ -1027,10 +1027,10 @@
     <value>Token saved</value>
   </data>
   <data name="App.StartupAnnouncement.Button" xml:space="preserve">
-    <value>已阅读</value>
+    <value>Got it</value>
   </data>
   <data name="App.StartupAnnouncement.ModalTitle" xml:space="preserve">
-    <value>版本信息</value>
+    <value>Version info</value>
   </data>
   <data name="App.Switch.ConfirmMsg" xml:space="preserve">
     <value>Switching servers requires closing the running game. Continue?</value>
@@ -2399,5 +2399,29 @@
   </data>
   <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
     <value>Check for game updates</value>
+  </data>
+  <data name="App.Game.CustomToolAdd" xml:space="preserve">
+    <value>Add custom tool</value>
+  </data>
+  <data name="App.Game.CustomToolChooseIcon" xml:space="preserve">
+    <value>Choose icon</value>
+  </data>
+  <data name="App.Game.CustomToolIconFilter" xml:space="preserve">
+    <value>Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.ico|All files|*.*</value>
+  </data>
+  <data name="App.Game.CustomToolIconInvalid" xml:space="preserve">
+    <value>Unable to read this image</value>
+  </data>
+  <data name="App.Game.CustomToolInvalid" xml:space="preserve">
+    <value>Enter a valid name and link</value>
+  </data>
+  <data name="App.Game.CustomToolName" xml:space="preserve">
+    <value>Tool name</value>
+  </data>
+  <data name="App.Game.CustomToolUrl" xml:space="preserve">
+    <value>https://example.com</value>
+  </data>
+  <data name="App.Game.Notice" xml:space="preserve">
+    <value>Announcements</value>
   </data>
 </root>

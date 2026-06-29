@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
 {
@@ -27,7 +28,7 @@ namespace XelLauncher.Forms
             BorderWidth = 0;
             WaveSize = 0;
             Ghost = true;
-            _timer = new Timer { Interval = 15 };
+            _timer = new Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _timer.Tick += Timer_Tick;
         }
 
@@ -111,6 +112,7 @@ namespace XelLauncher.Forms
             bool shouldRun = Visible && Parent != null && !IsDisposed;
             if (shouldRun)
             {
+                AnimationFrameHelper.ApplyFrameInterval(_timer, this);
                 if (!_timer.Enabled) _timer.Start();
             }
             else if (_timer.Enabled)

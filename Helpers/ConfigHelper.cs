@@ -21,6 +21,8 @@ namespace XelLauncher.Helpers
 
         public static readonly string GlobalEndAccountBackupDir = Path.Combine(ConfigDir, "GlobalEndAccountBackups");
 
+        public static readonly string CustomToolIconDir = Path.Combine(ConfigDir, "CustomToolIcons");
+
         public static AppConfig Load()
         {
             if (!File.Exists(ConfigFile)) return new AppConfig();
@@ -30,6 +32,8 @@ namespace XelLauncher.Helpers
                           ?? new AppConfig();
                 cfg.UpdateState ??= new AppUpdateState();
                 cfg.GameStatusCache ??= new();
+                cfg.CustomToolLinks ??= new();
+                cfg.NoticePanelCollapsed ??= new();
                 MigrateLegacySecrets(cfg);
                 return cfg;
             }

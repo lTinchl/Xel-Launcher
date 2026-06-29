@@ -42,6 +42,12 @@ namespace XelLauncher.Forms
             floatMenu.BackHover = palette.Primary;
             floatMenu.BackActive = palette.PrimaryActive;
 
+            if (_noticePanel != null)
+            {
+                _noticePanel.ToggleBackColor = Color.FromArgb(218, palette.PrimaryActive);
+                _noticePanel.Invalidate();
+            }
+
             btnAccountManage.BackExtend = $"135, {ToHex(palette.PrimaryActive)}, {ToHex(palette.Primary)}";
             btnAccountManage.BackHover = palette.PrimaryHover;
             btnAccountManage.BackActive = palette.PrimaryActive;

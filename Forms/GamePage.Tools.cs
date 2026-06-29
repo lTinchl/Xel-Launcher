@@ -55,9 +55,14 @@ namespace XelLauncher.Forms
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 g.DrawImage(icon.ToBitmap(), 5, 5, 32, 32);
             }
+            return CreateSubButton(bmp, clickHandler, tip);
+        }
+
+        private AntdUI.Avatar CreateSubButton(Image image, EventHandler clickHandler, string tip)
+        {
             var btn = new AntdUI.Avatar
             {
-                Image = bmp,
+                Image = image,
                 ImageFit = AntdUI.TFit.Cover,
                 BackColor = Color.Transparent,
                 BorderWidth = 0,
@@ -67,9 +72,123 @@ namespace XelLauncher.Forms
                 Cursor = Cursors.Hand,
                 Visible = true,
             };
-            btn.Click += clickHandler;
+            btn.MouseUp += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Left)
+                    clickHandler(s, e);
+            };
             LeftTooltip().SetTip(btn, tip);
             return btn;
+        }
+
+        private AntdUI.Avatar CreateCustomToolButton(CustomToolLink link)
+        {
+            var image = LoadCustomToolImage(link.IconPath) ?? CreateCustomToolImage(link.Name);
+            var btn = CreateSubButton(image, (s, e) => TabHeaderForm.Open(link.Url), link.Name);
+            btn.Tag = link;
+            btn.MouseUp += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Right)
+                    ShowCustomToolContextMenu(btn, link);
+            };
+            return btn;
+        }
+
+        private void AddBuiltInToolButtons()
+        {
+            switch (_game.IconName)
+            {
+                case "Arknights":
+                case "BiliArknights":
+                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click, "Arkntools"));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click, "PRTS Wiki"));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click, "一图流"));
+                    break;
+                case "Endfield":
+                case "BiliEndfield":
+                    _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click, "终末地一图流"));
+                    _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click, "Warfarin Wiki"));
+                    break;
+                case "GlobalEndfield":
+                case "PlayEndfield":
+                    _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click, "Endfield Tools"));
+                    break;
+            }
+        }
+
+        private AntdUI.Avatar CreateAddCustomToolButton()
+        {
+            return CreateSubButton(CreatePlusToolImage(), (s, e) => ShowAddCustomToolDialog(), AntdUI.Localization.Get("App.Game.CustomToolAdd", "添加自定义工具"));
+        }
+
+        private static Bitmap CreatePlusToolImage()
+        {
+            var bmp = new Bitmap(42, 42);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(Color.Transparent);
+            using var bg = new SolidBrush(Color.FromArgb(214, 82, 96, 118));
+            using var pen = new Pen(Color.White, 3.2F) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+            g.FillEllipse(bg, 1, 1, 40, 40);
+            g.DrawLine(pen, 21, 12, 21, 30);
+            g.DrawLine(pen, 12, 21, 30, 21);
+            return bmp;
+        }
+
+        private static Bitmap CreateCustomToolImage(string name)
+        {
+            var bmp = new Bitmap(42, 42);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+            g.Clear(Color.Transparent);
+
+            using var bg = new LinearGradientBrush(new Rectangle(1, 1, 40, 40), Color.FromArgb(255, 74, 104, 166), Color.FromArgb(255, 42, 182, 163), 135F);
+            g.FillEllipse(bg, 1, 1, 40, 40);
+
+            var text = string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[0].ToString().ToUpperInvariant();
+            using var font = new Font("Microsoft YaHei UI", 15F, FontStyle.Bold);
+            using var brush = new SolidBrush(Color.White);
+            using var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            g.DrawString(text, font, brush, new RectangleF(0, 0, 42, 41), sf);
+            return bmp;
+        }
+
+        private static Bitmap LoadCustomToolImage(string iconPath)
+        {
+            if (string.IsNullOrWhiteSpace(iconPath) || !File.Exists(iconPath)) return null;
+
+            try
+            {
+                using var src = Image.FromFile(iconPath);
+                return CreateCircularImage(src, 42);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static Bitmap CreateCircularImage(Image src, int size)
+        {
+            var bmp = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            g.Clear(Color.Transparent);
+
+            using var path = new GraphicsPath();
+            path.AddEllipse(1, 1, size - 2, size - 2);
+            g.SetClip(path);
+
+            var scale = Math.Max(size / (float)src.Width, size / (float)src.Height);
+            var drawWidth = src.Width * scale;
+            var drawHeight = src.Height * scale;
+            var x = (size - drawWidth) / 2F;
+            var y = (size - drawHeight) / 2F;
+            g.DrawImage(src, x, y, drawWidth, drawHeight);
+            g.ResetClip();
+            return bmp;
         }
 
         private AntdUI.TooltipComponent LeftTooltip()
@@ -134,6 +253,202 @@ namespace XelLauncher.Forms
 
             _coverPictureBox.Controls.Add(_toolSidebar);
             _toolSidebar.BringToFront();
+        }
+
+        private void RebuildToolSidebar()
+        {
+            if (_toolSidebar == null) return;
+
+            int item = 42;
+            int pad = 8;
+            _toolSidebar.Size = new Size(56, pad * 2 + _subBtns.Count * item);
+            _toolSidebar.Controls.Clear();
+            for (int i = 0; i < _subBtns.Count; i++)
+            {
+                var btn = _subBtns[i];
+                btn.Visible = true;
+                btn.Size = new Size(42, 42);
+                btn.Radius = 21;
+                btn.Round = true;
+                btn.BackColor = Color.Transparent;
+                btn.Location = new Point(7, pad + i * item);
+                _toolSidebar.Controls.Add(btn);
+            }
+            PositionToolSidebar();
+        }
+
+        private void LoadCustomToolButtons()
+        {
+            var cfg = ConfigHelper.Load();
+            if (!cfg.CustomToolLinks.TryGetValue(_game.IconName, out var links) || links == null) return;
+
+            foreach (var link in links.Where(x => !string.IsNullOrWhiteSpace(x.Name) && !string.IsNullOrWhiteSpace(x.Url)))
+                _subBtns.Add(CreateCustomToolButton(link));
+        }
+
+        private void ShowAddCustomToolDialog()
+        {
+            var form = FindForm() as AntdUI.BaseForm;
+            string selectedIconPath = "";
+            var nameInput = new AntdUI.Input
+            {
+                PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolName", "工具名称"),
+                Location = new Point(0, 0),
+                Size = new Size(320, 40),
+                Height = 40,
+            };
+            var urlInput = new AntdUI.Input
+            {
+                PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolUrl", "https://example.com"),
+                Location = new Point(0, 48),
+                Size = new Size(320, 40),
+                Height = 40,
+            };
+            var iconPreview = new PictureBox
+            {
+                Location = new Point(0, 98),
+                Size = new Size(42, 42),
+                Image = CreatePlusToolImage(),
+                SizeMode = PictureBoxSizeMode.StretchImage,
+            };
+            var chooseIcon = new AntdUI.Button
+            {
+                Text = AntdUI.Localization.Get("App.Game.CustomToolChooseIcon", "选择图标"),
+                Location = new Point(52, 99),
+                Size = new Size(112, 40),
+                Radius = 8,
+                Ghost = true,
+            };
+            chooseIcon.Click += (s, e) =>
+            {
+                using var dlg = new OpenFileDialog
+                {
+                    Title = AntdUI.Localization.Get("App.Game.CustomToolChooseIcon", "选择图标"),
+                    Filter = AntdUI.Localization.Get("App.Game.CustomToolIconFilter", "图片文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.ico|所有文件|*.*"),
+                    CheckFileExists = true,
+                };
+                if (dlg.ShowDialog(FindForm()) != DialogResult.OK) return;
+
+                var preview = LoadCustomToolImage(dlg.FileName);
+                if (preview == null)
+                {
+                    AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.Game.CustomToolIconInvalid", "无法读取该图片"));
+                    return;
+                }
+
+                iconPreview.Image?.Dispose();
+                iconPreview.Image = preview;
+                selectedIconPath = dlg.FileName;
+            };
+            var wrap = new Panel { Size = new Size(320, 144), Padding = new Padding(0, 0, 0, 0) };
+            wrap.Controls.Add(chooseIcon);
+            wrap.Controls.Add(iconPreview);
+            wrap.Controls.Add(urlInput);
+            wrap.Controls.Add(nameInput);
+
+            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Game.CustomToolAdd", "添加自定义工具"), wrap)
+            {
+                OkText = AntdUI.Localization.Get("OK", "确定"),
+                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
+            });
+            if (result != DialogResult.OK) return;
+
+            var name = nameInput.Text.Trim();
+            var url = NormalizeCustomToolUrl(urlInput.Text.Trim());
+            if (string.IsNullOrWhiteSpace(name) || !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+            {
+                AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.Game.CustomToolInvalid", "请输入有效的名称和链接"));
+                return;
+            }
+
+            var link = new CustomToolLink
+            {
+                Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
+                Name = name,
+                Url = url,
+            };
+
+            if (!string.IsNullOrWhiteSpace(selectedIconPath))
+            {
+                var savedIconPath = SaveCustomToolIcon(selectedIconPath, link.Id);
+                if (string.IsNullOrWhiteSpace(savedIconPath))
+                {
+                    AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.Game.CustomToolIconInvalid", "无法读取该图片"));
+                    return;
+                }
+                link.IconPath = savedIconPath;
+            }
+
+            var cfg = ConfigHelper.Load();
+            if (!cfg.CustomToolLinks.TryGetValue(_game.IconName, out var links) || links == null)
+                cfg.CustomToolLinks[_game.IconName] = links = new List<CustomToolLink>();
+            links.Add(link);
+            ConfigHelper.Save(cfg);
+
+            int insertIndex = Math.Max(0, _subBtns.Count - 1);
+            _subBtns.Insert(insertIndex, CreateCustomToolButton(link));
+            RebuildToolSidebar();
+        }
+
+        private void ShowCustomToolContextMenu(Control target, CustomToolLink link)
+        {
+            AntdUI.ContextMenuStrip.open(target, it =>
+            {
+                var cfg = ConfigHelper.Load();
+                if (cfg.CustomToolLinks.TryGetValue(_game.IconName, out var links) && links != null)
+                {
+                    links.RemoveAll(x => x.Id == link.Id || (x.Name == link.Name && x.Url == link.Url));
+                    ConfigHelper.Save(cfg);
+                }
+
+                RebuildCustomToolButtons();
+            }, new AntdUI.IContextMenuStripItem[]
+            {
+                new AntdUI.ContextMenuStripItem(AntdUI.Localization.Get("App.Sidebar.Delete", "删除")).SetIcon("DeleteOutlined"),
+            });
+        }
+
+        private void RebuildCustomToolButtons()
+        {
+            _subBtns.Clear();
+            AddBuiltInToolButtons();
+            LoadCustomToolButtons();
+            _subBtns.Add(CreateAddCustomToolButton());
+            RebuildToolSidebar();
+        }
+
+        private static string NormalizeCustomToolUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return "";
+            return url.Contains("://", StringComparison.Ordinal) ? url : "https://" + url;
+        }
+
+        private static string SaveCustomToolIcon(string sourcePath, string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath)) return "";
+                using var _ = Image.FromFile(sourcePath);
+
+                Directory.CreateDirectory(ConfigHelper.CustomToolIconDir);
+                var ext = Path.GetExtension(sourcePath);
+                if (string.IsNullOrWhiteSpace(ext)) ext = ".png";
+                var target = Path.Combine(ConfigHelper.CustomToolIconDir, SanitizeToolFileName(id) + ext.ToLowerInvariant());
+                File.Copy(sourcePath, target, true);
+                return target;
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private static string SanitizeToolFileName(string value)
+        {
+            var name = string.IsNullOrWhiteSpace(value) ? Guid.NewGuid().ToString("N") : value;
+            foreach (var c in Path.GetInvalidFileNameChars())
+                name = name.Replace(c, '_');
+            return name;
         }
 
         private void PositionToolSidebar()
@@ -336,7 +651,7 @@ namespace XelLauncher.Forms
             }
 
             var stopwatch = Stopwatch.StartNew();
-            var timer = new System.Windows.Forms.Timer { Interval = 8 };
+            var timer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             timer.Tick += (s, e) =>
             {
                 if (IsDisposed)

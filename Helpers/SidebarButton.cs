@@ -52,7 +52,7 @@ namespace XelLauncher.Helpers
             DoubleBuffered = true;
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.SupportsTransparentBackColor, true);
             BackColor = System.Drawing.Color.Transparent;
-            _animationTimer = new Timer { Interval = 15 };
+            _animationTimer = new Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _animationTimer.Tick += AnimationTimer_Tick;
         }
 
@@ -138,6 +138,7 @@ namespace XelLauncher.Helpers
             _selectedFrom = _selectedProgress;
             _hoverFrom = _hoverProgress;
             _animationWatch.Restart();
+            AnimationFrameHelper.ApplyFrameInterval(_animationTimer, this);
             if (!_animationTimer.Enabled)
                 _animationTimer.Start();
             Invalidate();

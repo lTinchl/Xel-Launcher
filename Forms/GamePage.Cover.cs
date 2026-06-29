@@ -15,6 +15,14 @@ namespace XelLauncher.Forms
 {
     public partial class GamePage : UserControl
     {
+        private const int NoticeAnimationDurationMs = 180;
+        private System.Windows.Forms.Timer _noticeAnimationTimer;
+        private Stopwatch _noticeAnimationWatch;
+        private Rectangle _noticeAnimationFrom;
+        private Rectangle _noticeAnimationTo;
+        private bool _noticeAnimationEnabled;
+        private bool _noticeUserCollapsed;
+
         private void BuildCoverImage()
         {
             string imgFile = _game.IconName switch
@@ -34,26 +42,9 @@ namespace XelLauncher.Forms
                 Image = img,
             };
             _coverPictureBox = pb;
-            switch (_game.IconName)
-            {
-                case "Arknights":
-                case "BiliArknights":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click, "Arkntools"));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click, "PRTS Wiki"));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click, "一图流"));
-                    break;
-                case "Endfield":
-                case "BiliEndfield":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click, "终末地一图流"));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click, "Warfarin Wiki"));
-                    break;
-                case "GlobalEndfield":
-                case "PlayEndfield":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click, "Endfield Tools"));
-                    break;
-                default:
-                    break;
-            }
+            AddBuiltInToolButtons();
+            LoadCustomToolButtons();
+            _subBtns.Add(CreateAddCustomToolButton());
 
             Controls.Add(pb);
             _coverPictureBox.Controls.Add(panelLaunch);
@@ -63,6 +54,14 @@ namespace XelLauncher.Forms
                 Anchor = AnchorStyles.None,
             };
             _noticePanel.NoticeClick += NoticePanel_NoticeClick;
+            _noticeUserCollapsed = LoadNoticeCollapsedPreference();
+            _noticePanel.SetCollapsed(_noticeUserCollapsed);
+            _noticePanel.CollapsedChanged += (s, e) =>
+            {
+                _noticeUserCollapsed = _noticePanel.IsCollapsed;
+                SaveNoticeCollapsedPreference(_noticeUserCollapsed);
+                AnimateNoticePanelToHome();
+            };
             ApplyCachedLauncherNotice();
             _coverPictureBox.Controls.Add(_noticePanel);
             HandleCreated += (s, e) => {
@@ -78,10 +77,17 @@ namespace XelLauncher.Forms
                 PositionNoticePanel();
                 PositionToolSidebar();
             };
+            Disposed += (s, e) =>
+            {
+                StopNoticeAnimation(false);
+                _noticeAnimationTimer?.Dispose();
+                _noticeAnimationTimer = null;
+            };
             StretchCoverPictureBox();
             PositionLaunchPanel();
             PositionNoticePanel();
             PositionToolSidebar();
+            _noticeAnimationEnabled = true;
         }
 
         private void StretchCoverPictureBox()
@@ -208,6 +214,7 @@ namespace XelLauncher.Forms
 
             panelLaunch.Location = _launchPanelHome;
             panelLaunch.BringToFront();
+            _noticePanel?.BringToFront();
         }
 
         private void PositionNoticePanel()
@@ -217,8 +224,95 @@ namespace XelLauncher.Forms
             _noticePanelHome = GetNoticePanelHome(GetLaunchPanelHome());
             if (_switchAnimationActive) return;
 
+            _noticePanel.Visible = !_noticePanelHome.IsEmpty;
+            if (!_noticePanel.Visible) return;
+
+            StopNoticeAnimation(false);
             _noticePanel.Bounds = _noticePanelHome;
             _noticePanel.BringToFront();
+        }
+
+        private void AnimateNoticePanelToHome()
+        {
+            if (_noticePanel == null || panelLaunch == null || _coverPictureBox == null) return;
+
+            _noticePanelHome = GetNoticePanelHome(GetLaunchPanelHome());
+            if (_noticePanelHome.IsEmpty)
+            {
+                StopNoticeAnimation(false);
+                _noticePanel.Visible = false;
+                return;
+            }
+
+            _noticePanel.Visible = true;
+            _noticePanel.BringToFront();
+
+            if (!_noticeAnimationEnabled || !_noticePanel.IsHandleCreated || _noticePanel.Bounds.IsEmpty)
+            {
+                _noticePanel.Bounds = _noticePanelHome;
+                return;
+            }
+
+            StartNoticeAnimation(_noticePanel.Bounds, _noticePanelHome);
+        }
+
+        private void StartNoticeAnimation(Rectangle from, Rectangle to)
+        {
+            if (from == to)
+            {
+                _noticePanel.Bounds = to;
+                return;
+            }
+
+            _noticeAnimationFrom = from;
+            _noticeAnimationTo = to;
+            _noticeAnimationWatch = Stopwatch.StartNew();
+            _noticeAnimationTimer ??= new System.Windows.Forms.Timer();
+            AnimationFrameHelper.ApplyFrameInterval(_noticeAnimationTimer, this);
+            _noticeAnimationTimer.Tick -= NoticeAnimationTimer_Tick;
+            _noticeAnimationTimer.Tick += NoticeAnimationTimer_Tick;
+            _noticeAnimationTimer.Start();
+        }
+
+        private void NoticeAnimationTimer_Tick(object sender, EventArgs e)
+        {
+            if (_noticePanel == null || _noticePanel.IsDisposed)
+            {
+                StopNoticeAnimation(false);
+                return;
+            }
+
+            double progress = Math.Min(1D, _noticeAnimationWatch?.Elapsed.TotalMilliseconds / NoticeAnimationDurationMs ?? 1D);
+            _noticePanel.Bounds = LerpRect(_noticeAnimationFrom, _noticeAnimationTo, progress);
+            _noticePanel.Invalidate();
+
+            if (progress < 1D) return;
+
+            StopNoticeAnimation(true);
+        }
+
+        private void StopNoticeAnimation(bool finish)
+        {
+            if (_noticeAnimationTimer != null)
+            {
+                _noticeAnimationTimer.Stop();
+                _noticeAnimationTimer.Tick -= NoticeAnimationTimer_Tick;
+            }
+            _noticeAnimationWatch?.Stop();
+            _noticeAnimationWatch = null;
+
+            if (finish && _noticePanel != null && !_noticePanel.IsDisposed)
+                _noticePanel.Bounds = _noticeAnimationTo;
+        }
+
+        private static Rectangle LerpRect(Rectangle from, Rectangle to, double t)
+        {
+            t = Math.Max(0D, Math.Min(1D, t));
+            int x = (int)Math.Round(from.X + (to.X - from.X) * t);
+            int y = (int)Math.Round(from.Y + (to.Y - from.Y) * t);
+            int width = (int)Math.Round(from.Width + (to.Width - from.Width) * t);
+            int height = (int)Math.Round(from.Height + (to.Height - from.Height) * t);
+            return new Rectangle(x, y, Math.Max(1, width), Math.Max(1, height));
         }
 
         private Point GetLaunchPanelHome()
@@ -234,15 +328,101 @@ namespace XelLauncher.Forms
         {
             if (_noticePanel == null || panelLaunch == null) return Rectangle.Empty;
 
-            int maxWidth = Width - panelLaunch.Width - 96;
-            int noticeWidth = Math.Min(660, Math.Max(420, maxWidth));
-            if (Width < 760) noticeWidth = Math.Max(320, Width - 56);
+            const int left = 28;
+            const int minReadableWidth = 420;
+            const int toolGap = 18;
+            const int collapsedWidth = 190;
+            const int collapsedHeight = 46;
+            const int collapsedGap = 10;
+
+            Rectangle CollapsedHome()
+            {
+                int rowY = launchPanelHome == Point.Empty
+                    ? Math.Max(24, (_coverPictureBox?.Height ?? Height) - collapsedHeight - 12)
+                    : launchPanelHome.Y + (panelLaunch.Height - collapsedHeight) / 2;
+                int sameRowRight = launchPanelHome.X - collapsedGap;
+                if (sameRowRight - left >= collapsedWidth)
+                    return new Rectangle(left, Math.Max(24, rowY), collapsedWidth, collapsedHeight);
+
+                int aboveY = launchPanelHome == Point.Empty
+                    ? rowY
+                    : launchPanelHome.Y - collapsedHeight - collapsedGap;
+                int maxX = (_coverPictureBox?.Width ?? Width) - collapsedWidth - 28;
+                int x = Math.Max(0, Math.Min(left, maxX));
+                int y = Math.Max(24, aboveY);
+                return new Rectangle(x, y, collapsedWidth, collapsedHeight);
+            }
+
+            if (_noticeUserCollapsed)
+            {
+                if (!_noticePanel.IsCollapsed)
+                    _noticePanel.SetCollapsed(true);
+                return CollapsedHome();
+            }
+
+            int rightLimit = _coverPictureBox?.Width - 28 ?? Width - 28;
+            if (_toolSidebar != null)
+            {
+                var toolHome = GetToolSidebarHome();
+                if (!toolHome.IsEmpty)
+                    rightLimit = Math.Min(rightLimit, toolHome.X - toolGap);
+            }
+            if (launchPanelHome != Point.Empty)
+                rightLimit = Math.Min(rightLimit, launchPanelHome.X - toolGap);
+
+            int availableWidth = rightLimit - left;
+            if (availableWidth < minReadableWidth)
+            {
+                _noticePanel.SetCollapsed(true);
+                return CollapsedHome();
+            }
 
             int noticeHeight = Width < 760 ? 132 : 150;
             int y = launchPanelHome.Y + panelLaunch.Height - noticeHeight;
-            if (y < 24) y = 24;
+            if (y < 24)
+            {
+                _noticePanel.SetCollapsed(true);
+                return CollapsedHome();
+            }
 
-            return new Rectangle(28, y, noticeWidth, noticeHeight);
+            if (_noticePanel.IsCollapsed)
+                _noticePanel.SetCollapsed(false);
+
+            int noticeWidth = Math.Min(660, availableWidth);
+            return new Rectangle(left, y, noticeWidth, noticeHeight);
+        }
+
+        private bool LoadNoticeCollapsedPreference()
+        {
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                return cfg.NoticePanelCollapsed != null &&
+                       cfg.NoticePanelCollapsed.TryGetValue(_game.IconName, out bool collapsed) &&
+                       collapsed;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void SaveNoticeCollapsedPreference(bool collapsed)
+        {
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                cfg.NoticePanelCollapsed ??= new Dictionary<string, bool>();
+                if (collapsed)
+                    cfg.NoticePanelCollapsed[_game.IconName] = true;
+                else
+                    cfg.NoticePanelCollapsed.Remove(_game.IconName);
+                ConfigHelper.Save(cfg);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GamePage.SaveNoticeCollapsedPreference({_game.IconName})");
+            }
         }
 
         private List<NoticeBannerItem> CreateFallbackBanners(Image image)

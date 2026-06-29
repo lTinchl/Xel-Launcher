@@ -112,6 +112,7 @@ namespace XelLauncher.Forms
             EnsureThemeSurfaceAnimator();
 
             _themeSurfaceTimer.Stop();
+            AnimationFrameHelper.ApplyFrameInterval(_themeSurfaceTimer, this);
             _themeSurfaceWatch.Restart();
             _themeSurfaceTargetDark = targetDark;
             _themeSurfaceFromBackground = BackColor;
@@ -128,7 +129,7 @@ namespace XelLauncher.Forms
             if (_themeSurfaceTimer != null) return;
 
             _themeSurfaceWatch = new Stopwatch();
-            _themeSurfaceTimer = new Timer { Interval = 15 };
+            _themeSurfaceTimer = new Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _themeSurfaceTimer.Tick += ThemeSurfaceTimer_Tick;
             Disposed += (s, e) =>
             {

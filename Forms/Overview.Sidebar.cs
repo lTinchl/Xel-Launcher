@@ -227,7 +227,7 @@ namespace XelLauncher.Forms
             panelSidebarItems.Invalidate();
 
             _sidebarReorderWatch = Stopwatch.StartNew();
-            _sidebarReorderTimer = new Timer { Interval = 10 };
+            _sidebarReorderTimer = new Timer { Interval = AnimationFrameHelper.GetFrameInterval(panelSidebarItems) };
             _sidebarReorderTimer.Tick += SidebarReorderTimer_Tick;
             _sidebarReorderTimer.Start();
         }
@@ -342,10 +342,11 @@ namespace XelLauncher.Forms
 
             if (_sidebarSelectionTimer == null)
             {
-                _sidebarSelectionTimer = new Timer { Interval = 15 };
+                _sidebarSelectionTimer = new Timer { Interval = AnimationFrameHelper.GetFrameInterval(panelSidebar) };
                 _sidebarSelectionTimer.Tick += SidebarSelectionTimer_Tick;
             }
 
+            AnimationFrameHelper.ApplyFrameInterval(_sidebarSelectionTimer, panelSidebar);
             if (!_sidebarSelectionTimer.Enabled)
                 _sidebarSelectionTimer.Start();
         }
@@ -353,10 +354,10 @@ namespace XelLauncher.Forms
         private void SidebarSelectionTimer_Tick(object sender, EventArgs e)
         {
             _sidebarSelectionBounds = new System.Drawing.RectangleF(
-                Ease(_sidebarSelectionBounds.X, _sidebarSelectionTarget.X),
-                Ease(_sidebarSelectionBounds.Y, _sidebarSelectionTarget.Y),
-                Ease(_sidebarSelectionBounds.Width, _sidebarSelectionTarget.Width),
-                Ease(_sidebarSelectionBounds.Height, _sidebarSelectionTarget.Height));
+                Ease(_sidebarSelectionBounds.X, _sidebarSelectionTarget.X, _sidebarSelectionTimer),
+                Ease(_sidebarSelectionBounds.Y, _sidebarSelectionTarget.Y, _sidebarSelectionTimer),
+                Ease(_sidebarSelectionBounds.Width, _sidebarSelectionTarget.Width, _sidebarSelectionTimer),
+                Ease(_sidebarSelectionBounds.Height, _sidebarSelectionTarget.Height, _sidebarSelectionTimer));
 
             if (NearlySame(_sidebarSelectionBounds, _sidebarSelectionTarget, 0.5F))
             {
@@ -384,8 +385,8 @@ namespace XelLauncher.Forms
             _sidebarSelectionIndicator.Invalidate();
         }
 
-        private static float Ease(float current, float target) =>
-            current + (target - current) * 0.28F;
+        private static float Ease(float current, float target, Timer timer) =>
+            current + (target - current) * AnimationFrameHelper.ScaleEase(0.28F, timer);
 
         private static bool NearlySame(System.Drawing.RectangleF a, System.Drawing.RectangleF b, float tolerance) =>
             Math.Abs(a.X - b.X) <= tolerance &&
