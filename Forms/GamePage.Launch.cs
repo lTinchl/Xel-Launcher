@@ -484,34 +484,9 @@ namespace XelLauncher.Forms
             var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
             string path = entry?.RootPath ?? _game.RootPath;
 
-            var official = cfg.Games.Find(g => g.IconName == "Arknights");
-            var bilibili = cfg.Games.Find(g => g.IconName == "BiliArknights");
-            bool sameRoot = official != null && bilibili != null &&
-                !string.IsNullOrEmpty(official.RootPath) && !string.IsNullOrEmpty(bilibili.RootPath) &&
-                Path.GetFullPath(official.RootPath).Equals(
-                    Path.GetFullPath(bilibili.RootPath),
-                    StringComparison.OrdinalIgnoreCase);
-
-            // Replace Endfield launch metadata when this game shares a root path with another Endfield variant.
             bool isEndfield = _game.IconName == "Endfield" || _game.IconName == "BiliEndfield" || _game.IconName == "GlobalEndfield" || _game.IconName == "PlayEndfield";
-            bool endfieldSameRoot = false;
-            if (isEndfield && !string.IsNullOrEmpty(path))
-            {
-                var endfieldIcons = new[] { "Endfield", "BiliEndfield", "GlobalEndfield","PlayEndfield" };
-                foreach (var other in endfieldIcons)
-                {
-                    if (other == _game.IconName) continue;
-                    var otherEntry = cfg.Games.Find(g => g.IconName == other);
-                    if (otherEntry != null && !string.IsNullOrEmpty(otherEntry.RootPath) &&
-                        Path.GetFullPath(path).Equals(Path.GetFullPath(otherEntry.RootPath), StringComparison.OrdinalIgnoreCase))
-                    {
-                        endfieldSameRoot = true;
-                        break;
-                    }
-                }
-            }
-
-            bool needSwitch = isEndfield ? endfieldSameRoot : sameRoot;
+            string payloadDir = GameLauncher.GetPayloadDirPath(_game.IconName);
+            bool needSwitch = payloadDir != null && Directory.Exists(payloadDir);
 
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
@@ -529,39 +504,9 @@ namespace XelLauncher.Forms
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
                 if (e2 != null) { e2.RootPath = path; ConfigHelper.Save(cfg2); }
-
-                // Recalculate shared-root state after updating the game path.
-                var cfg3 = ConfigHelper.Load();
-                official = cfg3.Games.Find(g => g.IconName == "Arknights");
-                bilibili = cfg3.Games.Find(g => g.IconName == "BiliArknights");
-                sameRoot = official != null && bilibili != null &&
-                    !string.IsNullOrEmpty(official.RootPath) && !string.IsNullOrEmpty(bilibili.RootPath) &&
-                    Path.GetFullPath(official.RootPath).Equals(Path.GetFullPath(bilibili.RootPath), StringComparison.OrdinalIgnoreCase);
-
-                endfieldSameRoot = false;
-                if (isEndfield)
-                {
-                    var endfieldIcons2 = new[] { "Endfield", "BiliEndfield", "GlobalEndfield", "PlayEndfield" };
-                    foreach (var other in endfieldIcons2)
-                    {
-                        if (other == _game.IconName) continue;
-                        var otherEntry = cfg3.Games.Find(g => g.IconName == other);
-                        if (otherEntry != null && !string.IsNullOrEmpty(otherEntry.RootPath) &&
-                            Path.GetFullPath(path).Equals(Path.GetFullPath(otherEntry.RootPath), StringComparison.OrdinalIgnoreCase))
-                        {
-                            endfieldSameRoot = true;
-                            break;
-                        }
-                    }
-                }
-
-                needSwitch = isEndfield ? endfieldSameRoot : sameRoot;
             }
 
-            if (needSwitch)
-            {
-                await GameLauncher.KillArknightsProcesses(isEndfield);
-            }
+            await GameLauncher.KillArknightsProcesses(isEndfield);
 
             GameStart.LoadingWaveValue = 0;
             GameStart.Loading = true;
