@@ -152,6 +152,7 @@ namespace XelLauncher.Forms
                             try
                             {
                                 Directory.Delete(cachePath, true);
+                                ResetInstallStateAfterDownloadCacheClear(path);
                                 AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.Game.ClearCacheSuccess", "下载缓存已清理"));
                             }
                             catch (Exception ex)
@@ -161,6 +162,7 @@ namespace XelLauncher.Forms
                         }
                         else
                         {
+                            ResetInstallStateAfterDownloadCacheClear(path);
                             AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.NoCache", "未找到下载缓存"));
                         }
                     });
@@ -182,6 +184,21 @@ namespace XelLauncher.Forms
             panelLaunch.Controls.Add(GameStart);
             panelLaunch.Controls.Add(floatMenu);
 
+        }
+
+        private void ResetInstallStateAfterDownloadCacheClear(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return;
+
+            GameUpdateManager.ClearPaused(path);
+            if (_gameState == GameState.Paused || _gameState == GameState.Downloading)
+            {
+                _activeUpdate = null;
+                _gameState = GameState.NotInstalled;
+                RefreshGameStartButton();
+            }
+
+            _ = CheckGameStatusAsync();
         }
 
         private void ResetFloatMenuVisualState()

@@ -43,7 +43,9 @@ public class NoticeItem
 
     class NoticeCarouselPanel : Control
     {
-private readonly List<NoticeBannerItem> _banners;
+        private const int CategoryAnimationIntervalMs = 7;
+        private const int CategoryUnderlineDurationMs = 120;
+        private readonly List<NoticeBannerItem> _banners;
         private readonly List<NoticeItem> _notices;
         private readonly System.Windows.Forms.Timer _timer;
         private readonly System.Windows.Forms.Timer _slideTimer;
@@ -76,6 +78,10 @@ private readonly List<NoticeBannerItem> _banners;
         private readonly System.Windows.Forms.Timer _categoryUnderlineTimer;
         private readonly System.Windows.Forms.Timer _categoryTextTimer;
         private readonly Dictionary<string, float> _categoryTextProgress = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, float> _categoryTextFrom = new(StringComparer.OrdinalIgnoreCase);
+        private long _categoryTextStartTick;
+        private RectangleF _categoryUnderlineFrom;
+        private long _categoryUnderlineStartTick;
         private RectangleF _categoryUnderlineBounds;
         private RectangleF _categoryUnderlineTarget;
         private bool _categoryUnderlineInitialized;
@@ -119,9 +125,9 @@ private readonly List<NoticeBannerItem> _banners;
             _timer.Tick += (s, e) => Next();
             _slideTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
             _slideTimer.Tick += (s, e) => UpdateBannerSlide();
-            _categoryUnderlineTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
+            _categoryUnderlineTimer = new System.Windows.Forms.Timer { Interval = CategoryAnimationIntervalMs };
             _categoryUnderlineTimer.Tick += (s, e) => UpdateCategoryUnderline();
-            _categoryTextTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
+            _categoryTextTimer = new System.Windows.Forms.Timer { Interval = CategoryAnimationIntervalMs };
             _categoryTextTimer.Tick += (s, e) => UpdateCategoryTextAnimation();
             if (_banners.Count > 1) _timer.Start();
         }
@@ -710,7 +716,10 @@ private readonly List<NoticeBannerItem> _banners;
                 SetCategoryUnderlineTarget(activeUnderline.Value);
                 using var accent = new SolidBrush(Color.FromArgb(255, 225, 0));
                 using var path = RoundedRect(Rectangle.Round(_categoryUnderlineBounds), 1);
+                var state = g.Save();
+                g.SetClip(new Rectangle(x, y, width, 32), CombineMode.Intersect);
                 g.FillPath(accent, path);
+                g.Restore(state);
             }
         }
 
@@ -726,6 +735,9 @@ private readonly List<NoticeBannerItem> _banners;
         private void StartCategoryTextAnimation()
         {
             EnsureCategoryTextProgress();
+            foreach (var cat in _categories)
+                _categoryTextFrom[cat] = _categoryTextProgress.TryGetValue(cat, out var v) ? v : 0F;
+            _categoryTextStartTick = Environment.TickCount64;
             AnimationFrameHelper.ApplyFrameInterval(_categoryTextTimer, this);
             if (!_categoryTextTimer.Enabled)
                 _categoryTextTimer.Start();
@@ -733,24 +745,25 @@ private readonly List<NoticeBannerItem> _banners;
 
         private void UpdateCategoryTextAnimation()
         {
-            bool animating = false;
+            const int duration = 120;
+            double progress = Math.Min(1D, (Environment.TickCount64 - _categoryTextStartTick) / (double)duration);
+            double t = EaseOutCubic(progress);
+
             foreach (var category in _categories)
             {
+                float from = _categoryTextFrom.TryGetValue(category, out var fv) ? fv : 0F;
                 float target = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
-                float current = _categoryTextProgress.TryGetValue(category, out var value) ? value : target;
-                float next = Ease(current, target, _categoryTextTimer);
-                if (Math.Abs(next - target) <= 0.02F)
-                    next = target;
-                else
-                    animating = true;
-
-                _categoryTextProgress[category] = next;
+                _categoryTextProgress[category] = from + (float)((target - from) * t);
             }
 
-            if (!animating)
+            if (progress >= 1D)
+            {
+                foreach (var category in _categories)
+                    _categoryTextProgress[category] = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
                 _categoryTextTimer.Stop();
+            }
 
-            Invalidate();
+            InvalidateCategoryHeader();
         }
 
         private void SetCategoryUnderlineTarget(RectangleF target)
@@ -765,7 +778,9 @@ private readonly List<NoticeBannerItem> _banners;
 
             if (NearlySame(_categoryUnderlineTarget, target)) return;
 
+            _categoryUnderlineFrom = _categoryUnderlineBounds;
             _categoryUnderlineTarget = target;
+            _categoryUnderlineStartTick = Environment.TickCount64;
             AnimationFrameHelper.ApplyFrameInterval(_categoryUnderlineTimer, this);
             if (!_categoryUnderlineTimer.Enabled)
                 _categoryUnderlineTimer.Start();
@@ -773,23 +788,50 @@ private readonly List<NoticeBannerItem> _banners;
 
         private void UpdateCategoryUnderline()
         {
+            double progress = Math.Min(1D, (Environment.TickCount64 - _categoryUnderlineStartTick) / (double)CategoryUnderlineDurationMs);
+            double t = EaseOutCubic(progress);
+
             _categoryUnderlineBounds = new RectangleF(
-                Ease(_categoryUnderlineBounds.X, _categoryUnderlineTarget.X, _categoryUnderlineTimer),
+                (float)(_categoryUnderlineFrom.X + (_categoryUnderlineTarget.X - _categoryUnderlineFrom.X) * t),
                 _categoryUnderlineTarget.Y,
-                Ease(_categoryUnderlineBounds.Width, _categoryUnderlineTarget.Width, _categoryUnderlineTimer),
+                (float)(_categoryUnderlineFrom.Width + (_categoryUnderlineTarget.Width - _categoryUnderlineFrom.Width) * t),
                 _categoryUnderlineTarget.Height);
 
-            if (NearlySame(_categoryUnderlineBounds, _categoryUnderlineTarget, 0.5F))
+            if (progress >= 1D)
             {
                 _categoryUnderlineBounds = _categoryUnderlineTarget;
                 _categoryUnderlineTimer.Stop();
             }
 
-            Invalidate();
+            InvalidateCategoryHeader();
         }
 
-        private static float Ease(float current, float target, System.Windows.Forms.Timer timer) =>
-            current + (target - current) * AnimationFrameHelper.ScaleEase(0.28F, timer);
+        private static double EaseOutCubic(double t) => 1D - Math.Pow(1D - t, 3D);
+
+        private static float Ease(float current, float target, System.Windows.Forms.Timer timer, float baseEase) =>
+            current + (target - current) * AnimationFrameHelper.ScaleEase(baseEase, timer);
+
+        private void InvalidateCategoryHeader()
+        {
+            if (IsCollapsed || Width <= 0 || Height <= 0)
+            {
+                Invalidate();
+                return;
+            }
+
+            const int pad = 8;
+            int thumbW = Width >= 560 ? 242 : 154;
+            if (Width < 410) thumbW = 0;
+            int textX = pad + thumbW + (thumbW > 0 ? 20 : 0);
+            int textW = Width - textX - pad;
+            if (textW <= 0)
+            {
+                Invalidate();
+                return;
+            }
+
+            Invalidate(new Rectangle(Math.Max(0, textX - 6), 8, Math.Min(Width - textX + 6, textW + 12), 38));
+        }
 
         private static bool NearlySame(RectangleF a, RectangleF b, float tolerance = 0.1F) =>
             Math.Abs(a.X - b.X) <= tolerance &&
@@ -872,6 +914,7 @@ private readonly List<NoticeBannerItem> _banners;
             _noticeScroll = 0;
             _categoryTextTimer?.Stop();
             _categoryTextProgress.Clear();
+            _categoryTextFrom.Clear();
             foreach (var category in _categories)
                 _categoryTextProgress[category] = string.Equals(category, _selectedCategory, StringComparison.OrdinalIgnoreCase) ? 1F : 0F;
             _categoryUnderlineInitialized = false;

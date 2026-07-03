@@ -102,6 +102,15 @@ namespace XelLauncher.Helpers
             }
         }
 
+        public static void ClearPaused(string installPath)
+        {
+            var key = GetKey(installPath);
+            lock (SyncRoot)
+            {
+                PausedUpdatePaths.Remove(key);
+            }
+        }
+
         public static bool IsRecentlyCompleted(string iconName, string installPath)
         {
             var key = GetCompletedKey(iconName, installPath);

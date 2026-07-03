@@ -626,9 +626,7 @@ namespace XelLauncher
             _updateNotifyOption.Location = new Point(margin, _updateAutoOption.Bottom + D(2));
 
             var downloadPanelHeight = _isDownloadingUpdate || progressDownload.Visible ? D(76) : D(38);
-            var downloadTop = _isDownloadingUpdate || progressDownload.Visible
-                ? UpdateCardExpandedPixelHeight - margin - downloadPanelHeight
-                : UpdateCardExpandedPixelHeight - margin - downloadPanelHeight;
+            var downloadTop = UpdateCardExpandedPixelHeight - margin - downloadPanelHeight;
             panelUpdateButtons.Location = new Point(margin, Math.Max(_updateNotifyOption.Bottom + D(14), downloadTop));
             panelUpdateButtons.Size = new Size(contentWidth, downloadPanelHeight);
             if (btnDownloadSetup.Parent is Panel buttonPanel)
@@ -648,13 +646,13 @@ namespace XelLauncher
                 var gap = D(12);
                 var smallButtonHeight = Math.Max(D(34), TextRenderer.MeasureText(btnDownloadSetup.Text, btnDownloadSetup.Font).Height + D(12));
                 btnDownloadSetup.Size = new Size(setupWidth, smallButtonHeight);
-                btnDownloadSetup.Location = new Point(0, D(1));
+                btnDownloadSetup.Location = new Point(0, D(5));
                 btnDownloadPortable.Size = new Size(portableWidth, smallButtonHeight);
-                btnDownloadPortable.Location = new Point(setupWidth + gap, D(1));
+                btnDownloadPortable.Location = new Point(setupWidth + gap, D(5));
                 btnFallback.Size = new Size(Math.Max(D(100), TextRenderer.MeasureText(btnFallback.Text, btnFallback.Font).Width + D(34)), smallButtonHeight);
-                btnFallback.Location = new Point(setupWidth + portableWidth + gap * 2, D(1));
+                btnFallback.Location = new Point(setupWidth + portableWidth + gap * 2, D(5));
                 btnCancelDownload.Size = new Size(cancelWidth, smallButtonHeight);
-                btnCancelDownload.Location = new Point(_isDownloadingUpdate ? 0 : setupWidth + portableWidth + gap * 2, D(1));
+                btnCancelDownload.Location = new Point(_isDownloadingUpdate ? 0 : setupWidth + portableWidth + gap * 2, D(5));
             }
             lblDownloadStatus.Dock = DockStyle.None;
             if (_isDownloadingUpdate)
@@ -666,7 +664,7 @@ namespace XelLauncher
                         btnCancelDownload.Font,
                         Size.Empty,
                         TextFormatFlags.NoPadding).Width + D(34));
-                lblDownloadStatus.Location = new Point(cancelWidth + D(12), D(5));
+                lblDownloadStatus.Location = new Point(cancelWidth + D(12), D(9));
                 lblDownloadStatus.Size = new Size(Math.Max(D(80), contentWidth - cancelWidth - D(12)), D(24));
             }
             else
@@ -675,7 +673,7 @@ namespace XelLauncher
                 lblDownloadStatus.Size = new Size(contentWidth, D(20));
             }
             progressDownload.Dock = DockStyle.None;
-            progressDownload.Location = new Point(0, _isDownloadingUpdate ? D(48) : D(58));
+            progressDownload.Location = new Point(0, _isDownloadingUpdate ? D(52) : D(58));
             progressDownload.Size = new Size(Math.Max(D(160), contentWidth), D(20));
             progressDownload.Animation = 220;
             progressDownload.LoadingFull = false;
