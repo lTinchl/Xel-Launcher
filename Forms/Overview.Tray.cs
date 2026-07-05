@@ -34,6 +34,7 @@ namespace XelLauncher.Forms
         {
             Hide();
             _trayIcon.Visible = true;
+            Program.TrimMemory();
         }
 
         public void ShowFromTray()
@@ -51,10 +52,15 @@ namespace XelLauncher.Forms
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
-            if (WindowState == FormWindowState.Minimized && _minimizeToTray)
+            if (WindowState == FormWindowState.Minimized)
             {
-                Hide();
-                _trayIcon.Visible = true;
+                if (_minimizeToTray)
+                {
+                    Hide();
+                    _trayIcon.Visible = true;
+                }
+                
+                Program.TrimMemory();
             }
         }
     }

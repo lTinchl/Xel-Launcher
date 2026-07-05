@@ -92,7 +92,7 @@ namespace XelLauncher.Forms
             RebuildFloatMenu();
             btn_mode.Toggle = AntdUI.Config.IsDark;
             btn_mode.SetDarkIcon(AntdUI.Config.IsDark);
-            Load += (s, e) =>
+            Load += async (s, e) =>
             {
                 if (!AntdUI.Config.IsDark)
                     ApplyBackgroundColor(ConfigHelper.Load().BackgroundColor);
@@ -101,12 +101,24 @@ namespace XelLauncher.Forms
 
                 PositionUpdateBadge();
                 LoadUpdateBadgeFromCache();
-                _ = RefreshUpdateStateOnStartupAsync();
-                _ = RunSkylandAutoSignOnLaunchAsync();
-                _ = RunSkportAutoSignOnLaunchAsync();
+                
+                var t1 = RefreshUpdateStateOnStartupAsync();
+                var t2 = RunSkylandAutoSignOnLaunchAsync();
+                var t3 = RunSkportAutoSignOnLaunchAsync();
+                
                 if (StartupAnnouncementEnabled)
                     BeginInvoke(new Action(ShowStartupAnnouncementIfNeeded));
+
+                try
+                {
+                    await System.Threading.Tasks.Task.WhenAll(t1, t2, t3);
+                }
+                catch { }
+
+                // Trim memory exactly when all background initialization tasks finish
+                Program.TrimMemory();
             };
+
             windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
         }
 

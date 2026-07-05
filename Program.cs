@@ -1,6 +1,8 @@
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using XelLauncher.Forms;
@@ -118,6 +120,24 @@ namespace XelLauncher
             {
                 return false;
             }
+        }
+
+        [DllImport("psapi.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool EmptyWorkingSet(IntPtr hProcess);
+
+        public static void TrimMemory()
+        {
+            try
+            {
+                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+                GC.WaitForPendingFinalizers();
+
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                    EmptyWorkingSet(Process.GetCurrentProcess().Handle);
+            }
+            catch { }
         }
     }
 }
