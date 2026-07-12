@@ -18,7 +18,13 @@ using Hi3Helper.Plugin.Endfield.Management.PresetConfig;
 
 namespace XelLauncher.Helpers
 {
-    public record GameStatus(bool IsInstalled, bool HasUpdate, string LocalVersion, string RemoteVersion);
+    public record GameStatus(
+        bool IsInstalled,
+        bool HasUpdate,
+        string LocalVersion,
+        string RemoteVersion,
+        bool HasPreload = false,
+        string PreloadVersion = "");
     public record LauncherBannerItem(string ImageUrl, string JumpUrl);
     public record LauncherNoticeItem(string Category, string Title, string Date, string JumpUrl);
     public record LauncherNoticeContent(
@@ -77,7 +83,12 @@ namespace XelLauncher.Helpers
             manager.GetCurrentGameVersion(out GameVersion localVer);
             manager.GetApiGameVersion(out GameVersion remoteVer);
 
-            return new GameStatus(isInstalled, hasUpdate, localVer.ToString(), remoteVer.ToString());
+            manager.IsGameHasPreload(out bool hasPreload);
+            manager.GetApiPreloadGameVersion(out GameVersion preloadVer);
+            var preloadVersion = preloadVer.ToString();
+
+            return new GameStatus(isInstalled, hasUpdate, localVer.ToString(), remoteVer.ToString(),
+                hasPreload, preloadVersion);
         }
 
         public async Task<string> GetClientCoverImageUrlAsync(CancellationToken ct = default)
@@ -383,6 +394,17 @@ namespace XelLauncher.Helpers
             var installer = _preset.GameInstaller ?? throw new InvalidOperationException("GameInstaller 未初始化");
 
             manager.SetGamePath(installPath);
+
+            var cancelToken = Guid.NewGuid();
+            using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
+            ct.ThrowIfCancellationRequested();
+
+            // 必须先 InitAsync，管理器才能从服务器加载远端信息（含预下载包路径）
+            manager.InitAsync(in cancelToken, out var initResult);
+            int initCode = await initResult.AsTask<int>().ConfigureAwait(false);
+            if (initCode != 0)
+                throw new InvalidOperationException("游戏信息初始化失败");
+
             manager.IsGameInstalled(out bool isInstalled);
 
             var currentState = InstallProgressState.Preparing;
@@ -396,16 +418,54 @@ namespace XelLauncher.Helpers
                 onProgress(state, 0, 0);
             };
 
-            var cancelToken = Guid.NewGuid();
-            using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
-            ct.ThrowIfCancellationRequested();
-
             nint taskResult;
             if (isInstalled)
                 installer.StartUpdateAsync(progressDelegate, stateDelegate, in cancelToken, out taskResult);
             else
                 installer.StartInstallAsync(progressDelegate, stateDelegate, in cancelToken, out taskResult);
 
+            await taskResult.AsTask().ConfigureAwait(false);
+        }
+
+        public async Task PreloadAsync(
+            string installPath,
+            Action<InstallProgressState, long, long> onProgress,
+            CancellationToken ct = default)
+        {
+            var manager = _preset.GameManager ?? throw new InvalidOperationException("GameManager not initialized");
+            var installer = _preset.GameInstaller ?? throw new InvalidOperationException("GameInstaller not initialized");
+
+            manager.SetGamePath(installPath);
+
+            var cancelToken = Guid.NewGuid();
+            using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
+            ct.ThrowIfCancellationRequested();
+
+            manager.InitAsync(in cancelToken, out var initResult);
+            int result = await initResult.AsTask<int>().ConfigureAwait(false);
+            if (result != 0)
+                throw new InvalidOperationException("Game info initialization failed");
+
+            manager.IsGameInstalled(out bool isInstalled);
+            if (!isInstalled)
+                throw new InvalidOperationException("Game is not installed");
+
+            manager.IsGameHasPreload(out bool hasPreload);
+            if (!hasPreload)
+                throw new InvalidOperationException("No preload package is available");
+
+            var currentState = InstallProgressState.Preparing;
+
+            InstallProgressDelegate progressDelegate = (in InstallProgress p) =>
+                onProgress(currentState, p.DownloadedBytes, p.TotalBytesToDownload);
+
+            InstallProgressStateDelegate stateDelegate = state =>
+            {
+                currentState = state;
+                onProgress(state, 0, 0);
+            };
+
+            installer.StartPreloadAsync(progressDelegate, stateDelegate, in cancelToken, out nint taskResult);
             await taskResult.AsTask().ConfigureAwait(false);
         }
 

@@ -66,8 +66,11 @@ namespace XelLauncher.Forms
                     {
                         IsInstalled = true,
                         HasUpdate = false,
+                        HasPreload = false,
+                        PreloadCompleted = false,
                         LocalVersion = entry?.LocalVersion ?? "",
                         RemoteVersion = entry?.LocalVersion ?? "",
+                        PreloadVersion = "",
                         InstallPath = path
                     };
                     ConfigHelper.Save(completedCfg);
@@ -93,9 +96,19 @@ namespace XelLauncher.Forms
                                 status.HasUpdate &&
                                 !string.Equals(status.LocalVersion, status.RemoteVersion,
                                     StringComparison.OrdinalIgnoreCase);
+                var hasPreload = cfg.CheckGameUpdates &&
+                                 status.IsInstalled &&
+                                 !hasUpdate &&
+                                 status.HasPreload;
+                cfg.GameStatusCache.TryGetValue(_game.IconName, out var previousCached);
+                var preloadVersion = status.PreloadVersion ?? "";
+                var preloadCompleted = hasPreload &&
+                                       IsPreloadCompletedForPath(cfg.GameStatusCache.Values, path, preloadVersion);
+                _preloadCompleted = preloadCompleted;
 
                 _gameState = !status.IsInstalled ? GameState.NotInstalled
                            : hasUpdate           ? GameState.HasUpdate
+                           : hasPreload          ? GameState.HasPreload
                                                  : GameState.Ready;
 
                 // Write cache after live check completes
@@ -104,8 +117,11 @@ namespace XelLauncher.Forms
                 {
                     IsInstalled = status.IsInstalled,
                     HasUpdate = hasUpdate,
+                    HasPreload = hasPreload,
+                    PreloadCompleted = preloadCompleted,
                     LocalVersion = status.LocalVersion ?? "",
                     RemoteVersion = status.RemoteVersion ?? "",
+                    PreloadVersion = preloadVersion,
                     InstallPath = path
                 };
                 var entryToUpdate = cfgToUpdate.Games.Find(g => g.IconName == _game.IconName);
@@ -138,8 +154,21 @@ namespace XelLauncher.Forms
                     GameStart.IconSvg = "SyncOutlined";
                     break;
                 case GameState.Downloading:
-                    GameStart.Text = AntdUI.Localization.Get("App.Game.Pause", "暂停");
-                    GameStart.IconSvg = "PauseOutlined";
+                    var updateProgress = _activeUpdate?.LastProgress;
+                    if (_activeUpdate?.CanPause == true)
+                    {
+                        GameStart.Text = AntdUI.Localization.Get("App.Game.Pause", "暂停");
+                        GameStart.IconSvg = "PauseOutlined";
+                    }
+                    else
+                    {
+                        GameStart.Text = updateProgress == null
+                            ? AntdUI.Localization.Get("App.Game.Install.Updating", "处理中...")
+                            : FormatInstallProgress(updateProgress.State, updateProgress.Downloaded, updateProgress.Total)
+                              ?? AntdUI.Localization.Get("App.Game.Install.Updating", "处理中...");
+                        GameStart.IconSvg = "LoadingOutlined";
+                        GameStart.Enabled = false;
+                    }
                     break;
                 case GameState.Paused:
                     GameStart.Text = AntdUI.Localization.Get("App.Game.Resume", "继续");
@@ -155,6 +184,8 @@ namespace XelLauncher.Forms
                     GameStart.IconSvg = "PoweroffOutlined";
                     break;
             }
+
+            RefreshPreloadButton();
         }
 
         private void InstallOrUpdateGame()
@@ -185,6 +216,7 @@ namespace XelLauncher.Forms
             {
                 long lastTick = 0;
                 InstallProgressState? lastLoggedState = null;
+                InstallProgressState? lastButtonState = null;
                 Action<GameUpdateProgress> progressHandler = progress =>
                 {
                     if (!update.IsCancellationRequested && _gameState != GameState.Downloading)
@@ -201,6 +233,16 @@ namespace XelLauncher.Forms
                     {
                         lastLoggedState = progress.State;
                         LogHelper.Log($"Game update state: {_game.IconName} | {capturedPath} | {progress.State}");
+                    }
+
+                    if (lastButtonState != progress.State)
+                    {
+                        lastButtonState = progress.State;
+                        if (IsHandleCreated && !IsDisposed)
+                            BeginInvoke(() =>
+                            {
+                                if (!GameStart.IsDisposed) RefreshGameStartButton();
+                            });
                     }
 
                     var label = FormatInstallProgress(progress.State, progress.Downloaded, progress.Total);
@@ -264,6 +306,173 @@ namespace XelLauncher.Forms
                     }
                 }
             });
+        }
+
+        private void PreloadGame()
+        {
+            var cfg = ConfigHelper.Load();
+            var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
+            string path = entry?.RootPath ?? _game.RootPath;
+
+            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
+                return;
+            }
+
+            if (GameUpdateManager.Find(path) != null)
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.Preload.UpdateRunning", "游戏正在更新中，无法同时预下载"));
+                return;
+            }
+
+            if (_preloadRunning)
+            {
+                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Preload.Running", "预下载中..."));
+                return;
+            }
+
+            if (_preloadCompleted && _gameState == GameState.HasPreload)
+            {
+                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Preload.Success", "预下载已完成"));
+                return;
+            }
+
+            _preloadCompleted = false;
+            _preloadRunning = true;
+            RefreshGameStartButton();
+
+            AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Preload.Init", "准备预下载..."), async config =>
+            {
+                long lastTick = 0;
+                InstallProgressState? lastLoggedState = null;
+
+                try
+                {
+                    using var service = new EndfieldService(_game.IconName);
+                    LogHelper.Log($"Game preload started: {_game.IconName} | {path}");
+                    await service.PreloadAsync(path, (state, downloaded, total) =>
+                    {
+                        if (lastLoggedState != state)
+                        {
+                            lastLoggedState = state;
+                            LogHelper.Log($"Game preload state: {_game.IconName} | {path} | {state}");
+                        }
+
+                        var label = FormatInstallProgress(state, downloaded, total);
+                        if (string.IsNullOrWhiteSpace(label)) return;
+
+                        long now = Environment.TickCount64;
+                        if (now - lastTick < 800) return;
+                        lastTick = now;
+                        config.Text = label;
+                        config.Refresh();
+                    });
+
+                    LogHelper.Log($"Game preload completed: {_game.IconName} | {path}");
+                    _preloadCompleted = true;
+                    MarkPreloadCompleted(path);
+                    config.OK(AntdUI.Localization.Get("App.Game.Preload.Success", "预下载已完成"));
+                    _ = CheckGameStatusAsync();
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.LogError(ex, $"Game preload failed: {_game.IconName} | {path}");
+                    if (IsNoPreloadPackage(ex))
+                    {
+                        ClearPreloadAvailability(path);
+                        config.OK(AntdUI.Localization.Get("App.Game.Preload.None", "当前没有可用的预下载包"));
+                    }
+                    else
+                    {
+                        config.Error(ex.Message);
+                    }
+
+                    _ = CheckGameStatusAsync();
+                }
+                finally
+                {
+                    _preloadRunning = false;
+                    if (IsHandleCreated && !IsDisposed)
+                    {
+                        BeginInvoke(() =>
+                        {
+                            if (!GameStart.IsDisposed) RefreshGameStartButton();
+                        });
+                    }
+                }
+            });
+        }
+
+        private void ClearPreloadAvailability(string installPath)
+        {
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                if (cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached) &&
+                    IsSameInstallPath(cached.InstallPath, installPath))
+                {
+                    cached.HasPreload = false;
+                    cached.PreloadCompleted = false;
+                    cached.PreloadVersion = "";
+                    cfg.GameStatusCache[_game.IconName] = cached;
+                    ConfigHelper.Save(cfg);
+                }
+            }
+            catch { }
+
+            if (_gameState == GameState.HasPreload)
+                _gameState = GameState.Ready;
+            _preloadCompleted = false;
+        }
+
+        private void MarkPreloadCompleted(string installPath)
+        {
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached);
+                var preloadVersion = cached?.PreloadVersion ?? "";
+
+                cfg.GameStatusCache[_game.IconName] = new CachedGameStatus
+                {
+                    IsInstalled = cached?.IsInstalled ?? true,
+                    HasUpdate = cached?.HasUpdate ?? false,
+                    HasPreload = true,
+                    PreloadCompleted = true,
+                    LocalVersion = cached?.LocalVersion ?? "",
+                    RemoteVersion = cached?.RemoteVersion ?? "",
+                    PreloadVersion = preloadVersion,
+                    InstallPath = installPath
+                };
+
+                if (!string.IsNullOrWhiteSpace(preloadVersion))
+                {
+                    foreach (var key in cfg.GameStatusCache.Keys.ToList())
+                    {
+                        var existing = cfg.GameStatusCache[key];
+                        if (!IsSameInstallPath(existing.InstallPath, installPath) ||
+                            !string.Equals(existing.PreloadVersion ?? "", preloadVersion,
+                                StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        existing.PreloadCompleted = true;
+                        cfg.GameStatusCache[key] = existing;
+                    }
+                }
+
+                ConfigHelper.Save(cfg);
+            }
+            catch { }
+        }
+
+        private static bool IsNoPreloadPackage(Exception ex)
+        {
+            if (ex is InvalidOperationException &&
+                ex.Message.Contains("No preload package", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return ex is AggregateException aex && aex.InnerExceptions.Any(IsNoPreloadPackage);
         }
 
         private static bool IsCancellation(Exception ex) =>
@@ -401,8 +610,11 @@ namespace XelLauncher.Forms
                 {
                     IsInstalled = true,
                     HasUpdate = false,
+                    HasPreload = false,
+                    PreloadCompleted = false,
                     LocalVersion = cached?.RemoteVersion ?? cached?.LocalVersion ?? "",
                     RemoteVersion = cached?.RemoteVersion ?? "",
+                    PreloadVersion = "",
                     InstallPath = installPath
                 };
 
@@ -474,8 +686,8 @@ namespace XelLauncher.Forms
 
             if (_gameState == GameState.Downloading)
             {
-                _activeUpdate?.Cancel();
-                _gameState = GameState.Paused;
+                if (_activeUpdate?.Cancel() == true)
+                    _gameState = GameState.Paused;
                 RefreshGameStartButton();
                 return;
             }

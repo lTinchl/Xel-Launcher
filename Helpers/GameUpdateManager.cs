@@ -17,6 +17,7 @@ namespace XelLauncher.Helpers
     public sealed class ActiveGameUpdate
     {
         private readonly CancellationTokenSource _cts = new();
+        private volatile GameUpdateProgress _lastProgress;
 
         internal ActiveGameUpdate(string iconName, string installPath)
         {
@@ -27,15 +28,23 @@ namespace XelLauncher.Helpers
         public string IconName { get; }
         public string InstallPath { get; }
         public Task Task { get; internal set; }
-        public GameUpdateProgress LastProgress { get; private set; }
+        public GameUpdateProgress LastProgress => _lastProgress;
         public bool IsCancellationRequested => _cts.IsCancellationRequested;
+        public bool CanPause => _lastProgress?.State.HasFlag(InstallProgressState.Download) == true;
         public event Action<GameUpdateProgress> ProgressChanged;
         internal event Action<ActiveGameUpdate> CancelRequested;
 
-        public void Cancel()
+        public bool Cancel()
         {
+            // Cancelling while archives are being extracted, patched, removed, or
+            // committed can leave the installation half-applied. Only the download
+            // stage uses resumable .tmp files and is safe to pause.
+            if (!CanPause || _cts.IsCancellationRequested)
+                return false;
+
             CancelRequested?.Invoke(this);
             _cts.Cancel();
+            return true;
         }
 
         internal CancellationToken Token => _cts.Token;
@@ -48,7 +57,7 @@ namespace XelLauncher.Helpers
                 Downloaded = downloaded,
                 Total = total
             };
-            LastProgress = progress;
+            _lastProgress = progress;
             ProgressChanged?.Invoke(progress);
         }
     }
@@ -141,7 +150,7 @@ namespace XelLauncher.Helpers
         {
             try
             {
-                var service = new EndfieldService(update.IconName);
+                using var service = new EndfieldService(update.IconName);
                 await service.InstallOrUpdateAsync(update.InstallPath, update.Report, update.Token)
                     .ConfigureAwait(false);
                 if (update.Token.IsCancellationRequested)
@@ -181,7 +190,7 @@ namespace XelLauncher.Helpers
         {
             try
             {
-                var service = new EndfieldService(iconName);
+                using var service = new EndfieldService(iconName);
                 var status = await service.CheckStatusAsync(installPath).ConfigureAwait(false);
                 var cfg = ConfigHelper.Load();
                 var localVersion = status?.LocalVersion ?? status?.RemoteVersion ?? "";
@@ -199,8 +208,11 @@ namespace XelLauncher.Helpers
                 {
                     IsInstalled = status?.IsInstalled ?? true,
                     HasUpdate = false,
+                    HasPreload = status?.HasPreload ?? false,
+                    PreloadCompleted = false,
                     LocalVersion = localVersion,
                     RemoteVersion = remoteVersion,
+                    PreloadVersion = status?.PreloadVersion ?? "",
                     InstallPath = installPath
                 };
 

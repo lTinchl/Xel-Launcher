@@ -282,6 +282,24 @@
   <data name="App.Game.Install.Verifying" xml:space="preserve">
     <value>Verifying...</value>
   </data>
+  <data name="App.Game.Preload" xml:space="preserve">
+    <value>Preload</value>
+  </data>
+  <data name="App.Game.Preload.Init" xml:space="preserve">
+    <value>Preparing preload...</value>
+  </data>
+  <data name="App.Game.Preload.None" xml:space="preserve">
+    <value>No preload package is currently available</value>
+  </data>
+  <data name="App.Game.Preload.Running" xml:space="preserve">
+    <value>Preloading...</value>
+  </data>
+  <data name="App.Game.Preload.Success" xml:space="preserve">
+    <value>Preload completed</value>
+  </data>
+  <data name="App.Game.Preload.UpdateRunning" xml:space="preserve">
+    <value>The game is updating and cannot preload at the same time</value>
+  </data>
   <data name="App.Game.LaunchSuccess" xml:space="preserve">
     <value>Game launched successfully</value>
   </data>
@@ -542,6 +560,9 @@
   </data>
   <data name="App.Setting.UseHardLink" xml:space="preserve">
     <value>Use hard links for server switching</value>
+  </data>
+  <data name="App.Setting.UpdateDownloadSource" xml:space="preserve">
+    <value>Update download source</value>
   </data>
   <data name="App.Sidebar.Delete" xml:space="preserve">
     <value>Delete</value>
@@ -1143,6 +1164,9 @@
   <data name="App.Update.DownloadFailed" xml:space="preserve">
     <value>Download failed</value>
   </data>
+  <data name="App.Update.OpenedFallback" xml:space="preserve">
+    <value>Opened the download page</value>
+  </data>
   <data name="App.Update.DownloadNow" xml:space="preserve">
     <value>Update Now</value>
   </data>
@@ -1157,6 +1181,12 @@
   </data>
   <data name="App.Update.Fallback" xml:space="preserve">
     <value>Open Download Page</value>
+  </data>
+  <data name="App.Update.SourceGitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="App.Update.SourceNetdisk" xml:space="preserve">
+    <value>Netdisk</value>
   </data>
   <data name="App.Update.LatestVersion" xml:space="preserve">
     <value>Latest Version</value>

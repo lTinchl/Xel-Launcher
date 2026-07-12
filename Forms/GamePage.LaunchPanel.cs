@@ -58,6 +58,20 @@ namespace XelLauncher.Forms
                 Placement = AntdUI.TAlignFrom.TL,
             };
 
+            btnPreload = new AntdUI.Button
+            {
+                IconSvg = "CloudDownloadOutlined",
+                Type = AntdUI.TTypeMini.Primary,
+                Size = new Size(52, 52),
+                Location = new Point(224, 0),
+                BorderWidth = 0,
+                Radius = 26,
+                WaveSize = 4,
+                Visible = false,
+            };
+            TopTooltip().SetTip(btnPreload, AntdUI.Localization.Get("App.Game.Preload", "预下载"));
+            btnPreload.Click += (s, e) => PreloadGame();
+
             GameStart = new AntdUI.Button
             {
                 BackExtend = "135, #6253E1, #04BEFE",
@@ -181,9 +195,57 @@ namespace XelLauncher.Forms
 
             panelLaunch.Controls.Add(btnAccountManage);
             panelLaunch.Controls.Add(accountSelect);
+            panelLaunch.Controls.Add(btnPreload);
             panelLaunch.Controls.Add(GameStart);
             panelLaunch.Controls.Add(floatMenu);
 
+        }
+
+        private void RefreshPreloadButton()
+        {
+            if (btnPreload == null || btnPreload.IsDisposed) return;
+
+            var showPreload = _preloadRunning || _gameState == GameState.HasPreload;
+            btnPreload.Visible = showPreload;
+            btnPreload.Enabled = !_preloadRunning;
+            btnPreload.Loading = _preloadRunning;
+            btnPreload.IconSvg = _preloadCompleted && !_preloadRunning ? "CheckCircleOutlined" : "CloudDownloadOutlined";
+            TopTooltip().SetTip(btnPreload, AntdUI.Localization.Get(
+                _preloadCompleted && !_preloadRunning ? "App.Game.Preload.Success" : "App.Game.Preload",
+                _preloadCompleted && !_preloadRunning ? "预下载已完成" : "预下载"));
+            ApplyLaunchPanelLayout();
+        }
+
+        private void ApplyLaunchPanelLayout()
+        {
+            if (panelLaunch == null || GameStart == null || floatMenu == null) return;
+
+            var hasAccounts = btnAccountManage?.Visible == true && accountSelect?.Visible == true;
+            var hasPreload = btnPreload?.Visible == true;
+            var x = 0;
+
+            if (hasAccounts)
+            {
+                btnAccountManage.Location = new Point(4, 4);
+                accountSelect.Location = new Point(56, 0);
+                x = 224;
+            }
+
+            if (hasPreload)
+            {
+                btnPreload.Location = new Point(x, 0);
+                x += 56;
+            }
+
+            GameStart.Location = new Point(x, 0);
+            x += 176;
+
+            floatMenu.Location = new Point(x, 2);
+            x += 48;
+
+            panelLaunch.Width = x;
+            PositionLaunchPanel();
+            PositionNoticePanel();
         }
 
         private void ResetInstallStateAfterDownloadCacheClear(string path)

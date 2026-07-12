@@ -146,6 +146,7 @@ namespace XelLauncher.Forms
             cfg.UseHardLink = setting.UseHardLink;
             cfg.UseExternalBrowser = setting.UseExternalBrowser;
             cfg.CheckGameUpdates = setting.CheckGameUpdates;
+            cfg.UpdateDownloadSource = setting.UpdateDownloadSource;
             cfg.ArchiveLauncherImages = setting.ArchiveLauncherImages;
             ConfigHelper.Save(cfg);
             Setting.ApplyStartWithWindows(setting.StartWithWindows);

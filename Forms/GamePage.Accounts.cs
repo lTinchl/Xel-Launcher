@@ -25,14 +25,7 @@ namespace XelLauncher.Forms
             btnAccountManage.Visible = !hideAccounts;
             accountSelect.Visible = !hideAccounts;
 
-            int targetWidth = hideAccounts ? 224 : 448;
-            int targetGS = hideAccounts ? 0 : 224;
-            int targetFM = hideAccounts ? 176 : 400;
-            panelLaunch.Width = targetWidth;
-            GameStart.Location = new Point(targetGS, 0);
-            floatMenu.Location = new Point(targetFM, 2);
-            PositionLaunchPanel();
-            PositionNoticePanel();
+            ApplyLaunchPanelLayout();
         }
 
         public void LoadAccountSelect()

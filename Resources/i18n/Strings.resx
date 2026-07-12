@@ -282,6 +282,24 @@
   <data name="App.Game.Install.Verifying" xml:space="preserve">
     <value>校验中...</value>
   </data>
+  <data name="App.Game.Preload" xml:space="preserve">
+    <value>预下载</value>
+  </data>
+  <data name="App.Game.Preload.Init" xml:space="preserve">
+    <value>准备预下载...</value>
+  </data>
+  <data name="App.Game.Preload.None" xml:space="preserve">
+    <value>当前没有可用的预下载包</value>
+  </data>
+  <data name="App.Game.Preload.Running" xml:space="preserve">
+    <value>预下载中...</value>
+  </data>
+  <data name="App.Game.Preload.Success" xml:space="preserve">
+    <value>预下载已完成</value>
+  </data>
+  <data name="App.Game.Preload.UpdateRunning" xml:space="preserve">
+    <value>游戏正在更新中，无法同时预下载</value>
+  </data>
   <data name="App.Game.LaunchSuccess" xml:space="preserve">
     <value>游戏启动成功</value>
   </data>
@@ -542,6 +560,9 @@
   </data>
   <data name="App.Setting.UseHardLink" xml:space="preserve">
     <value>Use hard links for server switching</value>
+  </data>
+  <data name="App.Setting.UpdateDownloadSource" xml:space="preserve">
+    <value>更新下载源</value>
   </data>
   <data name="App.Sidebar.Delete" xml:space="preserve">
     <value>删除</value>
@@ -1143,6 +1164,9 @@
   <data name="App.Update.DownloadFailed" xml:space="preserve">
     <value>下载失败</value>
   </data>
+  <data name="App.Update.OpenedFallback" xml:space="preserve">
+    <value>已打开网盘下载页</value>
+  </data>
   <data name="App.Update.DownloadNow" xml:space="preserve">
     <value>立即更新</value>
   </data>
@@ -1156,6 +1180,12 @@
     <value>发生意外错误：</value>
   </data>
   <data name="App.Update.Fallback" xml:space="preserve">
+    <value>网盘下载</value>
+  </data>
+  <data name="App.Update.SourceGitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="App.Update.SourceNetdisk" xml:space="preserve">
     <value>网盘下载</value>
   </data>
   <data name="App.Update.LatestVersion" xml:space="preserve">
