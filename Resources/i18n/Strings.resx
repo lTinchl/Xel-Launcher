@@ -537,6 +537,9 @@
   <data name="App.Setting.ArchiveLauncherImages" xml:space="preserve">
     <value>启动器背景图保存</value>
   </data>
+  <data name="App.Setting.RunAsAdministrator" xml:space="preserve">
+    <value>以管理员身份运行启动器</value>
+  </data>
   <data name="App.Setting.HideToTrayOnLaunch" xml:space="preserve">
     <value>Hide to tray after launching game</value>
   </data>

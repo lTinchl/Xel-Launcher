@@ -141,6 +141,7 @@ namespace XelLauncher.Forms
             }
             var cfg = ConfigHelper.Load();
             cfg.MinimizeToTray = setting.MinimizeToTray;
+            cfg.RunAsAdministrator = setting.RunAsAdministrator;
             cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
             cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
             cfg.UseHardLink = setting.UseHardLink;

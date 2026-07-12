@@ -74,6 +74,24 @@ namespace XelLauncher
             var command = string.Join(" ", args);
             AntdUI.Localization.DefaultLanguage = "zh-CN";
             var cfg = ConfigHelper.Load();
+            if (cfg.RunAsAdministrator && !IsRunningAsAdministrator())
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = Environment.ProcessPath!,
+                        Arguments = string.Join(" ", args.Select(QuoteArgument)),
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    });
+                    return;
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    // Continue normally if the user declines the UAC prompt.
+                }
+            }
             var lang = !string.IsNullOrEmpty(cfg.Language)
                 ? cfg.Language
                 : AntdUI.Localization.CurrentLanguage;
@@ -106,6 +124,18 @@ namespace XelLauncher
         {
             return OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19045);
         }
+
+        private static bool IsRunningAsAdministrator()
+        {
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        }
+
+        private static string QuoteArgument(string argument) =>
+            string.IsNullOrEmpty(argument) || argument.Any(char.IsWhiteSpace) || argument.Contains('"')
+                ? '"' + argument.Replace("\\", "\\\\").Replace("\"", "\\\"") + '"'
+                : argument;
 
         static bool IsSystemDarkMode()
         {

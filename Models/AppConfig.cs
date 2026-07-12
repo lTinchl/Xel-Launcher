@@ -87,6 +87,7 @@ namespace XelLauncher.Models
 
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
+        public bool RunAsAdministrator { get; set; } = false;               // 启动游戏时是否以管理员权限运行
         public bool AutoLaunchOfficial { get; set; } = false;               // 启动时自动打开官服
         public bool AutoLaunchBilibili { get; set; } = false;               // 启动时自动打开B服
         public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色

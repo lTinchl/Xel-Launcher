@@ -31,6 +31,7 @@ namespace XelLauncher.Forms
             cfg.CheckGameUpdates = setting.CheckGameUpdates;
             cfg.UpdateDownloadSource = setting.UpdateDownloadSource;
             cfg.ArchiveLauncherImages = setting.ArchiveLauncherImages;
+            cfg.RunAsAdministrator = setting.RunAsAdministrator;
             ConfigHelper.Save(cfg);
             Setting.ApplyStartWithWindows(setting.StartWithWindows);
             LoadUpdateBadgeFromCache();

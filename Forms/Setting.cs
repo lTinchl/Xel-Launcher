@@ -57,6 +57,8 @@ namespace XelLauncher
         private AntdUI.Label _updateNotifyOption;
         private AntdUI.Label _archiveLauncherImagesLabel;
         private AntdUI.Switch _archiveLauncherImagesSwitch;
+        private AntdUI.Label _runAsAdministratorLabel;
+        private AntdUI.Switch _runAsAdministratorSwitch;
         private AntdUI.Select _updateDownloadSourceSelect;
         private ContextMenuStrip _updateDownloadSourceMenu;
         private bool _showFallbackButton;
@@ -91,13 +93,14 @@ namespace XelLauncher
             return Math.Max(96, (int)Math.Round(graphics.DpiX));
         }
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages, RunAsAdministrator;
         public string UpdateDownloadSource = UpdateHelper.DownloadSourceGitHub;
 
         public Setting(AntdUI.BaseForm _form)
         {
             form = _form;
             InitializeComponent();
+            AddRunAsAdministratorOption();
             AddArchiveLauncherImagesOption();
             _updateCardTargetHeight = UpdateCardCompactPixelHeight;
             Size = DSize(600, 560);
@@ -127,6 +130,7 @@ namespace XelLauncher
             switch5.Checked = TextRenderingHighQuality = AntdUI.Config.TextRenderingHighQuality;
             var cfg = ConfigHelper.Load();
             switch6.Checked = MinimizeToTray = cfg.MinimizeToTray;
+            _runAsAdministratorSwitch.Checked = RunAsAdministrator = cfg.RunAsAdministrator;
             switch7.Checked = StartWithWindows = GetStartWithWindows();
             switch8.Checked = CloseAfterLaunch = cfg.CloseAfterLaunch;
             switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
@@ -143,6 +147,7 @@ namespace XelLauncher
             switch4.CheckedChanged += (s, e) => { ScrollBarHide = e.Value; };
             switch5.CheckedChanged += (s, e) => { TextRenderingHighQuality = e.Value; };
             switch6.CheckedChanged += (s, e) => { MinimizeToTray = e.Value; };
+            _runAsAdministratorSwitch.CheckedChanged += (s, e) => { RunAsAdministrator = e.Value; };
             switch7.CheckedChanged += (s, e) => { StartWithWindows = e.Value; };
             switch8.CheckedChanged += (s, e) => { CloseAfterLaunch = e.Value; };
             switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
@@ -161,7 +166,7 @@ namespace XelLauncher
             {
                 Dock = DockStyle.Fill,
                 Name = "labelArchiveLauncherImages",
-                Text = "保存启动器新图片",
+                Text = L("App.Setting.ArchiveLauncherImages", string.Empty),
                 LocalizationText = "App.Setting.ArchiveLauncherImages",
                 TabIndex = 0,
             };
@@ -173,17 +178,53 @@ namespace XelLauncher
                 TabIndex = 0,
             };
 
-            if (tableSoftware.RowCount < 14)
-                tableSoftware.RowCount = 14;
+            if (tableSoftware.RowCount < 15)
+                tableSoftware.RowCount = 15;
             while (tableSoftware.RowStyles.Count < tableSoftware.RowCount)
                 tableSoftware.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
 
-            tableSoftware.RowStyles[12].SizeType = SizeType.Absolute;
-            tableSoftware.RowStyles[12].Height = 46F;
             tableSoftware.RowStyles[13].SizeType = SizeType.Absolute;
-            tableSoftware.RowStyles[13].Height = 20F;
-            tableSoftware.Controls.Add(_archiveLauncherImagesLabel, 0, 12);
-            tableSoftware.Controls.Add(_archiveLauncherImagesSwitch, 1, 12);
+            tableSoftware.RowStyles[13].Height = 46F;
+            tableSoftware.RowStyles[14].SizeType = SizeType.Absolute;
+            tableSoftware.RowStyles[14].Height = 20F;
+            tableSoftware.Controls.Add(_archiveLauncherImagesLabel, 0, 13);
+            tableSoftware.Controls.Add(_archiveLauncherImagesSwitch, 1, 13);
+        }
+
+        private void AddRunAsAdministratorOption()
+        {
+            _runAsAdministratorLabel = new AntdUI.Label
+            {
+                Dock = DockStyle.Fill,
+                Name = "labelRunAsAdministrator",
+                Text = L("App.Setting.RunAsAdministrator", string.Empty),
+                LocalizationText = "App.Setting.RunAsAdministrator",
+                TabIndex = 0,
+            };
+            _runAsAdministratorSwitch = new AntdUI.Switch
+            {
+                Anchor = AnchorStyles.None,
+                Name = "switchRunAsAdministrator",
+                Size = new Size(50, 30),
+                TabIndex = 0,
+            };
+
+            if (tableSoftware.RowCount < 15)
+                tableSoftware.RowCount = 15;
+            while (tableSoftware.RowStyles.Count < tableSoftware.RowCount)
+                tableSoftware.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
+
+            const int firstVisibleOptionRow = 5;
+            foreach (Control option in tableSoftware.Controls)
+            {
+                if (tableSoftware.GetRow(option) >= firstVisibleOptionRow)
+                    tableSoftware.SetRow(option, tableSoftware.GetRow(option) + 1);
+            }
+
+            tableSoftware.RowStyles[firstVisibleOptionRow].SizeType = SizeType.Absolute;
+            tableSoftware.RowStyles[firstVisibleOptionRow].Height = 46F;
+            tableSoftware.Controls.Add(_runAsAdministratorLabel, 0, firstVisibleOptionRow);
+            tableSoftware.Controls.Add(_runAsAdministratorSwitch, 1, firstVisibleOptionRow);
         }
 
         private void HideInternalUiOptions()
@@ -1112,7 +1153,9 @@ namespace XelLauncher
             label11.Text = "使用硬链接切服";
 
             if (_archiveLauncherImagesLabel != null)
-                _archiveLauncherImagesLabel.Text = L("App.Setting.ArchiveLauncherImages", "保存启动器新图片");
+                _archiveLauncherImagesLabel.Text = L("App.Setting.ArchiveLauncherImages", string.Empty);
+            if (_runAsAdministratorLabel != null)
+                _runAsAdministratorLabel.Text = L("App.Setting.RunAsAdministrator", string.Empty);
 
             const int firstVisibleRow = 5;
             var maxVisibleRow = firstVisibleRow - 1;
