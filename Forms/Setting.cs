@@ -57,6 +57,12 @@ namespace XelLauncher
         private AntdUI.Label _updateNotifyOption;
         private AntdUI.Label _archiveLauncherImagesLabel;
         private AntdUI.Switch _archiveLauncherImagesSwitch;
+        private AntdUI.Select _updateDownloadSourceSelect;
+        private ContextMenuStrip _updateDownloadSourceMenu;
+        private bool _showFallbackButton;
+        private bool _netdiskSourceMode;
+        private bool _syncingDownloadSourceUi;
+        private bool _hasAvailableUpdate;
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
         private static bool IsEnglishUi =>
@@ -86,6 +92,7 @@ namespace XelLauncher
         }
 
         public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages;
+        public string UpdateDownloadSource = UpdateHelper.DownloadSourceGitHub;
 
         public Setting(AntdUI.BaseForm _form)
         {
@@ -126,6 +133,8 @@ namespace XelLauncher
             switch10.Checked = UseExternalBrowser = cfg.UseExternalBrowser;
             switch11.Checked = UseHardLink = cfg.UseHardLink;
             switch12.Checked = CheckGameUpdates = cfg.CheckGameUpdates;
+            UpdateDownloadSource = UpdateHelper.NormalizeDownloadSource(cfg.UpdateDownloadSource);
+            _netdiskSourceMode = UpdateHelper.IsNetdiskDownloadSource(UpdateDownloadSource);
             _archiveLauncherImagesSwitch.Checked = ArchiveLauncherImages = cfg.ArchiveLauncherImages;
 
             switch1.CheckedChanged += (s, e) => { Animation = e.Value; };
@@ -649,10 +658,35 @@ namespace XelLauncher
                 btnDownloadSetup.Location = new Point(0, D(5));
                 btnDownloadPortable.Size = new Size(portableWidth, smallButtonHeight);
                 btnDownloadPortable.Location = new Point(setupWidth + gap, D(5));
-                btnFallback.Size = new Size(Math.Max(D(100), TextRenderer.MeasureText(btnFallback.Text, btnFallback.Font).Width + D(34)), smallButtonHeight);
-                btnFallback.Location = new Point(setupWidth + portableWidth + gap * 2, D(5));
                 btnCancelDownload.Size = new Size(cancelWidth, smallButtonHeight);
                 btnCancelDownload.Location = new Point(_isDownloadingUpdate ? 0 : setupWidth + portableWidth + gap * 2, D(5));
+
+                var showSourceSelect = _updateDownloadSourceSelect != null && _updateDownloadSourceSelect.Visible;
+                var showFallbackButton = btnFallback.Visible;
+                var sourceWidth = 0;
+                var sourceLeft = contentWidth;
+                if (showSourceSelect)
+                {
+                    var sourceText = string.IsNullOrWhiteSpace(_updateDownloadSourceSelect.Text)
+                        ? L("App.Setting.UpdateDownloadSource", "更新下载源")
+                        : _updateDownloadSourceSelect.Text;
+                    sourceWidth = Math.Max(
+                        D(IsEnglishUi ? 156 : 132),
+                        TextRenderer.MeasureText(sourceText, _updateDownloadSourceSelect.Font).Width + D(38));
+                    sourceLeft = Math.Max(0, contentWidth - sourceWidth);
+                    _updateDownloadSourceSelect.Size = new Size(sourceWidth, smallButtonHeight);
+                    _updateDownloadSourceSelect.Location = new Point(sourceLeft, D(5));
+                    _updateDownloadSourceSelect.BringToFront();
+                }
+
+                var fallbackWidth = showFallbackButton
+                    ? Math.Max(D(148), TextRenderer.MeasureText(btnFallback.Text, btnFallback.Font).Width + D(34))
+                    : 0;
+                if (showFallbackButton)
+                {
+                    btnFallback.Size = new Size(fallbackWidth, smallButtonHeight);
+                    btnFallback.Location = new Point(0, D(5));
+                }
             }
             lblDownloadStatus.Dock = DockStyle.None;
             if (_isDownloadingUpdate)
@@ -700,21 +734,159 @@ namespace XelLauncher
             btnDownloadPortable.BackActive = buttonActive;
             btnDownloadPortable.Radius = 6;
 
-            btnFallback.Text = L("App.Update.Fallback", "网盘下载");
-            btnFallback.LocalizationText = null;
-            btnFallback.Type = AntdUI.TTypeMini.Default;
-            btnFallback.Ghost = true;
-            btnFallback.BorderWidth = 1F;
-            btnFallback.DefaultBorderColor = buttonBorder;
-            btnFallback.BackHover = buttonHover;
-            btnFallback.BackActive = buttonActive;
-            btnFallback.Radius = 6;
-
             btnCancelDownload.Text = L("App.Update.CancelDownload", "取消下载");
             btnCancelDownload.LocalizationText = null;
             btnCancelDownload.Type = AntdUI.TTypeMini.Error;
             btnCancelDownload.Radius = 6;
+            EnsureUpdateDownloadSourceControls();
         }
+        private Panel GetUpdateButtonsPanel()
+        {
+            if (panelUpdateButtons == null) return null;
+
+            foreach (Control control in panelUpdateButtons.Controls)
+            {
+                if (control is Panel panel && panel.Name == "panelButtons")
+                    return panel;
+            }
+
+            return null;
+        }
+
+        private void EnsureUpdateDownloadSourceControls()
+        {
+            if (_updateDownloadSourceSelect == null)
+            {
+                _updateDownloadSourceSelect = new AntdUI.Select
+                {
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                    Name = "selectUpdateDownloadSource",
+                    Radius = 8,
+                    BorderWidth = 1F,
+                    DropDownRadius = 8,
+                    Placement = AntdUI.TAlignFrom.TR,
+                    Font = new Font("Microsoft YaHei UI", 9.5F),
+                    AllowClear = false,
+                    ClickSwitchDropdown = true,
+                    EnterDropDown = true,
+                    Cursor = Cursors.Hand,
+                    PlaceholderText = L("App.Setting.UpdateDownloadSource", "更新下载源"),
+                };
+                _updateDownloadSourceSelect.Items.Add(new AntdUI.SelectItem(L("App.Update.SourceGitHub", "GitHub"), UpdateHelper.DownloadSourceGitHub));
+                _updateDownloadSourceSelect.Items.Add(new AntdUI.SelectItem(L("App.Update.SourceNetdisk", "网盘下载"), UpdateHelper.DownloadSourceNetdisk));
+                _updateDownloadSourceSelect.SelectedValue = UpdateHelper.NormalizeDownloadSource(UpdateDownloadSource);
+                _updateDownloadSourceSelect.SelectedValueChanged += (s, e) =>
+                {
+                    if (_syncingDownloadSourceUi) return;
+                    if (e.Value is string source)
+                        SetUpdateDownloadSource(source, persist: true);
+                };
+                _updateDownloadSourceSelect.KeyPress += (s, e) => e.Handled = true;
+                _updateDownloadSourceSelect.KeyDown += (s, e) =>
+                {
+                    if (e.KeyCode == Keys.Back ||
+                        e.KeyCode == Keys.Delete ||
+                        (e.Control && e.KeyCode == Keys.V) ||
+                        (e.Control && e.KeyCode == Keys.X))
+                    {
+                        e.SuppressKeyPress = true;
+                        e.Handled = true;
+                    }
+                };
+            }
+
+            if (_updateDownloadSourceMenu == null)
+            {
+                _updateDownloadSourceMenu = new ContextMenuStrip();
+                _updateDownloadSourceMenu.Items.Add(L("App.Update.SourceGitHub", "GitHub"), null, (s, e) =>
+                {
+                    SetUpdateDownloadSource(UpdateHelper.DownloadSourceGitHub, persist: true);
+                });
+                _updateDownloadSourceMenu.Items.Add(L("App.Update.SourceNetdisk", "网盘下载"), null, (s, e) =>
+                {
+                    SetUpdateDownloadSource(UpdateHelper.DownloadSourceNetdisk, persist: true);
+                });
+            }
+
+            var panelButtons = GetUpdateButtonsPanel();
+            if (panelButtons != null && _updateDownloadSourceSelect.Parent == null)
+                panelButtons.Controls.Add(_updateDownloadSourceSelect);
+
+            if (btnFallback.ContextMenuStrip == null)
+                btnFallback.ContextMenuStrip = _updateDownloadSourceMenu;
+
+            RefreshUpdateDownloadSourceUi();
+        }
+
+        private void SetUpdateDownloadSource(string source, bool persist)
+        {
+            UpdateDownloadSource = UpdateHelper.NormalizeDownloadSource(source);
+            _netdiskSourceMode = UpdateHelper.IsNetdiskDownloadSource(UpdateDownloadSource);
+            _showFallbackButton = false;
+
+            if (persist)
+                PersistUpdateDownloadSource();
+
+            RefreshUpdateDownloadSourceUi();
+        }
+
+        private void PersistUpdateDownloadSource()
+        {
+            try
+            {
+                var normalized = UpdateHelper.NormalizeDownloadSource(UpdateDownloadSource);
+                var cfg = ConfigHelper.Load();
+                if (string.Equals(cfg.UpdateDownloadSource, normalized, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                cfg.UpdateDownloadSource = normalized;
+                ConfigHelper.Save(cfg);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "SaveUpdateDownloadSource");
+            }
+        }
+
+        private void RefreshUpdateDownloadSourceUi()
+        {
+            if (_updateDownloadSourceSelect != null)
+            {
+                _syncingDownloadSourceUi = true;
+                try
+                {
+                    _updateDownloadSourceSelect.SelectedValue = UpdateHelper.NormalizeDownloadSource(UpdateDownloadSource);
+                }
+                finally
+                {
+                    _syncingDownloadSourceUi = false;
+                }
+            }
+
+            if (_updateDownloadSourceSelect != null)
+                _updateDownloadSourceSelect.Visible = true;
+
+            if (btnFallback != null)
+            {
+                btnFallback.Text = _netdiskSourceMode
+                    ? L("App.Update.OpenNetdiskPage", "打开网盘下载页")
+                    : L("App.Update.Fallback", "网盘下载");
+                btnFallback.Type = AntdUI.TTypeMini.Warn;
+                btnFallback.Ghost = false;
+                btnFallback.BorderWidth = 0F;
+                btnFallback.Visible = _netdiskSourceMode || _showFallbackButton;
+            }
+
+            if (!_isDownloadingUpdate && _hasAvailableUpdate)
+            {
+                var usePrimaryDownloads = !_netdiskSourceMode && !_showFallbackButton;
+                btnDownloadSetup.Visible = usePrimaryDownloads;
+                btnDownloadPortable.Visible = usePrimaryDownloads;
+            }
+
+            LayoutUpdateHeader();
+        }
+
         private void BuildTopTabs(Color surface, Color normalText, Color subtleText)
         {
             if (_tabBar == null)
@@ -1399,22 +1571,27 @@ namespace XelLauncher
             };
             btnFallback.Click += (s, e) =>
             {
-                if (!string.IsNullOrEmpty(UpdateHelper.FallbackUrl))
-                {
-                    try
-                    {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = UpdateHelper.FallbackUrl,
-                            UseShellExecute = true
-                        });
-                    }
-                    catch
-                    {
-                        System.Diagnostics.Process.Start("explorer.exe", UpdateHelper.FallbackUrl);
-                    }
-                }
+                OpenFallbackPage();
             };
+        }
+
+        private static void OpenFallbackPage()
+        {
+            if (string.IsNullOrEmpty(UpdateHelper.FallbackUrl))
+                return;
+
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = UpdateHelper.FallbackUrl,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                System.Diagnostics.Process.Start("explorer.exe", UpdateHelper.FallbackUrl);
+            }
         }
 
         private void LoadUpdateFromCache()
@@ -1424,6 +1601,7 @@ namespace XelLauncher
             {
                 SetUpdateHeaderTitle(L("App.Update.ModalTitle", "软件更新"));
                 _updateInfo = null;
+                _hasAvailableUpdate = false;
                 StopLatestVersionColorAnimation();
                 lblLatestVersion.Text = "—";
                 _updateAutoOption.Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示");
@@ -1447,6 +1625,7 @@ namespace XelLauncher
                 {
                     SetUpdateHeaderTitle(L("App.Update.CheckFailedTitle", "检查更新失败"));
                     ShowChangelog(AntdUI.Localization.Get("App.Update.CheckFailed", "检查失败，请检查网络连接。"));
+                    _hasAvailableUpdate = false;
                     lblLatestVersion.Text = "—";
                     _updateAutoOption.Text = L("App.Update.ReleaseDateFailed", "发布日期：检查失败");
                     _updateNotifyOption.Text = L("App.Update.UpdateSizeFailed", "更新大小：检查失败");
@@ -1477,12 +1656,13 @@ namespace XelLauncher
             var hasUpdate = state.HasUpdate && UpdateHelper.IsNewer(currentVer, info.LatestVersion);
             if (hasUpdate)
             {
+                _hasAvailableUpdate = true;
                 SetUpdateHeaderTitle(L("App.Update.NewVersionTitle", "发现新版本"));
                 StartLatestVersionColorAnimation();
                 ShowChangelog(info.Changelog);
                 btnDownloadSetup.Visible = true;
                 btnDownloadPortable.Visible = true;
-                btnFallback.Visible = false;
+                _showFallbackButton = false;
                 btnCancelDownload.Visible = false;
                 btnCancelDownload.Enabled = true;
                 progressDownload.Visible = false;
@@ -1490,23 +1670,25 @@ namespace XelLauncher
                 progressDownload.Loading = false;
                 lblDownloadStatus.Text = "";
                 _isDownloadingUpdate = false;
+                RefreshUpdateDownloadSourceUi();
                 SetUpdateCardExpanded(true, true, showButtonsWhenExpanded: true);
-                LayoutUpdateHeader();
                 return;
             }
 
             StopLatestVersionColorAnimation();
+            _hasAvailableUpdate = false;
             SetUpdateHeaderTitle(L("App.Update.NoUpdateTitle", "已是最新版本"));
             txtChangelog.Text = FormatUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
             btnDownloadSetup.Visible = false;
             btnDownloadPortable.Visible = false;
-            btnFallback.Visible = false;
+            _showFallbackButton = false;
             btnCancelDownload.Visible = false;
             progressDownload.Visible = false;
             progressDownload.Value = 0F;
             progressDownload.Loading = false;
             lblDownloadStatus.Text = "";
             _isDownloadingUpdate = false;
+            RefreshUpdateDownloadSourceUi();
             SetUpdateCardExpanded(false, true);
         }
 
@@ -1563,6 +1745,17 @@ namespace XelLauncher
         {
             if (_updateInfo == null) return;
             if (_isDownloadingUpdate) return;
+
+            var downloadSource = UpdateHelper.NormalizeDownloadSource(UpdateDownloadSource);
+            if (downloadSource == UpdateHelper.DownloadSourceNetdisk)
+            {
+                OpenFallbackPage();
+                lblDownloadStatus.Text = AntdUI.Localization.Get(
+                    "App.Update.OpenedFallback",
+                    "已打开网盘下载页");
+                RefreshUpdateDownloadSourceUi();
+                return;
+            }
 
             string url = isSetup ? _updateInfo.SetupDownloadUrl : _updateInfo.PortableDownloadUrl;
             if (string.IsNullOrEmpty(url))
@@ -1695,9 +1888,10 @@ namespace XelLauncher
         {
             btnDownloadSetup.Visible    = false;
             btnDownloadPortable.Visible = false;
-            btnFallback.Visible         = true;
+            _showFallbackButton         = true;
             btnCancelDownload.Visible   = false;
             progressDownload.Loading    = false;
+            RefreshUpdateDownloadSourceUi();
         }
 
         private void ShowChangelog(string text)

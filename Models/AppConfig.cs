@@ -7,8 +7,11 @@ namespace XelLauncher.Models
     {
         public bool IsInstalled { get; set; }
         public bool HasUpdate { get; set; }
+        public bool HasPreload { get; set; }
+        public bool PreloadCompleted { get; set; }
         public string LocalVersion { get; set; } = "";
         public string RemoteVersion { get; set; } = "";
+        public string PreloadVersion { get; set; } = "";
         public string InstallPath { get; set; } = "";
     }
 
@@ -38,6 +41,7 @@ namespace XelLauncher.Models
 
     public class AppConfig
     {
+        public string UpdateDownloadSource { get; set; } = "github";
         public List<GameEntry> Games { get; set; } = new List<GameEntry>
         {
             new GameEntry { Name = "明日方舟",       IconName = "Arknights" },

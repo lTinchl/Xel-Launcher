@@ -22,6 +22,7 @@ namespace XelLauncher.Forms
         private AntdUI.Button btnArknightsWiki;
         private AntdUI.Button btnAccountManage;
         private AntdUI.Select accountSelect;
+        private AntdUI.Button btnPreload;
         private AntdUI.Button GameStart;
         private AntdUI.Dropdown floatMenu;
         private AntdUI.Panel panelLaunch;
@@ -49,10 +50,12 @@ namespace XelLauncher.Forms
         private readonly List<AntdUI.Avatar> _subBtns = new();
 
         private EndfieldService _service;
-        private enum GameState { Unknown, NotInstalled, HasUpdate, Ready, Downloading, Paused, Repairing }
+        private enum GameState { Unknown, NotInstalled, HasUpdate, HasPreload, Ready, Downloading, Paused, Repairing }
         private GameState _gameState = GameState.Unknown;
         private ActiveGameUpdate _activeUpdate;
         private string _repairingPath;
+        private bool _preloadRunning;
+        private bool _preloadCompleted;
 
         public GamePage(GameEntry game, Overview overview)
         {
@@ -116,8 +119,13 @@ namespace XelLauncher.Forms
                     IsSameInstallPath(cached.InstallPath, path))
                 {
                     var hasUpdate = cfg.CheckGameUpdates && cached.HasUpdate;
+                    var hasPreload = cfg.CheckGameUpdates && !hasUpdate && cached.HasPreload;
+                    _preloadCompleted = hasPreload &&
+                                        IsPreloadCompletedForPath(cfg.GameStatusCache.Values, path,
+                                            cached.PreloadVersion);
                     _gameState = !cached.IsInstalled ? GameState.NotInstalled
                                : hasUpdate           ? GameState.HasUpdate
+                               : hasPreload          ? GameState.HasPreload
                                                      : GameState.Ready;
 
                     if (IsHandleCreated)
@@ -142,6 +150,19 @@ namespace XelLauncher.Forms
             {
                 return false;
             }
+        }
+
+        private static bool IsPreloadCompletedForPath(
+            IEnumerable<CachedGameStatus> cachedStatuses,
+            string installPath,
+            string preloadVersion)
+        {
+            if (string.IsNullOrWhiteSpace(preloadVersion)) return false;
+
+            return cachedStatuses.Any(cached =>
+                cached.PreloadCompleted &&
+                string.Equals(cached.PreloadVersion ?? "", preloadVersion, StringComparison.OrdinalIgnoreCase) &&
+                IsSameInstallPath(cached.InstallPath, installPath));
         }
 
 

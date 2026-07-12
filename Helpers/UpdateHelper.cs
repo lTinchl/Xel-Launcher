@@ -14,6 +14,8 @@ namespace XelLauncher.Helpers
             "https://api.github.com/repos/lTinchl/Xel-Launcher/releases/latest";
 
         // 备用网盘链接，GitHub 下载失败时跳转
+        public const string DownloadSourceGitHub = "github";
+        public const string DownloadSourceNetdisk = "netdisk";
         public const string FallbackUrl = "https://pan.quark.cn/s/54cd514d4236";
 
         private static readonly HttpClient _client = new HttpClient
@@ -128,6 +130,16 @@ namespace XelLauncher.Helpers
             var cfg = ConfigHelper.Load();
             return cfg.UpdateState ?? new AppUpdateState();
         }
+
+        public static string NormalizeDownloadSource(string source)
+        {
+            return string.Equals(source, DownloadSourceNetdisk, StringComparison.OrdinalIgnoreCase)
+                ? DownloadSourceNetdisk
+                : DownloadSourceGitHub;
+        }
+
+        public static bool IsNetdiskDownloadSource(string source) =>
+            NormalizeDownloadSource(source) == DownloadSourceNetdisk;
 
         public static async Task<AppUpdateState> CheckAndPersistAsync(string currentVersion)
         {
