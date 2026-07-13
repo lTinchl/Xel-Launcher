@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -65,7 +66,8 @@ public class NoticeItem
         private int _bannerSlideStartOffset;
         private int _bannerSlideTargetOffset;
         private int _bannerSlideStep;
-        private long _bannerSlideStartTick;
+        private readonly Stopwatch _bannerSlideStopwatch = new();
+        private bool _releasingPointerCapture;
         private Rectangle _bannerRect;
         private Rectangle _listRect;
         private Rectangle _scrollTrackRect;
@@ -99,11 +101,7 @@ public class NoticeItem
         {
             if (IsCollapsed == collapsed) return;
             IsCollapsed = collapsed;
-            _bannerTouching = false;
-            _bannerTouchMoved = false;
-            _scrollDragging = false;
-            _touchScrolling = false;
-            Capture = false;
+            ResetPointerInteraction(releaseCapture: true);
             Invalidate();
         }
 
@@ -142,7 +140,10 @@ public class NoticeItem
                 _selectedBannerIndex = 0;
                 _bannerDragOffset = 0;
                 _bannerAnimating = false;
+                _bannerSlideStep = 0;
+                _bannerSlideStopwatch.Reset();
                 _slideTimer.Stop();
+                ResetPointerInteraction(releaseCapture: true);
             }
 
             if (notices != null && notices.Count > 0)
@@ -196,6 +197,7 @@ public class NoticeItem
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            if (e.Button != MouseButtons.Left) return;
             if (!IsInsidePanel(e.Location)) return;
 
             if (_collapseToggleRect.Contains(e.Location))
@@ -235,13 +237,14 @@ public class NoticeItem
 
             if (_bannerRect.Contains(e.Location) && _banners.Count > 0)
             {
+                if (_bannerAnimating)
+                    CompleteBannerSlide();
+
                 _bannerTouching = true;
                 _bannerTouchMoved = false;
                 _bannerTouchStartX = e.X;
                 _bannerTouchStartY = e.Y;
                 _bannerDragOffset = 0;
-                _bannerAnimating = false;
-                _slideTimer.Stop();
                 _timer.Stop();
                 Capture = true;
                 return;
@@ -270,6 +273,13 @@ public class NoticeItem
         {
             base.OnMouseMove(e);
             if (IsCollapsed) return;
+            if ((_scrollDragging || _touchScrolling || _bannerTouching) &&
+                (e.Button & MouseButtons.Left) == 0)
+            {
+                CancelPointerInteraction();
+                return;
+            }
+
             if (_scrollDragging)
             {
                 SetScrollFromThumbTop(e.Y - _scrollDragOffset);
@@ -306,13 +316,10 @@ public class NoticeItem
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
+            if (e.Button != MouseButtons.Left) return;
             if (IsCollapsed)
             {
-                _bannerTouching = false;
-                _bannerTouchMoved = false;
-                _scrollDragging = false;
-                _touchScrolling = false;
-                Capture = false;
+                ResetPointerInteraction(releaseCapture: true);
                 return;
             }
             if (_bannerTouching && !_bannerTouchMoved && _bannerRect.Contains(e.Location) && _banners.Count > 0)
@@ -332,17 +339,22 @@ public class NoticeItem
                     StartBannerSlide(_bannerDragOffset, 0, 0);
             }
 
-            _bannerTouching = false;
-            _bannerTouchMoved = false;
-            _scrollDragging = false;
-            _touchScrolling = false;
-            Capture = false;
+            ResetPointerInteraction(releaseCapture: true);
             if (!_bannerAnimating)
             {
                 _bannerDragOffset = 0;
                 if (_banners.Count > 1) _timer.Start();
             }
             Invalidate();
+        }
+
+        protected override void OnMouseCaptureChanged(EventArgs e)
+        {
+            base.OnMouseCaptureChanged(e);
+            if (Capture || _releasingPointerCapture) return;
+            if (!_scrollDragging && !_touchScrolling && !_bannerTouching) return;
+
+            CancelPointerInteraction(releaseCapture: false);
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -479,11 +491,7 @@ public class NoticeItem
         private void ToggleCollapsed()
         {
             IsCollapsed = !IsCollapsed;
-            _bannerTouching = false;
-            _bannerTouchMoved = false;
-            _scrollDragging = false;
-            _touchScrolling = false;
-            Capture = false;
+            ResetPointerInteraction(releaseCapture: true);
             Invalidate();
             CollapsedChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -618,7 +626,7 @@ public class NoticeItem
             _bannerSlideStartOffset = startOffset;
             _bannerSlideTargetOffset = targetOffset;
             _bannerSlideStep = step;
-            _bannerSlideStartTick = Environment.TickCount64;
+            _bannerSlideStopwatch.Restart();
             _bannerDragOffset = startOffset;
             AnimationFrameHelper.ApplyFrameInterval(_slideTimer, this);
             _slideTimer.Start();
@@ -628,24 +636,69 @@ public class NoticeItem
         private void UpdateBannerSlide()
         {
             const int duration = 280;
-            double progress = Math.Min(1D, (Environment.TickCount64 - _bannerSlideStartTick) / (double)duration);
-            _bannerDragOffset = _bannerSlideStartOffset + (int)Math.Round((_bannerSlideTargetOffset - _bannerSlideStartOffset) * progress);
+            double progress = Math.Min(1D, _bannerSlideStopwatch.Elapsed.TotalMilliseconds / duration);
+            double eased = progress * progress * (3D - 2D * progress);
+            _bannerDragOffset = _bannerSlideStartOffset +
+                (int)Math.Round((_bannerSlideTargetOffset - _bannerSlideStartOffset) * eased);
 
             if (progress >= 1D)
-            {
-                _slideTimer.Stop();
-                if (_bannerSlideStep > 0)
-                    SelectNextBanner();
-                else if (_bannerSlideStep < 0)
-                    SelectPreviousBanner();
+                CompleteBannerSlide();
 
+            Invalidate();
+        }
+
+        private void CompleteBannerSlide()
+        {
+            if (!_bannerAnimating) return;
+
+            _slideTimer.Stop();
+            _bannerSlideStopwatch.Reset();
+            if (_bannerSlideStep > 0)
+                SelectNextBanner();
+            else if (_bannerSlideStep < 0)
+                SelectPreviousBanner();
+
+            _bannerDragOffset = 0;
+            _bannerAnimating = false;
+            _bannerSlideStep = 0;
+            if (_banners.Count > 1) _timer.Start();
+        }
+
+        private void CancelPointerInteraction(bool releaseCapture = true)
+        {
+            bool returnBannerToRest = _bannerTouching && !_bannerAnimating && _bannerDragOffset != 0;
+            int dragOffset = _bannerDragOffset;
+            ResetPointerInteraction(releaseCapture);
+
+            if (returnBannerToRest)
+                StartBannerSlide(dragOffset, 0, 0);
+            else if (!_bannerAnimating)
+            {
                 _bannerDragOffset = 0;
-                _bannerAnimating = false;
-                _bannerSlideStep = 0;
                 if (_banners.Count > 1) _timer.Start();
             }
 
             Invalidate();
+        }
+
+        private void ResetPointerInteraction(bool releaseCapture)
+        {
+            _bannerTouching = false;
+            _bannerTouchMoved = false;
+            _scrollDragging = false;
+            _touchScrolling = false;
+
+            if (!releaseCapture || !Capture) return;
+
+            _releasingPointerCapture = true;
+            try
+            {
+                Capture = false;
+            }
+            finally
+            {
+                _releasingPointerCapture = false;
+            }
         }
 
         private void UpdateHoveredNotice(Point location)
@@ -994,6 +1047,7 @@ public class NoticeItem
                 _timer.Dispose();
                 _slideTimer.Stop();
                 _slideTimer.Dispose();
+                _bannerSlideStopwatch.Stop();
                 _categoryUnderlineTimer.Stop();
                 _categoryUnderlineTimer.Dispose();
                 _categoryTextTimer.Stop();
