@@ -20,6 +20,7 @@ namespace XelLauncher
         private const int SbBottom = 7;
         private const int UpdateCardCompactHeight = 126;
         private const int UpdateCardExpandedHeight = 470;
+        private const int TabUnderlineDurationMs = 140;
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -43,6 +44,8 @@ namespace XelLauncher
         private int _updateCardTargetHeight = UpdateCardCompactHeight;
         private bool _showUpdateButtonsAfterExpand;
         private int _lastUpdateHeaderLayoutWidth;
+        private readonly System.Diagnostics.Stopwatch _tabUnderlineStopwatch = new();
+        private Rectangle _tabUnderlineFrom;
         private Rectangle _tabUnderlineTarget;
         private bool _tabUnderlineInitialized;
         private Panel _tabBar;
@@ -1066,6 +1069,7 @@ namespace XelLauncher
                 _tabUnderline.Bounds = _tabUnderlineTarget;
                 _tabUnderlineInitialized = true;
                 _tabUnderlineTimer?.Stop();
+                _tabUnderlineStopwatch.Reset();
             }
             else
             {
@@ -1079,6 +1083,15 @@ namespace XelLauncher
         {
             if (_tabUnderline == null) return;
 
+            _tabUnderlineFrom = _tabUnderline.Bounds;
+            if (_tabUnderlineFrom == _tabUnderlineTarget || !AntdUI.Config.Animation)
+            {
+                _tabUnderline.Bounds = _tabUnderlineTarget;
+                _tabUnderlineTimer?.Stop();
+                _tabUnderlineStopwatch.Reset();
+                return;
+            }
+
             if (_tabUnderlineTimer == null)
             {
                 _tabUnderlineTimer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
@@ -1086,6 +1099,7 @@ namespace XelLauncher
             }
 
             AnimationFrameHelper.ApplyFrameInterval(_tabUnderlineTimer, this);
+            _tabUnderlineStopwatch.Restart();
             if (!_tabUnderlineTimer.Enabled)
                 _tabUnderlineTimer.Start();
         }
@@ -1098,18 +1112,19 @@ namespace XelLauncher
                 return;
             }
 
-            var current = _tabUnderline.Bounds;
+            var progress = Math.Min(1D, _tabUnderlineStopwatch.Elapsed.TotalMilliseconds / TabUnderlineDurationMs);
+            var eased = progress * progress * (3D - 2D * progress);
             var next = new Rectangle(
-                EaseUnderlineValue(current.X, _tabUnderlineTarget.X, _tabUnderlineTimer),
+                InterpolateUnderlineValue(_tabUnderlineFrom.X, _tabUnderlineTarget.X, eased),
                 _tabUnderlineTarget.Y,
-                EaseUnderlineValue(current.Width, _tabUnderlineTarget.Width, _tabUnderlineTimer),
+                InterpolateUnderlineValue(_tabUnderlineFrom.Width, _tabUnderlineTarget.Width, eased),
                 _tabUnderlineTarget.Height);
 
-            if (Math.Abs(next.X - _tabUnderlineTarget.X) <= 1 &&
-                Math.Abs(next.Width - _tabUnderlineTarget.Width) <= 1)
+            if (progress >= 1D)
             {
                 _tabUnderline.Bounds = _tabUnderlineTarget;
                 _tabUnderlineTimer?.Stop();
+                _tabUnderlineStopwatch.Reset();
             }
             else
             {
@@ -1117,8 +1132,8 @@ namespace XelLauncher
             }
         }
 
-        private static int EaseUnderlineValue(int current, int target, System.Windows.Forms.Timer timer) =>
-            current + (int)Math.Round((target - current) * AnimationFrameHelper.ScaleEase(0.32F, timer));
+        private static int InterpolateUnderlineValue(int from, int target, double progress) =>
+            (int)Math.Round(from + (target - from) * progress);
 
         private void BuildSoftwareCard(Color cardBack, Color border, Color normalText, Color subtleText)
         {
@@ -2065,8 +2080,16 @@ namespace XelLauncher
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
+                if (Width <= 1 || Height <= 1) return;
+
                 e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                using var path = RoundedPanel.CreateRoundRectPath(new Rectangle(0, 0, Width, Height), Math.Max(1, Height / 2));
+                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                var bounds = new RectangleF(0.5F, 0.5F, Width - 1F, Height - 1F);
+                var diameter = bounds.Height;
+                using var path = new System.Drawing.Drawing2D.GraphicsPath();
+                path.AddArc(bounds.Left, bounds.Top, diameter, diameter, 90F, 180F);
+                path.AddArc(bounds.Right - diameter, bounds.Top, diameter, diameter, 270F, 180F);
+                path.CloseFigure();
                 using var fill = new SolidBrush(Color.FromArgb(255, 76, 84));
                 e.Graphics.FillPath(fill, path);
             }
