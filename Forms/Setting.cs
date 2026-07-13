@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -13,10 +14,11 @@ namespace XelLauncher
     public partial class Setting : UserControl
     {
         AntdUI.BaseForm form;
-        private const int EmLineScroll = 0x00B6;
-        private const int EmGetLineCount = 0x00BA;
+        private const int EmScroll = 0x00B5;
         private const int EmGetFirstVisibleLine = 0x00CE;
         private const int WmVScroll = 0x0115;
+        private const int SbLineUp = 0;
+        private const int SbLineDown = 1;
         private const int SbBottom = 7;
         private const int UpdateCardCompactHeight = 126;
         private const int UpdateCardExpandedHeight = 470;
@@ -30,8 +32,8 @@ namespace XelLauncher
         private bool _isDownloadingUpdate;
         private RoundedPanel _logCard;
         private RoundedPanel _updateHeaderCard;
+        private RoundedPanel _updateNotesCard;
         private RoundedPanel _softwareCard;
-        private AntdUI.Label _updateSectionTitle;
         private ThinScrollBar _updateChangelogScrollBar;
         private ThinScrollBar _logScrollBar;
         private System.Windows.Forms.Timer _logScrollHideTimer;
@@ -68,6 +70,15 @@ namespace XelLauncher
         private bool _netdiskSourceMode;
         private bool _syncingDownloadSourceUi;
         private bool _hasAvailableUpdate;
+        private bool _renderingUpdateChangelog;
+        private Color _updateMarkdownLinkColor;
+        private Color _updateMarkdownDividerColor;
+        private static readonly Regex UpdateMarkdownTokenRegex = new Regex(
+            @"\*\*(?<bold>.+?)\*\*|\[(?<linkText>[^\]]+)\]\((?<linkUrl>[^)]+)\)|(?<url>https?://[^\s)]+)|(?<mention>@[A-Za-z0-9_-]+)|(?<issue>#[0-9]+)",
+            RegexOptions.Compiled);
+        private static readonly Regex GitHubPullOrIssueUrlRegex = new Regex(
+            @"^https?://github\.com/[^/\s]+/[^/\s]+/(?:pull|issues)/(?<number>[0-9]+)/?(?:[?#].*)?$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
         const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         const string AppName = "Xel Launcher";
         private static bool IsEnglishUi =>
@@ -350,10 +361,10 @@ namespace XelLauncher
             btnCheckUpdate.Radius = 6;
             btnCheckUpdate.Type = AntdUI.TTypeMini.Primary;
 
-            if (txtChangelog.Parent != _updateHeaderCard)
+            if (txtChangelog.Parent != _updateNotesCard)
             {
                 txtChangelog.Parent?.Controls.Remove(txtChangelog);
-                _updateHeaderCard.Controls.Add(txtChangelog);
+                _updateNotesCard.Controls.Add(txtChangelog);
             }
             txtChangelog.Visible = false;
             txtChangelog.ReadOnly = true;
@@ -363,12 +374,17 @@ namespace XelLauncher
             txtChangelog.BorderStyle = BorderStyle.None;
             txtChangelog.ScrollBars = RichTextBoxScrollBars.None;
             txtChangelog.Dock = DockStyle.None;
-            txtChangelog.Font = new Font("Microsoft YaHei UI", 9F);
-            txtChangelog.BackColor = _updateHeaderCard.FillColor;
+            txtChangelog.Font = new Font("Microsoft YaHei UI", 9.75F, FontStyle.Regular);
+            txtChangelog.BackColor = _updateNotesCard.FillColor;
             txtChangelog.ForeColor = normalText;
+            txtChangelog.WordWrap = true;
             txtChangelog.MouseWheel += HandleUpdateChangelogMouseWheel;
             txtChangelog.VScroll += (s, e) => UpdateChangelogScrollBar();
-            txtChangelog.TextChanged += (s, e) => UpdateChangelogScrollBar();
+            txtChangelog.TextChanged += (s, e) =>
+            {
+                if (!_renderingUpdateChangelog)
+                    UpdateChangelogScrollBar();
+            };
             if (_updateChangelogScrollBar != null)
             {
                 _updateChangelogScrollBar.Visible = false;
@@ -463,18 +479,28 @@ namespace XelLauncher
             btnCheckUpdate.Ghost = true;
             btnCheckUpdate.BorderWidth = 1F;
 
-            _updateSectionTitle = new AntdUI.Label
+            _updateNotesCard = new RoundedPanel
             {
-                Text = L("App.Update.ReleaseNotes", "更新内容"),
-                Size = DSize(IsEnglishUi ? 150 : 120, 24),
-                Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
-                ForeColor = normalText,
+                FillColor = AntdUI.Config.IsDark
+                    ? Color.FromArgb(25, 30, 37)
+                    : Color.FromArgb(248, 250, 253),
+                BorderColor = AntdUI.Config.IsDark
+                    ? Color.FromArgb(54, 62, 74)
+                    : Color.FromArgb(224, 230, 238),
+                Radius = 8,
             };
+            _updateMarkdownLinkColor = AntdUI.Config.IsDark
+                ? Color.FromArgb(88, 166, 255)
+                : Color.FromArgb(9, 105, 218);
+            _updateMarkdownDividerColor = AntdUI.Config.IsDark
+                ? Color.FromArgb(54, 62, 74)
+                : Color.FromArgb(208, 215, 222);
             txtChangelog.Text = L("App.Update.ChangelogHint", "点击检查更新后显示内容。");
             _updateChangelogScrollBar = new ThinScrollBar(
                 AntdUI.Config.IsDark ? Color.FromArgb(48, 52, 60) : Color.FromArgb(236, 240, 246),
                 AntdUI.Config.IsDark ? Color.FromArgb(118, 128, 146) : Color.FromArgb(156, 166, 182));
             _updateChangelogScrollBar.Visible = false;
+            _updateChangelogScrollBar.BackColor = _updateNotesCard.FillColor;
             _updateChangelogScrollBar.ScrollRequested += ScrollUpdateChangelogToTrackTop;
             _updateChangelogScrollBar.MouseWheel += HandleUpdateChangelogMouseWheel;
             _updateChangelogScrollBar.MouseEnter += (s, e) => RevealUpdateScrollBar(autoHide: false);
@@ -486,6 +512,8 @@ namespace XelLauncher
             };
             _updateHeaderCard.MouseEnter += (s, e) => RevealUpdateScrollBar(autoHide: false);
             _updateHeaderCard.MouseLeave += (s, e) => ScheduleUpdateScrollBarHide();
+            _updateNotesCard.MouseEnter += (s, e) => RevealUpdateScrollBar(autoHide: false);
+            _updateNotesCard.MouseLeave += (s, e) => ScheduleUpdateScrollBarHide();
             txtChangelog.MouseEnter += (s, e) => RevealUpdateScrollBar(autoHide: false);
             txtChangelog.MouseLeave += (s, e) => ScheduleUpdateScrollBarHide();
             _updateScrollHideTimer = new System.Windows.Forms.Timer { Interval = 900 };
@@ -524,9 +552,9 @@ namespace XelLauncher
             _updateHeaderCard.Controls.Add(lblLatestVersionTitle);
             _updateHeaderCard.Controls.Add(lblLatestVersion);
             _updateHeaderCard.Controls.Add(btnCheckUpdate);
-            _updateHeaderCard.Controls.Add(_updateSectionTitle);
-            _updateHeaderCard.Controls.Add(txtChangelog);
-            _updateHeaderCard.Controls.Add(_updateChangelogScrollBar);
+            _updateNotesCard.Controls.Add(txtChangelog);
+            _updateNotesCard.Controls.Add(_updateChangelogScrollBar);
+            _updateHeaderCard.Controls.Add(_updateNotesCard);
             _updateHeaderCard.Controls.Add(_updateAutoOption);
             _updateHeaderCard.Controls.Add(_updateNotifyOption);
             panelUpdate.Controls.Add(_updateHeaderCard);
@@ -537,7 +565,7 @@ namespace XelLauncher
 
         private void SetUpdateDetailsVisible(bool visible)
         {
-            if (_updateSectionTitle != null) _updateSectionTitle.Visible = visible;
+            if (_updateNotesCard != null) _updateNotesCard.Visible = visible;
             if (txtChangelog != null) txtChangelog.Visible = visible;
             if (_updateAutoOption != null) _updateAutoOption.Visible = visible;
             if (_updateNotifyOption != null) _updateNotifyOption.Visible = visible;
@@ -665,17 +693,24 @@ namespace XelLauncher
             _updateHeaderArrow.Visible = false;
 
             var notesTop = versionTop + D(70);
-            _updateSectionTitle.Location = new Point(margin, notesTop);
-            txtChangelog.Location = new Point(margin, notesTop + D(30));
-            txtChangelog.Size = new Size(Math.Max(D(120), contentWidth), stackedButton ? D(120) : D(150));
+            _updateNotesCard.Location = new Point(margin, notesTop);
+            _updateNotesCard.Size = new Size(Math.Max(D(120), contentWidth), stackedButton ? D(120) : D(150));
+            txtChangelog.Location = new Point(D(14), D(10));
+            txtChangelog.Size = new Size(
+                Math.Max(D(80), _updateNotesCard.ClientSize.Width - D(42)),
+                Math.Max(D(40), _updateNotesCard.ClientSize.Height - D(20)));
             if (_updateChangelogScrollBar != null)
             {
-                _updateChangelogScrollBar.Location = new Point(margin + contentWidth - D(10), txtChangelog.Top + D(4));
-                _updateChangelogScrollBar.Size = new Size(D(8), Math.Max(D(40), txtChangelog.Height - D(8)));
+                _updateChangelogScrollBar.Location = new Point(
+                    Math.Max(0, _updateNotesCard.ClientSize.Width - D(16)),
+                    D(10));
+                _updateChangelogScrollBar.Size = new Size(
+                    D(8),
+                    Math.Max(D(40), _updateNotesCard.ClientSize.Height - D(20)));
                 _updateChangelogScrollBar.BringToFront();
                 UpdateChangelogScrollBar();
             }
-            _updateAutoOption.Location = new Point(margin, txtChangelog.Bottom + D(24));
+            _updateAutoOption.Location = new Point(margin, _updateNotesCard.Bottom + D(18));
             _updateNotifyOption.Location = new Point(margin, _updateAutoOption.Bottom + D(2));
 
             var downloadPanelHeight = _isDownloadingUpdate || progressDownload.Visible ? D(76) : D(38);
@@ -1460,8 +1495,7 @@ namespace XelLauncher
 
         private void ScrollLogLines(int lineDelta)
         {
-            if (lineDelta == 0 || txtLog.IsDisposed) return;
-            SendMessage(txtLog.Handle, EmLineScroll, IntPtr.Zero, new IntPtr(lineDelta));
+            ScrollRichTextBoxLinesClamped(txtLog, lineDelta);
         }
 
         private static bool TryGetScrollMetrics(RichTextBox textBox, int trackHeight,
@@ -1475,14 +1509,19 @@ namespace XelLauncher
                 return false;
             }
 
-            totalLines = textBox.IsHandleCreated
-                ? Math.Max(1, SendMessage(textBox.Handle, EmGetLineCount, IntPtr.Zero, IntPtr.Zero).ToInt32())
-                : Math.Max(1, textBox.GetLineFromCharIndex(textBox.TextLength) + 1);
+            // GetLineFromCharIndex(TextLength) counts the caret line created by a
+            // trailing newline. Use the last actual character so that this empty
+            // line does not extend the custom scrollbar range.
+            totalLines = textBox.TextLength > 0
+                ? Math.Max(1, textBox.GetLineFromCharIndex(textBox.TextLength - 1) + 1)
+                : 1;
             firstVisible = textBox.IsHandleCreated
                 ? Math.Max(0, SendMessage(textBox.Handle, EmGetFirstVisibleLine, IntPtr.Zero, IntPtr.Zero).ToInt32())
                 : textBox.GetLineFromCharIndex(textBox.GetCharIndexFromPosition(new Point(1, 1)));
-            var bottomLine = textBox.GetLineFromCharIndex(
-                textBox.GetCharIndexFromPosition(new Point(1, Math.Max(1, textBox.ClientSize.Height - 2))));
+            var bottomLine = Math.Min(
+                totalLines - 1,
+                textBox.GetLineFromCharIndex(
+                    textBox.GetCharIndexFromPosition(new Point(1, Math.Max(1, textBox.ClientSize.Height - 2)))));
             visibleLines = Math.Max(1, bottomLine - firstVisible + 1);
             firstVisible = Math.Min(Math.Max(0, totalLines - visibleLines), firstVisible);
             return totalLines > visibleLines;
@@ -1593,8 +1632,32 @@ namespace XelLauncher
 
         private void ScrollUpdateChangelogLines(int lineDelta)
         {
-            if (lineDelta == 0 || txtChangelog.IsDisposed) return;
-            SendMessage(txtChangelog.Handle, EmLineScroll, IntPtr.Zero, new IntPtr(lineDelta));
+            ScrollRichTextBoxLinesClamped(txtChangelog, lineDelta);
+        }
+
+        private static void ScrollRichTextBoxLinesClamped(RichTextBox textBox, int lineDelta)
+        {
+            if (lineDelta == 0 || textBox == null || textBox.IsDisposed || !textBox.IsHandleCreated)
+                return;
+
+            var command = lineDelta > 0 ? SbLineDown : SbLineUp;
+            var remaining = Math.Abs(lineDelta);
+            for (var i = 0; i < remaining; i++)
+            {
+                var before = SendMessage(
+                    textBox.Handle,
+                    EmGetFirstVisibleLine,
+                    IntPtr.Zero,
+                    IntPtr.Zero).ToInt32();
+                SendMessage(textBox.Handle, EmScroll, new IntPtr(command), IntPtr.Zero);
+                var after = SendMessage(
+                    textBox.Handle,
+                    EmGetFirstVisibleLine,
+                    IntPtr.Zero,
+                    IntPtr.Zero).ToInt32();
+
+                if (after == before) break;
+            }
         }
 
         private static void ScrollRichTextBoxToEnd(RichTextBox textBox)
@@ -1736,7 +1799,7 @@ namespace XelLauncher
             StopLatestVersionColorAnimation();
             _hasAvailableUpdate = false;
             SetUpdateHeaderTitle(L("App.Update.NoUpdateTitle", "已是最新版本"));
-            txtChangelog.Text = FormatUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
+            RenderUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
             btnDownloadSetup.Visible = false;
             btnDownloadPortable.Visible = false;
             _showFallbackButton = false;
@@ -1954,18 +2017,14 @@ namespace XelLauncher
 
         private void ShowChangelog(string text)
         {
-            txtChangelog.Text = FormatUpdateChangelog(text);
-            txtChangelog.SelectionStart = 0;
-            txtChangelog.ScrollToCaret();
-            UpdateChangelogScrollBar();
+            RenderUpdateChangelog(text);
             _updateHeaderCard?.BringToFront();
             panelUpdateButtons?.BringToFront();
         }
 
         private void HideChangelog()
         {
-            txtChangelog.Text = L("App.Update.AlreadyLatest", "当前已是最新版本。");
-            UpdateChangelogScrollBar();
+            RenderUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
         }
         private static string FormatReleaseDate(DateTimeOffset? publishedAt)
         {
@@ -2050,21 +2109,173 @@ namespace XelLauncher
         private static int ClampColor(double value) =>
             Math.Max(0, Math.Min(255, (int)Math.Round(value)));
 
-        private static string FormatUpdateChangelog(string text)
+        private void RenderUpdateChangelog(string markdown)
         {
-            if (string.IsNullOrWhiteSpace(text))
-                return L("App.Update.NoChangelog", "暂无更新内容。");
+            var content = string.IsNullOrWhiteSpace(markdown)
+                ? L("App.Update.NoChangelog", "暂无更新内容。")
+                : markdown;
+            content = ReleaseNotesHelper.SelectLocalizedMarkdown(content, IsEnglishUi);
 
-            var lines = text.Replace("\r\n", "\n").Split('\n');
-            var result = new System.Text.StringBuilder();
-            foreach (var line in lines)
+            using var bodyFont = new Font("Microsoft YaHei UI", 9.75F, FontStyle.Regular);
+            using var boldFont = new Font("Microsoft YaHei UI", 9.75F, FontStyle.Bold);
+            using var headingFont = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold);
+            using var linkFont = new Font("Microsoft YaHei UI", 9.75F, FontStyle.Underline);
+            using var dividerFont = new Font("Microsoft YaHei UI", 6F, FontStyle.Regular);
+
+            _renderingUpdateChangelog = true;
+            txtChangelog.SuspendLayout();
+            try
             {
-                var item = line.Trim().TrimStart('-', '*', '•').Trim();
-                if (item.Length == 0) continue;
-                if (result.Length > 0) result.AppendLine();
-                result.Append("• ").Append(item);
+                txtChangelog.Clear();
+                foreach (var raw in content.Replace("\r\n", "\n").Split('\n'))
+                {
+                    var line = raw.Trim();
+                    if (line.Length == 0)
+                    {
+                        AppendUpdateBlankLine(bodyFont);
+                        continue;
+                    }
+
+                    if (line.StartsWith("---", StringComparison.Ordinal))
+                    {
+                        AppendUpdateDivider(dividerFont);
+                        continue;
+                    }
+
+                    if (line.StartsWith("#", StringComparison.Ordinal))
+                    {
+                        var heading = line.TrimStart('#').Trim();
+                        if (heading.Length == 0) continue;
+                        AppendUpdateHeading(heading, headingFont, dividerFont);
+                        continue;
+                    }
+
+                    var bullet = line[0] == '-' || line[0] == '*' || line[0] == '•';
+                    if (bullet)
+                    {
+                        var item = line.TrimStart('-', '*', '•').Trim();
+                        if (item.Length == 0) continue;
+                        var paragraphStart = txtChangelog.TextLength;
+                        AppendUpdateText("•  ", bodyFont, txtChangelog.ForeColor);
+                        AppendUpdateMarkdownInline(item, bodyFont, boldFont, linkFont);
+                        AppendUpdateText(Environment.NewLine, bodyFont, txtChangelog.ForeColor);
+                        txtChangelog.Select(paragraphStart, txtChangelog.TextLength - paragraphStart);
+                        txtChangelog.SelectionIndent = D(6);
+                        txtChangelog.SelectionHangingIndent = D(14);
+                        txtChangelog.SelectionRightIndent = D(8);
+                        continue;
+                    }
+
+                    if (line.StartsWith("Full Changelog", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var separator = line.IndexOf(':');
+                        var label = separator >= 0 ? line.Substring(0, separator + 1) : line;
+                        var value = separator >= 0 ? line.Substring(separator + 1).Trim() : string.Empty;
+                        AppendUpdateText(label, boldFont, txtChangelog.ForeColor);
+                        if (value.Length > 0)
+                        {
+                            AppendUpdateText("  ", bodyFont, txtChangelog.ForeColor);
+                            AppendUpdateMarkdownInline(value, bodyFont, boldFont, linkFont);
+                        }
+                        AppendUpdateText(Environment.NewLine, bodyFont, txtChangelog.ForeColor);
+                        continue;
+                    }
+
+                    AppendUpdateMarkdownInline(line, bodyFont, boldFont, linkFont);
+                    AppendUpdateText(Environment.NewLine, bodyFont, txtChangelog.ForeColor);
+                }
+
+                while (txtChangelog.Text.EndsWith(Environment.NewLine + Environment.NewLine, StringComparison.Ordinal))
+                {
+                    txtChangelog.Select(
+                        txtChangelog.TextLength - Environment.NewLine.Length,
+                        Environment.NewLine.Length);
+                    txtChangelog.SelectedText = string.Empty;
+                }
+
+                txtChangelog.Select(0, 0);
+                txtChangelog.ScrollToCaret();
             }
-            return result.Length > 0 ? result.ToString() : L("App.Update.NoChangelog", "暂无更新内容。");
+            finally
+            {
+                txtChangelog.ResumeLayout();
+                _renderingUpdateChangelog = false;
+            }
+
+            UpdateChangelogScrollBar();
+        }
+
+        private void AppendUpdateHeading(string text, Font headingFont, Font dividerFont)
+        {
+            if (txtChangelog.TextLength > 0 &&
+                !txtChangelog.Text.EndsWith(Environment.NewLine + Environment.NewLine, StringComparison.Ordinal))
+                AppendUpdateText(Environment.NewLine, txtChangelog.Font, txtChangelog.ForeColor);
+
+            AppendUpdateText(text + Environment.NewLine, headingFont, txtChangelog.ForeColor);
+            AppendUpdateDivider(dividerFont);
+        }
+
+        private void AppendUpdateDivider(Font dividerFont)
+        {
+            AppendUpdateText(new string('─', 64) + Environment.NewLine, dividerFont, _updateMarkdownDividerColor);
+        }
+
+        private void AppendUpdateBlankLine(Font bodyFont)
+        {
+            if (txtChangelog.TextLength == 0 ||
+                txtChangelog.Text.EndsWith(Environment.NewLine + Environment.NewLine, StringComparison.Ordinal))
+                return;
+
+            AppendUpdateText(Environment.NewLine, bodyFont, txtChangelog.ForeColor);
+        }
+
+        private void AppendUpdateMarkdownInline(string text, Font bodyFont, Font boldFont, Font linkFont)
+        {
+            var position = 0;
+            foreach (Match match in UpdateMarkdownTokenRegex.Matches(text))
+            {
+                if (match.Index > position)
+                    AppendUpdateText(text.Substring(position, match.Index - position), bodyFont, txtChangelog.ForeColor);
+
+                if (match.Groups["bold"].Success)
+                {
+                    AppendUpdateText(match.Groups["bold"].Value, boldFont, txtChangelog.ForeColor);
+                }
+                else if (match.Groups["linkText"].Success)
+                {
+                    AppendUpdateText(match.Groups["linkText"].Value, linkFont, _updateMarkdownLinkColor);
+                }
+                else if (match.Groups["url"].Success)
+                {
+                    var url = match.Groups["url"].Value;
+                    var reference = GitHubPullOrIssueUrlRegex.Match(url);
+                    var displayText = reference.Success
+                        ? "#" + reference.Groups["number"].Value
+                        : url;
+                    AppendUpdateText(displayText, linkFont, _updateMarkdownLinkColor);
+                }
+                else
+                {
+                    AppendUpdateText(match.Value, linkFont, _updateMarkdownLinkColor);
+                }
+
+                position = match.Index + match.Length;
+            }
+
+            if (position < text.Length)
+                AppendUpdateText(text.Substring(position), bodyFont, txtChangelog.ForeColor);
+        }
+
+        private void AppendUpdateText(string text, Font font, Color color)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+
+            var start = txtChangelog.TextLength;
+            txtChangelog.AppendText(text);
+            txtChangelog.Select(start, text.Length);
+            txtChangelog.SelectionFont = font;
+            txtChangelog.SelectionColor = color;
+            txtChangelog.SelectionBackColor = txtChangelog.BackColor;
         }
 
         private sealed class AccentUnderline : Control

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using XelLauncher.Models;
 
@@ -24,15 +25,20 @@ namespace XelLauncher.Forms
         private readonly Color _normalText;
         private readonly Color _subtleText;
         private readonly Color _accent;
+        private static readonly Regex GitHubPullOrIssueReferenceRegex = new Regex(
+            @"(?:\[[^\]]+\]\()?https?://github\.com/[^/\s]+/[^/\s]+/(?:pull|issues)/(?<number>[0-9]+)/?(?:[?#][^\s)]*)?\)?",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public UpdateReminderAction SelectedAction { get; private set; }
 
         private static string L(string key, string fallback) =>
             AntdUI.Localization.Get(key, fallback);
+        private static bool IsEnglishUi =>
+            AntdUI.Localization.CurrentLanguage?.StartsWith("en", StringComparison.OrdinalIgnoreCase) == true;
 
         public UpdateReminderDialog(UpdateInfo info, string currentVersion)
         {
-            Size = new Size(540, 370);
+            Size = new Size(540, 340);
             MinimumSize = Size;
             BackColor = AntdUI.Config.IsDark ? Helpers.AppTheme.DarkBackground : Color.White;
 
@@ -76,7 +82,7 @@ namespace XelLauncher.Forms
             _notesCard = new RoundedPanel
             {
                 Location = new Point(20, 84),
-                Size = new Size(500, 190),
+                Size = new Size(500, 160),
                 FillColor = _cardBack,
                 BorderColor = border,
                 Radius = 10,
@@ -101,7 +107,7 @@ namespace XelLauncher.Forms
                 _cardBack)
             {
                 Location = new Point(15, 44),
-                Size = new Size(456, 128),
+                Size = new Size(456, 98),
                 BackColor = _cardBack,
                 TabStop = false,
                 Cursor = Cursors.Arrow,
@@ -113,7 +119,7 @@ namespace XelLauncher.Forms
                 AntdUI.Config.IsDark ? Color.FromArgb(116, 128, 146) : Color.FromArgb(150, 160, 176))
             {
                 Location = new Point(480, 47),
-                Size = new Size(8, 122),
+                Size = new Size(8, 92),
                 BackColor = _cardBack,
                 Visible = false,
             };
@@ -124,7 +130,7 @@ namespace XelLauncher.Forms
             {
                 Text = L("App.Update.RemindLaterHint", "直接关闭窗口，下次启动时仍会提醒"),
                 AutoSize = false,
-                Location = new Point(20, 282),
+                Location = new Point(20, 252),
                 Size = new Size(500, 20),
                 Font = new Font("Microsoft YaHei UI", 8.75F, FontStyle.Regular),
                 ForeColor = _subtleText,
@@ -143,8 +149,11 @@ namespace XelLauncher.Forms
                 UpdateReminderAction.SuppressVersion,
                 160);
 
-            btnUpdate.Location = new Point(Width - 20 - btnUpdate.Width, 320);
-            btnSuppress.Location = new Point(btnUpdate.Left - 10 - btnSuppress.Width, 320);
+            var actionButtonWidth = Math.Max(btnUpdate.Width, btnSuppress.Width);
+            btnUpdate.Width = actionButtonWidth;
+            btnSuppress.Width = actionButtonWidth;
+            btnUpdate.Location = new Point(Width - 20 - btnUpdate.Width, 290);
+            btnSuppress.Location = new Point(btnUpdate.Left - 10 - btnSuppress.Width, 290);
 
             _notesCard.Controls.Add(notesTitle);
             _notesCard.Controls.Add(_notes);
@@ -245,7 +254,8 @@ namespace XelLauncher.Forms
                 return result;
             }
 
-            foreach (var raw in changelog.Replace("\r\n", "\n").Split('\n'))
+            var localizedChangelog = Helpers.ReleaseNotesHelper.SelectLocalizedMarkdown(changelog, IsEnglishUi);
+            foreach (var raw in localizedChangelog.Replace("\r\n", "\n").Split('\n'))
             {
                 var line = raw.Trim();
                 if (line.Length == 0 || line.StartsWith("---", StringComparison.Ordinal)) continue;
@@ -254,13 +264,17 @@ namespace XelLauncher.Forms
                 {
                     var heading = line.TrimStart('#').Trim();
                     if (heading.Equals("What's Changed", StringComparison.OrdinalIgnoreCase) ||
-                        heading.Equals("更新内容", StringComparison.OrdinalIgnoreCase))
+                        heading.Equals("更新内容", StringComparison.OrdinalIgnoreCase) ||
+                        heading.Equals("更新重点", StringComparison.OrdinalIgnoreCase))
                         continue;
                     line = heading;
                 }
 
                 line = line.TrimStart('-', '*', '•').Trim();
                 line = line.Replace("**", "").Replace("__", "").Trim();
+                line = GitHubPullOrIssueReferenceRegex.Replace(
+                    line,
+                    match => "#" + match.Groups["number"].Value);
                 if (line.Length == 0 || line.StartsWith("Full Changelog", StringComparison.OrdinalIgnoreCase))
                     continue;
 
