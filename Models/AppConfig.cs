@@ -27,6 +27,7 @@ namespace XelLauncher.Models
         public string PortableDownloadUrl { get; set; } = "";
         public long? PortableSizeBytes { get; set; }
         public string ReleasePageUrl { get; set; } = "";
+        // Legacy setting kept for config compatibility. New reminder choices are version-scoped.
         public bool DisableReminder { get; set; }
         public string SkippedVersion { get; set; } = "";
     }

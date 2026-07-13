@@ -1149,8 +1149,11 @@
   <data name="App.Update.CurrentVersion" xml:space="preserve">
     <value>Current Version</value>
   </data>
-  <data name="App.Update.DisableReminder" xml:space="preserve">
-    <value>Don't remind</value>
+  <data name="App.Update.SuppressVersion" xml:space="preserve">
+    <value>Mute this version</value>
+  </data>
+  <data name="App.Update.RemindLaterHint" xml:space="preserve">
+    <value>Close this window to be reminded next time</value>
   </data>
   <data name="App.Update.DownloadCanceled" xml:space="preserve">
     <value>Canceled</value>
@@ -1238,9 +1241,6 @@
   </data>
   <data name="App.Update.SizeBoth" xml:space="preserve">
     <value>Installer {0} / portable {1}</value>
-  </data>
-  <data name="App.Update.SkipVersion" xml:space="preserve">
-    <value>Skip</value>
   </data>
   <data name="App.Update.Unknown" xml:space="preserve">
     <value>Unknown</value>

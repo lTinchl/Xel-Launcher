@@ -97,16 +97,12 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             cfg.UpdateState ??= new AppUpdateState();
             cfg.LastNotifiedVersion = latestVersion;
+            cfg.UpdateState.DisableReminder = false;
 
             switch (action)
             {
-                case UpdateReminderAction.SkipVersion:
+                case UpdateReminderAction.SuppressVersion:
                     cfg.UpdateState.SkippedVersion = latestVersion;
-                    ConfigHelper.Save(cfg);
-                    updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
-                    break;
-                case UpdateReminderAction.DisableReminder:
-                    cfg.UpdateState.DisableReminder = true;
                     ConfigHelper.Save(cfg);
                     updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
                     break;

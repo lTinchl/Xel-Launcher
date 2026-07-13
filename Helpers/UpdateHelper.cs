@@ -191,8 +191,13 @@ namespace XelLauncher.Helpers
             if (!ShouldShowCachedUpdate(cfg, currentVersion)) return false;
 
             var state = cfg.UpdateState;
-            if (state.DisableReminder) return false;
             if (string.Equals(state.SkippedVersion, state.LatestVersion, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            // Older configs used a global switch. Limit it to the version for which the
+            // user originally made that choice so every later release still gets a first reminder.
+            if (state.DisableReminder &&
+                string.Equals(cfg.LastNotifiedVersion, state.LatestVersion, StringComparison.OrdinalIgnoreCase))
                 return false;
 
             return true;
@@ -200,6 +205,7 @@ namespace XelLauncher.Helpers
 
         private static void SaveInfo(AppUpdateState state, UpdateInfo info, bool hasUpdate)
         {
+            var previousLatestVersion = state.LatestVersion;
             state.HasUpdate = hasUpdate;
             state.LatestVersion = info.LatestVersion ?? "";
             state.Changelog = info.Changelog ?? "";
@@ -210,10 +216,11 @@ namespace XelLauncher.Helpers
             state.PortableSizeBytes = info.PortableSizeBytes;
             state.ReleasePageUrl = info.ReleasePageUrl ?? "";
 
-            if (!string.Equals(state.SkippedVersion, state.LatestVersion, StringComparison.OrdinalIgnoreCase) &&
-                hasUpdate)
+            if (hasUpdate &&
+                !string.Equals(previousLatestVersion, state.LatestVersion, StringComparison.OrdinalIgnoreCase))
             {
                 state.SkippedVersion = "";
+                state.DisableReminder = false;
             }
         }
 
