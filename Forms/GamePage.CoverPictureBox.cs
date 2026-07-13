@@ -86,10 +86,13 @@ namespace XelLauncher.Forms
             if (Image == null) return;
             var g = e.Graphics;
             EnsureRenderCache();
+            g.Clear(Color.Black);
+            g.CompositingQuality = CompositingQuality.HighSpeed;
+            g.CompositingMode = CompositingMode.SourceOver;
 
             if (_fadeActive && _renderedFadeFromImage != null)
             {
-                DrawRenderedImage(g, _renderedFadeFromImage, 1F - _fadeProgress);
+                g.DrawImageUnscaled(_renderedFadeFromImage, 0, 0);
                 DrawRenderedImage(g, _renderedImage, _fadeProgress);
                 return;
             }
@@ -160,7 +163,6 @@ namespace XelLauncher.Forms
         {
             if (image == null || alpha <= 0F) return;
 
-            var dst = new Rectangle(0, 0, image.Width, image.Height);
             if (alpha >= 0.999F)
             {
                 g.DrawImageUnscaled(image, 0, 0);
@@ -173,7 +175,15 @@ namespace XelLauncher.Forms
                 Matrix33 = Math.Max(0F, Math.Min(1F, alpha))
             };
             attributes.SetColorMatrix(matrix, System.Drawing.Imaging.ColorMatrixFlag.Default, System.Drawing.Imaging.ColorAdjustType.Bitmap);
-            g.DrawImage(image, dst, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+            g.DrawImage(
+                image,
+                new Rectangle(0, 0, image.Width, image.Height),
+                0,
+                0,
+                image.Width,
+                image.Height,
+                GraphicsUnit.Pixel,
+                attributes);
         }
 
         private RectangleF GetCoverSourceRect(Image image)

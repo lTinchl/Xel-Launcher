@@ -24,6 +24,8 @@ namespace XelLauncher.Forms
                 _leftTooltip?.Dispose();
                 _topTooltip?.Dispose();
                 _bottomTooltip?.Dispose();
+                _coverImage?.Dispose();
+                _coverImage = null;
             }
             base.Dispose(disposing);
         }
@@ -48,7 +50,11 @@ namespace XelLauncher.Forms
 
             try
             {
-                using var bitmap = new Bitmap(image);
+                var bitmap = image as Bitmap;
+                bool ownsBitmap = bitmap == null;
+                bitmap ??= new Bitmap(image);
+                try
+                {
                 int step = Math.Max(4, Math.Min(bitmap.Width, bitmap.Height) / 90);
                 var buckets = new Dictionary<int, ColorBucket>();
 
@@ -88,6 +94,11 @@ namespace XelLauncher.Forms
                     .OrderByDescending(x => x.Score * Math.Sqrt(Math.Max(1, x.Count)))
                     .First();
                 return best.ToColor();
+                }
+                finally
+                {
+                    if (ownsBitmap) bitmap.Dispose();
+                }
             }
             catch
             {

@@ -489,7 +489,7 @@ namespace XelLauncher.Forms
 
             CaptureSwitchAnimationHome();
             _switchAnimationActive = true;
-            await AnimateSwitchAsync(0F, 1F);
+            await AnimateSwitchAsync(1F);
         }
 
         public async Task PlaySwitchInAsync()
@@ -504,7 +504,7 @@ namespace XelLauncher.Forms
             _switchAnimationActive = true;
             _switchAnimationProgress = 1F;
             ApplySwitchAnimationOffset(_switchAnimationProgress);
-            await AnimateSwitchAsync(1F, 0F);
+            await AnimateSwitchAsync(0F);
             _switchAnimationActive = false;
             _switchAnimationProgress = 0F;
             _coverPictureBox?.FinishFade();
@@ -601,7 +601,11 @@ namespace XelLauncher.Forms
 
             try
             {
-                using var bitmap = new Bitmap(image);
+                var bitmap = image as Bitmap;
+                bool ownsBitmap = bitmap == null;
+                bitmap ??= new Bitmap(image);
+                try
+                {
                 unchecked
                 {
                     uint hash = 2166136261;
@@ -625,6 +629,11 @@ namespace XelLauncher.Forms
 
                     return $"{bitmap.Width}x{bitmap.Height}:{hash:X8}";
                 }
+                }
+                finally
+                {
+                    if (ownsBitmap) bitmap.Dispose();
+                }
             }
             catch
             {
@@ -641,7 +650,7 @@ namespace XelLauncher.Forms
             _toolSidebarHome = GetToolSidebarHome();
         }
 
-        private Task AnimateSwitchAsync(float from, float to)
+        private Task AnimateSwitchAsync(float target)
         {
             var tcs = new TaskCompletionSource<object>();
             if (IsDisposed || !IsHandleCreated)
@@ -650,27 +659,40 @@ namespace XelLauncher.Forms
                 return tcs.Task;
             }
 
+            float start = _switchAnimationProgress;
             var stopwatch = Stopwatch.StartNew();
-            var timer = new System.Windows.Forms.Timer { Interval = AnimationFrameHelper.GetFrameInterval(this) };
+            var timer = new System.Windows.Forms.Timer
+            {
+                Interval = Math.Max(
+                    SwitchAnimationMinFrameIntervalMs,
+                    AnimationFrameHelper.GetFrameInterval(this))
+            };
             timer.Tick += (s, e) =>
             {
                 if (IsDisposed)
                 {
-                    stopwatch.Stop();
                     timer.Stop();
                     timer.Dispose();
                     tcs.TrySetResult(null);
                     return;
                 }
 
-                float elapsed = stopwatch.ElapsedMilliseconds;
-                float progress = Math.Min(1F, elapsed / SwitchAnimationDuration);
-                _switchAnimationProgress = from + (to - from) * progress;
-                if (from > to)
+                float elapsedProgress = Math.Min(1F, (float)stopwatch.Elapsed.TotalMilliseconds / SwitchAnimationDurationMs);
+                float easedProgress = elapsedProgress * elapsedProgress * (3F - 2F * elapsedProgress);
+                _switchAnimationProgress = start + (target - start) * easedProgress;
+                if (target < _switchAnimationProgress)
                     _coverPictureBox?.SetFadeProgress(1F - _switchAnimationProgress);
+
+                if (elapsedProgress >= 1F)
+                {
+                    _switchAnimationProgress = target;
+                    if (target <= 0F)
+                        _coverPictureBox?.SetFadeProgress(1F);
+                }
+
                 ApplySwitchAnimationOffset(_switchAnimationProgress);
 
-                if (progress >= 1F)
+                if (elapsedProgress >= 1F)
                 {
                     stopwatch.Stop();
                     timer.Stop();

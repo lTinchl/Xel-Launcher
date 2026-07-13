@@ -38,8 +38,11 @@ namespace XelLauncher.Forms
         private Image _coverImage;
         private string _coverTransitionKey = "";
         private string _coverTransitionSignature = "";
+        private bool _coverAccentPaletteValid;
+        private (Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) _coverAccentPalette;
         private readonly CancellationTokenSource _coverCts = new();
-        private const int SwitchAnimationDuration = 220;
+        private const int SwitchAnimationDurationMs = 360;
+        private const int SwitchAnimationMinFrameIntervalMs = 7;
         private bool _switchAnimationActive = false;
         private float _switchAnimationProgress = 0F;
         private Point _launchPanelHome;
@@ -57,7 +60,7 @@ namespace XelLauncher.Forms
         private bool _preloadRunning;
         private bool _preloadCompleted;
 
-        public GamePage(GameEntry game, Overview overview)
+        public GamePage(GameEntry game, Overview overview, Image initialCoverImage = null, string initialCoverPath = null)
         {
             _game = game;
             _overview = overview;
@@ -72,7 +75,7 @@ namespace XelLauncher.Forms
                      ControlStyles.UserPaint, true);
 
             BuildLaunchPanel();
-            BuildCoverImage();
+            BuildCoverImage(initialCoverImage, initialCoverPath);
 
             LoadAccountSelect();
             UpdateAccountControlsVisibility();

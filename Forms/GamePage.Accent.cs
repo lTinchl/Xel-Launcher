@@ -84,6 +84,9 @@ namespace XelLauncher.Forms
 
         public (Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) GetCoverAccentPalette()
         {
+            if (_coverAccentPaletteValid)
+                return _coverAccentPalette;
+
             var accent = PickCoverAccentColor(_coverImage);
             var primary = NormalizeAccent(accent, 0.56f, 0.30f, 0.48f);
             var primaryHover = ShiftLightness(primary, 0.07f);
@@ -93,7 +96,9 @@ namespace XelLauncher.Forms
             var mutedActive = ShiftLightness(primary, -0.42f);
             var danger = ShiftHue(primary, -14F, 0.30f, 0.48f);
             var dangerHover = ShiftLightness(danger, 0.07f);
-            return (primary, primaryHover, primaryActive, muted, mutedHover, mutedActive, danger, dangerHover, Color.FromArgb(245, 255, 255, 255));
+            _coverAccentPalette = (primary, primaryHover, primaryActive, muted, mutedHover, mutedActive, danger, dangerHover, Color.FromArgb(245, 255, 255, 255));
+            _coverAccentPaletteValid = true;
+            return _coverAccentPalette;
         }
     }
 }

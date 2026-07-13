@@ -23,7 +23,7 @@ namespace XelLauncher.Forms
         private bool _noticeAnimationEnabled;
         private bool _noticeUserCollapsed;
 
-        private void BuildCoverImage()
+        private void BuildCoverImage(Image initialCoverImage, string initialCoverPath)
         {
             string imgFile = _game.IconName switch
             {
@@ -32,8 +32,11 @@ namespace XelLauncher.Forms
             };
             string fallbackPath = FindIconResourceFile(imgFile);
 
-            var img = LoadCoverImage(fallbackPath);
+            var img = initialCoverImage ?? GameCoverCache.TryLoadImage(fallbackPath);
             if (img == null) return;
+            _coverTransitionKey = NormalizeCoverTransitionKey(
+                string.IsNullOrWhiteSpace(initialCoverPath) ? fallbackPath : initialCoverPath);
+            _coverTransitionSignature = CreateCoverTransitionSignature(img);
             _coverImage = img;
             var pb = new CoverPictureBox
             {
@@ -62,13 +65,22 @@ namespace XelLauncher.Forms
                 SaveNoticeCollapsedPreference(_noticeUserCollapsed);
                 AnimateNoticePanelToHome();
             };
-            ApplyCachedLauncherNotice();
             _coverPictureBox.Controls.Add(_noticePanel);
+            bool cachedContentLoadStarted = false;
             HandleCreated += (s, e) => {
                 PositionLaunchPanel();
                 PositionToolSidebar();
                 PositionNoticePanel();
                 UpdateLaunchPanelColor();
+                if (!cachedContentLoadStarted)
+                {
+                    cachedContentLoadStarted = true;
+                    BeginInvoke(new Action(() =>
+                    {
+                        if (IsDisposed) return;
+                        _ = ApplyCachedLauncherNoticeAsync();
+                    }));
+                }
                 };
             SizeChanged += (s, e) =>
             {
@@ -104,31 +116,6 @@ namespace XelLauncher.Forms
             return Path.Combine(AppContext.BaseDirectory, "Resources", fileName);
         }
 
-        private Image LoadCoverImage(string fallbackPath)
-        {
-            var cachedPath = GameCoverCache.GetCachedCoverPath(_game.IconName);
-            if (!string.IsNullOrEmpty(cachedPath))
-            {
-                var cached = GameCoverCache.TryLoadImage(cachedPath);
-                if (cached != null)
-                {
-                    _coverTransitionKey = NormalizeCoverTransitionKey(cachedPath);
-                    _coverTransitionSignature = CreateCoverTransitionSignature(cached);
-                    return cached;
-                }
-            }
-
-            if (!File.Exists(fallbackPath)) return null;
-
-            var fallback = GameCoverCache.TryLoadImage(fallbackPath);
-            if (fallback != null)
-            {
-                _coverTransitionKey = NormalizeCoverTransitionKey(fallbackPath);
-                _coverTransitionSignature = CreateCoverTransitionSignature(fallback);
-            }
-            return fallback;
-        }
-
         private async Task RefreshRemoteCoverAsync()
         {
             if (!GameCoverCache.TryBeginDailyCoverRefresh(_game.IconName))
@@ -157,7 +144,9 @@ namespace XelLauncher.Forms
                 var beforeWrite = !string.IsNullOrEmpty(beforePath) && File.Exists(beforePath)
                     ? File.GetLastWriteTimeUtc(beforePath)
                     : DateTime.MinValue;
-                var imagePath = await GameCoverCache.UpdateAsync(_game.IconName, imageUrl, ct: token, forceRefresh: true);
+                var imagePath = await Task.Run(
+                    () => GameCoverCache.UpdateAsync(_game.IconName, imageUrl, ct: token, forceRefresh: true),
+                    token);
                 if (string.IsNullOrEmpty(imagePath) || _coverCts.IsCancellationRequested)
                 {
                     LogHelper.Log($"Client cover cache skipped: {_game.IconName}");
@@ -169,7 +158,15 @@ namespace XelLauncher.Forms
                     File.GetLastWriteTimeUtc(imagePath) == beforeWrite)
                     return;
 
-                BeginInvoke(() => ApplyCoverImage(imagePath));
+                var image = await Task.Run(() => GameCoverCache.TryLoadImage(imagePath), token);
+                if (image == null) return;
+                if (!IsHandleCreated || IsDisposed || token.IsCancellationRequested)
+                {
+                    image.Dispose();
+                    return;
+                }
+
+                ApplyCoverImage(image, imagePath);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -182,19 +179,18 @@ namespace XelLauncher.Forms
             }
         }
 
-        private void ApplyCoverImage(string imagePath)
+        private void ApplyCoverImage(Image image, string imagePath)
         {
-            if (_coverPictureBox == null || _coverPictureBox.IsDisposed) return;
-
-            var image = GameCoverCache.TryLoadImage(imagePath);
-            if (image == null)
+            if (_coverPictureBox == null || _coverPictureBox.IsDisposed)
             {
-                LogHelper.Log($"Client cover load failed: {_game.IconName} -> {imagePath}");
+                image?.Dispose();
                 return;
             }
+            if (image == null) return;
 
             var oldImage = _coverImage;
             _coverImage = image;
+            _coverAccentPaletteValid = false;
             _coverTransitionKey = NormalizeCoverTransitionKey(imagePath);
             _coverTransitionSignature = CreateCoverTransitionSignature(image);
             _coverPictureBox.Image = image;
@@ -463,11 +459,12 @@ namespace XelLauncher.Forms
                 var banners = new List<NoticeBannerItem>();
                 foreach (var banner in remoteBanners.Take(6))
                 {
-                    var imagePath = GameCoverCache.GetCachedNoticeBannerPath(_game.IconName, banner.ImageUrl);
-                    if (string.IsNullOrEmpty(imagePath))
-                        imagePath = await GameCoverCache.UpdateNoticeBannerAsync(_game.IconName, banner.ImageUrl, token).ConfigureAwait(false);
-
-                    var image = GameCoverCache.TryLoadImage(imagePath);
+                    var image = GameCoverCache.TryLoadCachedNoticeBanner(_game.IconName, banner.ImageUrl);
+                    if (image == null)
+                    {
+                        var imagePath = await GameCoverCache.UpdateNoticeBannerAsync(_game.IconName, banner.ImageUrl, token).ConfigureAwait(false);
+                        image = GameCoverCache.TryLoadImage(imagePath);
+                    }
                     if (image != null)
                         banners.Add(new NoticeBannerItem(image, banner.JumpUrl ?? "", true));
                 }
@@ -489,30 +486,50 @@ namespace XelLauncher.Forms
             }
         }
 
-        private void ApplyCachedLauncherNotice()
+        private async Task ApplyCachedLauncherNoticeAsync()
         {
             if (_noticePanel == null) return;
 
+            List<NoticeBannerItem> banners = null;
             try
             {
-                var content = GameCoverCache.GetCachedLauncherNoticeContent(_game.IconName);
-                if (content == null) return;
-
-                var banners = new List<NoticeBannerItem>();
-                foreach (var banner in (content.Banners ?? Array.Empty<LauncherBannerItem>()).Take(6))
+                var token = _coverCts.Token;
+                var result = await Task.Run(() =>
                 {
-                    var imagePath = GameCoverCache.GetCachedNoticeBannerPath(_game.IconName, banner.ImageUrl);
-                    var image = GameCoverCache.TryLoadImage(imagePath);
-                    if (image != null)
-                        banners.Add(new NoticeBannerItem(image, banner.JumpUrl ?? "", true));
-                }
+                    var content = GameCoverCache.GetCachedLauncherNoticeContent(_game.IconName);
+                    if (content == null)
+                        return (Banners: (List<NoticeBannerItem>)null, Notices: (List<NoticeItem>)null);
 
-                var notices = CreateNoticeItems(content.Notices);
-                _noticePanel.SetContent(banners, notices);
+                    var loadedBanners = new List<NoticeBannerItem>();
+                    foreach (var banner in (content.Banners ?? Array.Empty<LauncherBannerItem>()).Take(6))
+                    {
+                        var image = GameCoverCache.TryLoadCachedNoticeBanner(_game.IconName, banner.ImageUrl);
+                        if (image != null)
+                            loadedBanners.Add(new NoticeBannerItem(image, banner.JumpUrl ?? "", true));
+                    }
+
+                    return (Banners: loadedBanners, Notices: CreateNoticeItems(content.Notices));
+                }, token);
+                banners = result.Banners;
+
+                if (banners == null || token.IsCancellationRequested || IsDisposed || _noticePanel.IsDisposed)
+                    return;
+
+                _noticePanel.SetContent(banners, result.Notices);
+                banners = null;
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                LogHelper.LogError(ex, $"GamePage.ApplyCachedLauncherNotice({_game.IconName})");
+                LogHelper.LogError(ex, $"GamePage.ApplyCachedLauncherNoticeAsync({_game.IconName})");
+            }
+            finally
+            {
+                if (banners != null)
+                {
+                    foreach (var banner in banners)
+                        if (banner.OwnsImage) banner.Image?.Dispose();
+                }
             }
         }
 

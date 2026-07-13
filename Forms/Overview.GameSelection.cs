@@ -9,7 +9,13 @@ namespace XelLauncher.Forms
         private async void SelectGame(GameEntry g, bool forceReload = false)
         {
             if (g == null) return;
-            if (_isSwitchingGame) return;
+            if (_isSwitchingGame)
+            {
+                _pendingGame = g;
+                _pendingGameForceReload |= forceReload;
+                UpdateSelectedGameButton(g);
+                return;
+            }
 
             bool sameGame = _currentGamePage != null
                 && _currentGame != null
@@ -26,27 +32,61 @@ namespace XelLauncher.Forms
             _currentGame = g;
             UpdateSelectedGameButton(g);
             var oldPage = _currentGamePage;
-            System.Drawing.Image oldCover = null;
+            GamePage newPage = null;
+            System.Drawing.Image initialCoverImage = null;
+            System.Drawing.Image oldCoverImage = null;
+            bool layoutSuspended = false;
 
             try
             {
+                var initialCover = await System.Threading.Tasks.Task.Run(() =>
+                {
+                    var image = GameCoverCache.TryLoadCachedCover(g.IconName, out var path);
+                    return (Image: image, Path: path);
+                });
+                initialCoverImage = initialCover.Image;
+
+                bool hasDifferentPendingGame = _pendingGame != null &&
+                    (_pendingGame.IconName != g.IconName ||
+                     _pendingGame.RootPath != g.RootPath ||
+                     _pendingGame.Name != g.Name);
+                if (hasDifferentPendingGame)
+                    return;
+
+                newPage = new GamePage(g, this, initialCoverImage, initialCover.Path)
+                {
+                    Visible = false
+                };
+                initialCoverImage = null;
+                SetSurfaceColor(panelMain, System.Drawing.Color.Black);
+                panelMain.SuspendLayout();
+                layoutSuspended = true;
+                panelMain.Controls.Add(newPage);
+                newPage.SendToBack();
+                newPage.Bounds = panelMain.ClientRectangle;
+                newPage.PerformLayout();
+                newPage.UpdateLaunchPanelColor();
+                bool sameCover = oldPage == null || oldPage.IsDisposed || oldPage.HasSameCoverAs(newPage);
+                if (!sameCover)
+                {
+                    oldCoverImage = oldPage.CloneCoverImageForTransition();
+                    newPage.PrepareCoverFadeFrom(oldCoverImage);
+                    oldCoverImage = null;
+                }
+                newPage.PrepareSwitchInStart();
+                panelMain.ResumeLayout(true);
+                layoutSuspended = false;
+
                 if (oldPage != null && !oldPage.IsDisposed)
                     await oldPage.PlaySwitchOutAsync();
 
-                var newPage = new GamePage(g, this);
-                SetSurfaceColor(panelMain, System.Drawing.Color.Black);
-                panelMain.Controls.Add(newPage);
-                newPage.SendToBack();
-                panelMain.PerformLayout();
-                newPage.PerformLayout();
-                newPage.UpdateLaunchPanelColor();
-                if (oldPage != null && !oldPage.IsDisposed && !oldPage.HasSameCoverAs(newPage))
-                {
-                    oldCover = oldPage.CloneCoverImageForTransition();
-                    newPage.PrepareCoverFadeFrom(oldCover);
-                    oldCover = null;
-                }
-                newPage.PrepareSwitchInStart();
+                panelMain.SuspendLayout();
+                layoutSuspended = true;
+
+                _currentGamePage = newPage;
+                newPage.Visible = true;
+                newPage.BringToFront();
+                newPage.Update();
 
                 if (oldPage != null)
                 {
@@ -54,15 +94,29 @@ namespace XelLauncher.Forms
                     oldPage.Dispose();
                 }
 
-                _currentGamePage = newPage;
+                panelMain.ResumeLayout(true);
+                layoutSuspended = false;
+                var activePage = newPage;
+                newPage = null;
+                activePage.UpdateLaunchPanelColor();
                 UpdateSelectedGameButton(g);
-                _currentGamePage.BringToFront();
-                await _currentGamePage.PlaySwitchInAsync();
+                await activePage.PlaySwitchInAsync();
             }
             finally
             {
-                oldCover?.Dispose();
+                if (layoutSuspended)
+                    panelMain.ResumeLayout(true);
+                newPage?.Dispose();
+                initialCoverImage?.Dispose();
+                oldCoverImage?.Dispose();
                 _isSwitchingGame = false;
+
+                var pendingGame = _pendingGame;
+                var pendingForceReload = _pendingGameForceReload;
+                _pendingGame = null;
+                _pendingGameForceReload = false;
+                if (pendingGame != null && !IsDisposed)
+                    BeginInvoke(() => SelectGame(pendingGame, pendingForceReload));
             }
         }
 

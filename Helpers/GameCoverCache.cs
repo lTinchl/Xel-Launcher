@@ -48,7 +48,34 @@ namespace XelLauncher.Helpers
             return Directory.GetFiles(dir, ClientCoverPattern)
                 .Where(IsLikelyImagePath)
                 .OrderByDescending(File.GetLastWriteTimeUtc)
-                .FirstOrDefault(IsLoadableImage);
+                .FirstOrDefault();
+        }
+
+        public static System.Drawing.Image TryLoadCachedCover(string iconName, out string imagePath)
+        {
+            imagePath = null;
+            try
+            {
+                var dir = GetGameCoverDir(iconName);
+                if (!Directory.Exists(dir)) return null;
+
+                foreach (var path in Directory.GetFiles(dir, ClientCoverPattern)
+                             .Where(IsLikelyImagePath)
+                             .OrderByDescending(File.GetLastWriteTimeUtc))
+                {
+                    var image = TryLoadImage(path);
+                    if (image == null) continue;
+
+                    imagePath = path;
+                    return image;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, $"GameCoverCache.TryLoadCachedCover({iconName})");
+            }
+
+            return null;
         }
 
         public static LauncherNoticeContent GetCachedLauncherNoticeContent(string iconName)
@@ -104,7 +131,26 @@ namespace XelLauncher.Helpers
             if (!Directory.Exists(dir)) return null;
 
             var baseTarget = Path.Combine(dir, $"notice-banner-{HashUrl(imageUrl)}");
-            return TryGetCachedPath(baseTarget, GetImageExtension(imageUrl));
+            return GetCachedPathCandidates(baseTarget, GetImageExtension(imageUrl))
+                .FirstOrDefault(File.Exists);
+        }
+
+        public static System.Drawing.Image TryLoadCachedNoticeBanner(string iconName, string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+
+            var dir = GetGameCoverDir(iconName);
+            if (!Directory.Exists(dir)) return null;
+
+            var baseTarget = Path.Combine(dir, $"notice-banner-{HashUrl(imageUrl)}");
+            foreach (var path in GetCachedPathCandidates(baseTarget, GetImageExtension(imageUrl)))
+            {
+                if (!File.Exists(path)) continue;
+                var image = TryLoadImage(path);
+                if (image != null) return image;
+            }
+
+            return null;
         }
 
         public static System.Drawing.Image TryLoadImage(string path)
@@ -405,20 +451,23 @@ namespace XelLauncher.Helpers
 
         private static string TryGetCachedPath(string baseTarget, string preferredExtension)
         {
-            var extensions = ImageExtensions
-                .Prepend(".png")
-                .Prepend(NormalizeImageExtension(preferredExtension))
-                .Where(IsSupportedImageExtension)
-                .Distinct(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var extension in extensions)
+            foreach (var path in GetCachedPathCandidates(baseTarget, preferredExtension))
             {
-                var path = baseTarget + extension;
                 if (File.Exists(path) && IsLoadableImage(path))
                     return path;
             }
 
             return null;
+        }
+
+        private static IEnumerable<string> GetCachedPathCandidates(string baseTarget, string preferredExtension)
+        {
+            return ImageExtensions
+                .Prepend(".png")
+                .Prepend(NormalizeImageExtension(preferredExtension))
+                .Where(IsSupportedImageExtension)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(extension => baseTarget + extension);
         }
 
         private static bool TryConvertImageToPng(string sourcePath, string pngPath)

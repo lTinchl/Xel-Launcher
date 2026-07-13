@@ -17,6 +17,8 @@ namespace XelLauncher.Forms
         private bool _forceClose = false;
         private GamePage _currentGamePage = null;
         private bool _isSwitchingGame = false;
+        private GameEntry _pendingGame = null;
+        private bool _pendingGameForceReload;
         private static readonly bool StartupAnnouncementEnabled = false;
         private int SidebarButtonWidth => ScaleForDpi(108);
         private int SidebarButtonHeight => ScaleForDpi(72);
