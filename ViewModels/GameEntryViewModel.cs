@@ -49,6 +49,12 @@ public sealed class GameEntryViewModel : ViewModelBase
     private string _selectedNoticeCategory = "";
     private Bitmap? _backgroundBitmap;
     private Task? _backgroundRefreshTask;
+    private double _sidebarDragOpacity = 1D;
+    private double _sidebarDragOffsetX;
+    private double _sidebarDragOffsetY;
+    private double _sidebarDragSurfaceOpacity;
+    private double _sidebarDropBeforeOpacity;
+    private double _sidebarDropAfterOpacity;
 
     public GameEntryViewModel(GameEntry entry, Window owner, AppConfig config, Action save, Action<GameEntryViewModel> select)
     {
@@ -100,6 +106,8 @@ public sealed class GameEntryViewModel : ViewModelBase
             : "Official";
 
     public string IconName => _entry.IconName;
+
+    internal GameEntry Entry => _entry;
 
     public Bitmap? IconBitmap { get; }
 
@@ -154,6 +162,42 @@ public sealed class GameEntryViewModel : ViewModelBase
     public double SelectionOpacity => IsSelected ? 1 : 0.78;
 
     public double SelectedFrameOpacity => IsSelected ? 1 : 0;
+
+    public double SidebarDragOpacity
+    {
+        get => _sidebarDragOpacity;
+        set => SetProperty(ref _sidebarDragOpacity, value);
+    }
+
+    public double SidebarDragOffsetX
+    {
+        get => _sidebarDragOffsetX;
+        set => SetProperty(ref _sidebarDragOffsetX, value);
+    }
+
+    public double SidebarDragOffsetY
+    {
+        get => _sidebarDragOffsetY;
+        set => SetProperty(ref _sidebarDragOffsetY, value);
+    }
+
+    public double SidebarDragSurfaceOpacity
+    {
+        get => _sidebarDragSurfaceOpacity;
+        set => SetProperty(ref _sidebarDragSurfaceOpacity, value);
+    }
+
+    public double SidebarDropBeforeOpacity
+    {
+        get => _sidebarDropBeforeOpacity;
+        set => SetProperty(ref _sidebarDropBeforeOpacity, value);
+    }
+
+    public double SidebarDropAfterOpacity
+    {
+        get => _sidebarDropAfterOpacity;
+        set => SetProperty(ref _sidebarDropAfterOpacity, value);
+    }
 
     public double TopContentOffsetY
     {

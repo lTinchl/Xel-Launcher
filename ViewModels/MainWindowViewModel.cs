@@ -130,6 +130,30 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public RelayCommand SaveCommand { get; }
 
+    public void MoveSidebarGame(GameEntryViewModel game, int insertionIndex)
+    {
+        var oldIndex = Games.IndexOf(game);
+        if (oldIndex < 0 || Games.Count < 2) return;
+
+        insertionIndex = Math.Clamp(insertionIndex, 0, Games.Count);
+        var newIndex = insertionIndex > oldIndex ? insertionIndex - 1 : insertionIndex;
+        newIndex = Math.Clamp(newIndex, 0, Games.Count - 1);
+        if (newIndex == oldIndex) return;
+
+        Games.Move(oldIndex, newIndex);
+        _config.Games = Games.Select(item => item.Entry).ToList();
+
+        try
+        {
+            SaveConfigOnly();
+        }
+        catch (Exception ex)
+        {
+            LogHelper.LogError(ex, "SidebarGameOrderSave");
+            StatusMessage = "游戏顺序保存失败，请查看日志";
+        }
+    }
+
     private void SelectInitialGame(GameEntryViewModel? game)
     {
         if (game == null) return;
