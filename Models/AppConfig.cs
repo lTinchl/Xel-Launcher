@@ -1,113 +1,105 @@
 using System;
 using System.Collections.Generic;
 
-namespace XelLauncher.Models
+namespace XelLauncher.Models;
+
+public sealed class CachedGameStatus
 {
-    public class CachedGameStatus
-    {
-        public bool IsInstalled { get; set; }
-        public bool HasUpdate { get; set; }
-        public bool HasPreload { get; set; }
-        public bool PreloadCompleted { get; set; }
-        public string LocalVersion { get; set; } = "";
-        public string RemoteVersion { get; set; } = "";
-        public string PreloadVersion { get; set; } = "";
-        public string InstallPath { get; set; } = "";
-    }
+    public bool IsInstalled { get; set; }
+    public bool HasUpdate { get; set; }
+    public string LocalVersion { get; set; } = "";
+    public string RemoteVersion { get; set; } = "";
+    public string InstallPath { get; set; } = "";
+}
 
-    public class AppUpdateState
-    {
-        public string LastCheckedAtUtc { get; set; } = "";
-        public bool HasUpdate { get; set; }
-        public string LatestVersion { get; set; } = "";
-        public string Changelog { get; set; } = "";
-        public DateTimeOffset? PublishedAt { get; set; }
-        public string SetupDownloadUrl { get; set; } = "";
-        public long? SetupSizeBytes { get; set; }
-        public string PortableDownloadUrl { get; set; } = "";
-        public long? PortableSizeBytes { get; set; }
-        public string ReleasePageUrl { get; set; } = "";
-        // Legacy setting kept for config compatibility. New reminder choices are version-scoped.
-        public bool DisableReminder { get; set; }
-        public string SkippedVersion { get; set; } = "";
-    }
+public sealed class AppUpdateState
+{
+    public string LastCheckedAtUtc { get; set; } = "";
+    public bool HasUpdate { get; set; }
+    public string LatestVersion { get; set; } = "";
+    public string Changelog { get; set; } = "";
+    public DateTimeOffset? PublishedAt { get; set; }
+    public string SetupDownloadUrl { get; set; } = "";
+    public long? SetupSizeBytes { get; set; }
+    public string PortableDownloadUrl { get; set; } = "";
+    public long? PortableSizeBytes { get; set; }
+    public string ReleasePageUrl { get; set; } = "";
+    public bool DisableReminder { get; set; }
+    public string SkippedVersion { get; set; } = "";
+}
 
-    public class CustomToolLink
-    {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Url { get; set; } = "";
-        public string IconPath { get; set; } = "";
-    }
+public sealed class CachedLauncherBanner
+{
+    public string ImageUrl { get; set; } = "";
+    public string JumpUrl { get; set; } = "";
+}
 
-    public class AppConfig
-    {
-        public string UpdateDownloadSource { get; set; } = "github";
-        public List<GameEntry> Games { get; set; } = new List<GameEntry>
-        {
-            new GameEntry { Name = "明日方舟",       IconName = "Arknights" },
-            new GameEntry { Name = "明日方舟(B服)",   IconName = "BiliArknights" },
-            new GameEntry { Name = "终末地",          IconName = "Endfield" },
-            new GameEntry { Name = "终末地(B服)",     IconName = "BiliEndfield" },
-            new GameEntry { Name = "终末地(国际服)",  IconName = "GlobalEndfield" },
-            new GameEntry { Name = "终末地(GooglePlay)", IconName = "PlayEndfield" },
-        };
+public sealed class CachedLauncherNotice
+{
+    public string Category { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Date { get; set; } = "";
+    public string JumpUrl { get; set; } = "";
+}
 
-        public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();
-        public List<string> AccountOrder { get; set; } = new List<string>();
-        // 方舟官服账号管理
-        public string DefaultAccount { get; set; } = "";                    // 默认账号 ID（如 "A1"）
-        public HashSet<string> DisabledAccounts { get; set; } = new HashSet<string>(); // 禁用的账号 ID
+public sealed class CachedLauncherNoticeContent
+{
+    public List<CachedLauncherBanner> Banners { get; set; } = [];
+    public List<CachedLauncherNotice> Notices { get; set; } = [];
+    public string CachedAtUtc { get; set; } = "";
+}
 
-        // 终末地官服账号管理
-        public Dictionary<string, string> EndfieldAccounts { get; set; } = new Dictionary<string, string>();
-        public List<string> EndfieldAccountOrder { get; set; } = new List<string>();
-        public string EndfieldDefaultAccount { get; set; } = "";
-        public HashSet<string> EndfieldDisabledAccounts { get; set; } = new HashSet<string>();
+public sealed class AppConfig
+{
+    public List<GameEntry> Games { get; set; } =
+    [
+        new() { Name = "明日方舟", IconName = "Arknights" },
+        new() { Name = "明日方舟 B服", IconName = "BiliArknights" },
+        new() { Name = "明日方舟：终末地", IconName = "Endfield" },
+        new() { Name = "明日方舟：终末地 B服", IconName = "BiliEndfield" },
+        new() { Name = "明日方舟：终末地国际服", IconName = "GlobalEndfield" },
+        new() { Name = "明日方舟：终末地 Google Play", IconName = "PlayEndfield" },
+    ];
 
-        // 终末地国际服账号管理
-        public Dictionary<string, string> GlobalEndfieldAccounts { get; set; } = new Dictionary<string, string>();
-        public List<string> GlobalEndfieldAccountOrder { get; set; } = new List<string>();
-        public string GlobalEndfieldDefaultAccount { get; set; } = "";
-        public HashSet<string> GlobalEndfieldDisabledAccounts { get; set; } = new HashSet<string>();
-        public string LastNotifiedVersion { get; set; } = "";               // 上次通知的版本号
-        public string LastReadStartupAnnouncementVersion { get; set; } = "";
-        // 森空岛自动签到
-        public bool SkylandSignEnabled { get; set; } = false;
-        public bool SkylandStartupSignEnabled { get; set; } = false;
-        public string SkylandLastAutoSignDate { get; set; } = "";
-        public string SkylandTokensEncrypted { get; set; } = "";
-        public List<string> SkylandTokens { get; set; } = new List<string>();
-        
-        // SKPORT 国际服自动签到
-        public bool SkportSignEnabled { get; set; } = false;
-        public bool SkportStartupSignEnabled { get; set; } = false;
-        public string SkportLastAutoSignDate { get; set; } = "";
-        public string SkportTokensEncrypted { get; set; } = "";
-        public List<string> SkportTokens { get; set; } = new List<string>();
-
-        public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
-        public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
-        public bool RunAsAdministrator { get; set; } = false;               // 启动游戏时是否以管理员权限运行
-        public bool AutoLaunchOfficial { get; set; } = false;               // 启动时自动打开官服
-        public bool AutoLaunchBilibili { get; set; } = false;               // 启动时自动打开B服
-        public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色
-        public string BackgroundColor { get; set; } = "#FFFFFF";              // 窗口背景色
-        public bool CloseAfterLaunch { get; set; } = false;               // 启动游戏后关闭软件
-        public bool HideToTrayOnLaunch { get; set; } = false;             // 启动游戏后隐藏至托盘，游戏关闭后恢复
-        public string Language { get; set; } = "";                          // 用户选择的语言 (zh-CN / en-US)
-        public bool UseExternalBrowser { get; set; } = false;              // 使用外部浏览器打开链接
-        public bool CheckGameUpdates { get; set; } = false;                // 检查游戏更新
-        public bool ArchiveLauncherImages { get; set; } = false;           // 保存 API 新启动器图片
-        /// <summary>
-        /// 主题模式："system"（跟随系统）、"light"（强制浅色）、"dark"（强制深色）
-        /// </summary>
-        public string ThemeMode { get; set; } = "system";
-        public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
-        public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
-        public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
-        public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();
-        public AppUpdateState UpdateState { get; set; } = new();
-
-    }
+    public Dictionary<string, string> Accounts { get; set; } = [];
+    public List<string> AccountOrder { get; set; } = [];
+    public string DefaultAccount { get; set; } = "";
+    public HashSet<string> DisabledAccounts { get; set; } = [];
+    public Dictionary<string, string> EndfieldAccounts { get; set; } = [];
+    public List<string> EndfieldAccountOrder { get; set; } = [];
+    public string EndfieldDefaultAccount { get; set; } = "";
+    public HashSet<string> EndfieldDisabledAccounts { get; set; } = [];
+    public Dictionary<string, string> GlobalEndfieldAccounts { get; set; } = [];
+    public List<string> GlobalEndfieldAccountOrder { get; set; } = [];
+    public string GlobalEndfieldDefaultAccount { get; set; } = "";
+    public HashSet<string> GlobalEndfieldDisabledAccounts { get; set; } = [];
+    public string LastNotifiedVersion { get; set; } = "";
+    public string LastReadStartupAnnouncementVersion { get; set; } = "";
+    public bool SkylandSignEnabled { get; set; }
+    public bool SkylandStartupSignEnabled { get; set; }
+    public string SkylandLastAutoSignDate { get; set; } = "";
+    public string SkylandTokensEncrypted { get; set; } = "";
+    public List<string> SkylandTokens { get; set; } = [];
+    public bool SkportSignEnabled { get; set; }
+    public bool SkportStartupSignEnabled { get; set; }
+    public string SkportLastAutoSignDate { get; set; } = "";
+    public string SkportTokensEncrypted { get; set; } = "";
+    public List<string> SkportTokens { get; set; } = [];
+    public bool ShowTrayIcon { get; set; }
+    public bool MinimizeToTray { get; set; }
+    public bool AutoLaunchOfficial { get; set; }
+    public bool AutoLaunchBilibili { get; set; }
+    public string PrimaryColor { get; set; } = "#1677FF";
+    public string BackgroundColor { get; set; } = "#FFFFFF";
+    public bool CloseAfterLaunch { get; set; }
+    public bool HideToTrayOnLaunch { get; set; }
+    public string Language { get; set; } = "";
+    public bool UseExternalBrowser { get; set; }
+    public bool CheckGameUpdates { get; set; }
+    public bool ArchiveLauncherImages { get; set; }
+    public string ThemeMode { get; set; } = "dark";
+    public bool UseHardLink { get; set; } = true;
+    public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = [];
+    public Dictionary<string, CachedLauncherNoticeContent> LauncherNoticeCache { get; set; } = [];
+    public AppUpdateState UpdateState { get; set; } = new();
 }

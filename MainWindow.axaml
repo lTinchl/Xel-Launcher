@@ -1,0 +1,865 @@
+<suki:SukiWindow x:Class="XelLauncher.MainWindow"
+                 xmlns="https://github.com/avaloniaui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:suki="https://github.com/kikipoulet/SukiUI"
+                 xmlns:vm="clr-namespace:XelLauncher.ViewModels"
+                 Title="Xel Launcher"
+                 Width="1280"
+                 Height="768"
+                 MinWidth="{Binding SelectedGame.LauncherWindowMinWidth, FallbackValue=1040}"
+                 MinHeight="640"
+                 x:DataType="vm:MainWindowViewModel"
+                 CanPin="True"
+                 Icon="avares://XelLauncher/Resources/Icon/icon.ico"
+                 IsMenuVisible="False"
+                 ShowTitlebarBackground="True"
+                 mc:Ignorable="d">
+    <suki:SukiWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="LauncherChromeBrush" Color="#E70F141D" />
+                    <SolidColorBrush x:Key="LauncherRootBrush" Color="#0B1018" />
+                    <SolidColorBrush x:Key="LauncherSidebarBorderBrush" Color="#243142" />
+                    <SolidColorBrush x:Key="LauncherPanelBrush" Color="#CC111823" />
+                    <SolidColorBrush x:Key="LauncherPanelStrongBrush" Color="#E6192432" />
+                    <SolidColorBrush x:Key="LauncherStrokeBrush" Color="#35FFFFFF" />
+                    <SolidColorBrush x:Key="LauncherMutedTextBrush" Color="#B8C5D1DD" />
+                    <SolidColorBrush x:Key="LauncherAccentBrush" Color="#18BFAA" />
+                    <SolidColorBrush x:Key="LauncherActionBrush" Color="#D8192534" />
+                    <SolidColorBrush x:Key="LauncherActionHoverBrush" Color="#F1233347" />
+                    <SolidColorBrush x:Key="LauncherActionBorderBrush" Color="#3FFFFFFF" />
+                    <SolidColorBrush x:Key="LauncherActionHoverBorderBrush" Color="#66FFFFFF" />
+                    <SolidColorBrush x:Key="LauncherManageHoverBrush" Color="#38233342" />
+                    <SolidColorBrush x:Key="LauncherManagePressedBrush" Color="#4A253849" />
+                    <SolidColorBrush x:Key="LauncherManageBorderBrush" Color="#7A8EA4B9" />
+                    <SolidColorBrush x:Key="LauncherManagePressedBorderBrush" Color="#9AA8B8C8" />
+                    <SolidColorBrush x:Key="LauncherDividerBrush" Color="#2D3A4B" />
+                    <SolidColorBrush x:Key="LauncherHoverFrameBrush" Color="#16808080" />
+                    <SolidColorBrush x:Key="LauncherHoverFrameBorderBrush" Color="#4A8E9AA6" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="LauncherChromeBrush" Color="#E70F141D" />
+                    <SolidColorBrush x:Key="LauncherRootBrush" Color="#0B1018" />
+                    <SolidColorBrush x:Key="LauncherSidebarBorderBrush" Color="#243142" />
+                    <SolidColorBrush x:Key="LauncherPanelBrush" Color="#CC111823" />
+                    <SolidColorBrush x:Key="LauncherPanelStrongBrush" Color="#E6192432" />
+                    <SolidColorBrush x:Key="LauncherStrokeBrush" Color="#35FFFFFF" />
+                    <SolidColorBrush x:Key="LauncherMutedTextBrush" Color="#B8C5D1DD" />
+                    <SolidColorBrush x:Key="LauncherAccentBrush" Color="#28D8C2" />
+                    <SolidColorBrush x:Key="LauncherActionBrush" Color="#D8192534" />
+                    <SolidColorBrush x:Key="LauncherActionHoverBrush" Color="#F1233347" />
+                    <SolidColorBrush x:Key="LauncherActionBorderBrush" Color="#3FFFFFFF" />
+                    <SolidColorBrush x:Key="LauncherActionHoverBorderBrush" Color="#66FFFFFF" />
+                    <SolidColorBrush x:Key="LauncherManageHoverBrush" Color="#38233342" />
+                    <SolidColorBrush x:Key="LauncherManagePressedBrush" Color="#4A253849" />
+                    <SolidColorBrush x:Key="LauncherManageBorderBrush" Color="#7A8EA4B9" />
+                    <SolidColorBrush x:Key="LauncherManagePressedBorderBrush" Color="#9AA8B8C8" />
+                    <SolidColorBrush x:Key="LauncherDividerBrush" Color="#2D3A4B" />
+                    <SolidColorBrush x:Key="LauncherHoverFrameBrush" Color="#16808080" />
+                    <SolidColorBrush x:Key="LauncherHoverFrameBorderBrush" Color="#4A8E9AA6" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </suki:SukiWindow.Resources>
+
+    <suki:SukiWindow.Styles>
+        <Style Selector="Button.titleIconButton">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="11" />
+        </Style>
+        <Style Selector="Button.WindowControlsButton">
+            <Setter Property="Height" Value="22" />
+        </Style>
+        <Style Selector="Button.titleIconButton:pointerover">
+            <Setter Property="Background" Value="#18FFFFFF" />
+        </Style>
+        <Style Selector="Button.sidebarButton">
+            <Setter Property="Width" Value="104" />
+            <Setter Property="Height" Value="64" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Border.hoverFrame">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity"
+                                      Duration="0:0:0.14"
+                                      Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.sidebarButton:pointerover Border.hoverFrame">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Button.bannerNavButton">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity"
+                                      Duration="0:0:0.12"
+                                      Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Grid.bannerCarousel:pointerover Button.bannerNavButton">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Button.bannerNavButton:focus-visible">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Button.noticeTabButton">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.noticeTabButton:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.noticeTabButton:pressed">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.noticeTabButton:focus-visible">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.noticeItemButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:pressed">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:focus-visible">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.noticeItemFrame">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.noticeItemButton:pointerover Border.noticeItemFrame">
+            <Setter Property="Background" Value="#1EFFFFFF" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:pressed Border.noticeItemFrame">
+            <Setter Property="Background" Value="#24000000" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:focus-visible Border.noticeItemFrame">
+            <Setter Property="Background" Value="#1EFFFFFF" />
+        </Style>
+        <Style Selector="TextBlock.noticeItemTitle">
+            <Setter Property="Foreground" Value="#91FFFFFF" />
+            <Setter Property="FontWeight" Value="Regular" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:pointerover TextBlock.noticeItemTitle">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.noticeItemButton:focus-visible TextBlock.noticeItemTitle">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="TextBlock.noticeItemDate">
+            <Setter Property="Foreground" Value="#82FFFFFF" />
+            <Setter Property="FontWeight" Value="Regular" />
+        </Style>
+        <Style Selector="TextBlock.noticeItemCategory">
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="Button.quickAction">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="46" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource LauncherActionBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+        </Style>
+        <Style Selector="Button.quickAction:pointerover">
+            <Setter Property="Background" Value="{DynamicResource LauncherActionHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionHoverBorderBrush}" />
+        </Style>
+        <Style Selector="Button.sidebarManageButton">
+            <Setter Property="Width" Value="64" />
+            <Setter Property="Height" Value="50" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.sidebarManageButton:pointerover">
+            <Setter Property="Background" Value="{DynamicResource LauncherManageHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherManageBorderBrush}" />
+        </Style>
+        <Style Selector="Button.sidebarManageButton:pressed">
+            <Setter Property="Background" Value="{DynamicResource LauncherManagePressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherManagePressedBorderBrush}" />
+        </Style>
+        <Style Selector="Button.sidebarManageButton:focus">
+            <Setter Property="Background" Value="{DynamicResource LauncherManageHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherManageBorderBrush}" />
+        </Style>
+        <Style Selector="Button.roundAction">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource LauncherActionBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="22" />
+        </Style>
+        <Style Selector="Button.roundAction:pointerover">
+            <Setter Property="Background" Value="{DynamicResource LauncherActionHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionHoverBorderBrush}" />
+        </Style>
+        <Style Selector="ComboBox.launcherAccount">
+            <Setter Property="MinWidth" Value="120" />
+            <Setter Property="MaxWidth" Value="152" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Background" Value="{DynamicResource LauncherActionBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionBorderBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="MaxDropDownHeight" Value="180" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ComboBox.launcherAccount:pointerover">
+            <Setter Property="Background" Value="{DynamicResource LauncherActionHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionHoverBorderBrush}" />
+        </Style>
+        <Style Selector="ComboBox.launcherAccount /template/ Popup">
+            <Setter Property="Placement" Value="TopEdgeAlignedLeft" />
+        </Style>
+        <Style Selector="Button.launcherAccountSelector">
+            <Setter Property="MinWidth" Value="132" />
+            <Setter Property="MaxWidth" Value="168" />
+            <Setter Property="Height" Value="52" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Background" Value="{DynamicResource LauncherActionBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.launcherAccountSelector:pointerover">
+            <Setter Property="Background" Value="{DynamicResource LauncherActionHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LauncherActionHoverBorderBrush}" />
+        </Style>
+    </suki:SukiWindow.Styles>
+
+    <suki:SukiWindow.LogoContent>
+        <Image Width="20"
+               Height="20"
+               Margin="10,0,8,0"
+               Source="avares://XelLauncher/Resources/Icon/Generated/app.png" />
+    </suki:SukiWindow.LogoContent>
+
+    <suki:SukiWindow.RightWindowTitleBarControls>
+        <StackPanel Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="5">
+            <Button Classes="titleIconButton" ToolTip.Tip="主题">
+                <icons:MaterialIcon Width="17" Height="17" Foreground="{DynamicResource SukiText}" Kind="WeatherNightPartlyCloudy" />
+            </Button>
+            <Button Classes="titleIconButton" ToolTip.Tip="语言">
+                <icons:MaterialIcon Width="17" Height="17" Foreground="{DynamicResource SukiText}" Kind="Web" />
+            </Button>
+            <Button Classes="titleIconButton" ToolTip.Tip="设置">
+                <icons:MaterialIcon Width="17" Height="17" Foreground="{DynamicResource SukiText}" Kind="CogOutline" />
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedRight">
+                        <Border Width="380"
+                                Padding="20"
+                                Background="{DynamicResource LauncherPanelStrongBrush}"
+                                BorderBrush="{DynamicResource LauncherStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="16">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="设置" />
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource LauncherMutedTextBrush}"
+                                               Text="{Binding VersionLabel}" />
+                                </Grid>
+                                <StackPanel Spacing="7">
+                                    <TextBlock FontWeight="SemiBold" Text="主题模式" />
+                                    <ComboBox SelectedItem="{Binding ThemeMode}">
+                                        <ComboBoxItem Content="system" />
+                                        <ComboBoxItem Content="light" />
+                                        <ComboBoxItem Content="dark" />
+                                    </ComboBox>
+                                </StackPanel>
+                                <ToggleSwitch Content="使用外部浏览器" IsChecked="{Binding UseExternalBrowser}" />
+                                <ToggleSwitch Content="检查游戏更新" IsChecked="{Binding CheckGameUpdates}" />
+                                <ToggleSwitch Content="归档启动器图片" IsChecked="{Binding ArchiveLauncherImages}" />
+                                <ToggleSwitch Content="启动后关闭启动器" IsChecked="{Binding CloseAfterLaunch}" />
+                                <Button HorizontalAlignment="Right"
+                                        Classes="Flat Rounded"
+                                        Command="{Binding SaveCommand}"
+                                        Content="保存设置" />
+                            </StackPanel>
+                        </Border>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+        </StackPanel>
+    </suki:SukiWindow.RightWindowTitleBarControls>
+
+    <Grid ColumnDefinitions="104,*" Background="{DynamicResource LauncherRootBrush}">
+        <Border Background="{DynamicResource LauncherChromeBrush}"
+                BorderBrush="{DynamicResource LauncherSidebarBorderBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="*,Auto">
+                <ScrollViewer Grid.Row="0"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                <ItemsControl Margin="0,10,0,8" ItemsSource="{Binding Games}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:GameEntryViewModel">
+                            <Button Classes="sidebarButton"
+                                    Command="{Binding SelectCommand}"
+                                    ToolTip.Tip="{Binding DisplayName}">
+                                <Grid Width="{Binding $parent[Button].Bounds.Width}"
+                                      Height="{Binding $parent[Button].Bounds.Height}">
+                                    <Border Classes="hoverFrame"
+                                            Width="58"
+                                            Height="52"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource LauncherHoverFrameBrush}"
+                                            BorderBrush="{DynamicResource LauncherHoverFrameBorderBrush}"
+                                            BorderThickness="1"
+                                            ClipToBounds="True"
+                                            CornerRadius="10" />
+                                    <Border Width="58"
+                                            Height="52"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Background="#2A28D8C2"
+                                            BorderBrush="#A828D8C2"
+                                            BorderThickness="1.8"
+                                            ClipToBounds="True"
+                                            CornerRadius="10"
+                                            Opacity="{Binding SelectedFrameOpacity}">
+                                        <Border.Transitions>
+                                            <Transitions>
+                                                <DoubleTransition Property="Opacity"
+                                                                  Duration="0:0:0.16"
+                                                                  Easing="CubicEaseOut" />
+                                            </Transitions>
+                                        </Border.Transitions>
+                                    </Border>
+                                    <Border Width="42"
+                                            Height="42"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            BorderThickness="0"
+                                            ClipToBounds="True"
+                                            CornerRadius="8"
+                                            Opacity="{Binding SelectionOpacity}">
+                                        <Border.Transitions>
+                                            <Transitions>
+                                                <DoubleTransition Property="Opacity"
+                                                                  Duration="0:0:0.14"
+                                                                  Easing="CubicEaseOut" />
+                                            </Transitions>
+                                        </Border.Transitions>
+                                        <Image Width="42"
+                                               Height="42"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Source="{Binding IconBitmap}"
+                                               Stretch="UniformToFill"
+                                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="1" Margin="0,0,0,14" HorizontalAlignment="Center" Spacing="10">
+                    <Border Width="52" Height="1" Background="{DynamicResource LauncherDividerBrush}" />
+                    <Button Classes="sidebarManageButton" ToolTip.Tip="管理游戏">
+                        <icons:MaterialIcon Width="21"
+                                            Height="21"
+                                            Foreground="{DynamicResource LauncherMutedTextBrush}"
+                                            Kind="ViewGridOutline" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" ClipToBounds="True">
+            <Image Source="{Binding SelectedGame.BackgroundBitmap}"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Stretch="UniformToFill"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+
+            <ItemsControl ItemsSource="{Binding BackgroundLayers}"
+                          IsHitTestVisible="False">
+                <ItemsControl.Styles>
+                    <Style Selector="ContentPresenter">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ItemsControl.Styles>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:BackgroundTransitionViewModel">
+                        <Image Source="{Binding Game.BackgroundBitmap}"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               Opacity="{Binding Opacity}"
+                               Stretch="UniformToFill"
+                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ContentControl HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"
+                            Content="{Binding SelectedGame}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate DataType="vm:GameEntryViewModel">
+                    <Grid ClipToBounds="True">
+                        <Border Background="#0C000000" />
+                        <Border>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                    <GradientStop Offset="0" Color="#700A1018" />
+                                    <GradientStop Offset="0.36" Color="#280A1018" />
+                                    <GradientStop Offset="0.72" Color="#100A1018" />
+                                    <GradientStop Offset="1" Color="#400A1018" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <Border VerticalAlignment="Bottom" Height="248">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                    <GradientStop Offset="0" Color="#000A1018" />
+                                    <GradientStop Offset="0.48" Color="#600A1018" />
+                                    <GradientStop Offset="1" Color="#B00A1018" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+
+                        <Grid Margin="18,24,28,18"
+                              Opacity="{Binding ContentOpacity}"
+                              RowDefinitions="Auto,*,Auto">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform Y="{Binding TopContentOffsetY}" />
+                                </Grid.RenderTransform>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Padding="8,0"
+                                            MinHeight="0"
+                                            VerticalAlignment="Top"
+                                            Background="#B4142232"
+                                            BorderBrush="#35FFFFFF"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <TextBlock FontSize="10"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource LauncherAccentBrush}"
+                                                   LineHeight="14"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding ServerKind}" />
+                                    </Border>
+                                    <Border Padding="8,0"
+                                            MinHeight="0"
+                                            VerticalAlignment="Top"
+                                            Background="#99142232"
+                                            BorderBrush="#35FFFFFF"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <TextBlock FontSize="10"
+                                                   Foreground="#B8C5D1DD"
+                                                   LineHeight="14"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding LocalVersionLabel}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
+                                    <Button Classes="quickAction" ToolTip.Tip="活动">
+                                        <icons:MaterialIcon Width="23" Height="23" Foreground="#FFE96A" Kind="TicketPercentOutline" />
+                                    </Button>
+                                    <Button Classes="quickAction" ToolTip.Tip="森空岛">
+                                        <Image Width="28" Height="28" Source="avares://XelLauncher/Resources/Icon/Skland.png" />
+                                    </Button>
+                                    <Button Classes="quickAction"
+                                            Command="{Binding OpenFolderCommand}"
+                                            ToolTip.Tip="打开目录">
+                                        <icons:MaterialIcon Width="22" Height="22" Foreground="White" Kind="FolderOpenOutline" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform Y="{Binding BottomContentOffsetY}" />
+                                </Grid.RenderTransform>
+                                <Border Width="{Binding NoticesPanelWidth}"
+                                        Height="{Binding NoticesPanelHeight}"
+                                        HorizontalAlignment="Left"
+                                        Background="#CC111823"
+                                        BorderBrush="#35FFFFFF"
+                                        BorderThickness="1"
+                                        ClipToBounds="True"
+                                        CornerRadius="16">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Height"
+                                                              Duration="0:0:0.16"
+                                                              Easing="CubicEaseOut" />
+                                        </Transitions>
+                                    </Border.Transitions>
+                                    <Grid>
+                                        <Grid IsVisible="{Binding !AreNoticesCollapsed}" ColumnDefinitions="3*,5*">
+                                        <Border Margin="8" ClipToBounds="True" CornerRadius="12">
+                                            <Grid Classes="bannerCarousel">
+                                                <Image Source="{Binding BannerBitmap}"
+                                                       Stretch="Uniform"
+                                                       RenderOptions.BitmapInterpolationMode="HighQuality">
+                                                    <Image.RenderTransform>
+                                                        <TranslateTransform X="{Binding BannerOffsetX}" />
+                                                    </Image.RenderTransform>
+                                                </Image>
+                                                <Image Source="{Binding IncomingBannerBitmap}"
+                                                       Stretch="Uniform"
+                                                       IsVisible="{Binding IsIncomingBannerVisible}"
+                                                       RenderOptions.BitmapInterpolationMode="HighQuality">
+                                                    <Image.RenderTransform>
+                                                        <TranslateTransform X="{Binding IncomingBannerOffsetX}" />
+                                                    </Image.RenderTransform>
+                                                </Image>
+                                                <Border VerticalAlignment="Bottom" Height="54">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                                            <GradientStop Offset="0" Color="#00000000" />
+                                                            <GradientStop Offset="1" Color="#6E000000" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                </Border>
+                                                <Border Background="Transparent"
+                                                        Cursor="Hand"
+                                                        Focusable="True"
+                                                        KeyDown="BannerInteraction_KeyDown"
+                                                        PointerCaptureLost="BannerInteraction_PointerCaptureLost"
+                                                        PointerMoved="BannerInteraction_PointerMoved"
+                                                        PointerPressed="BannerInteraction_PointerPressed"
+                                                        PointerReleased="BannerInteraction_PointerReleased"
+                                                        SizeChanged="BannerInteraction_SizeChanged" />
+                                                <Button Width="28"
+                                                        Classes="bannerNavButton"
+                                                        Height="34"
+                                                        Margin="6,0,0,0"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Padding="0"
+                                                        Background="#44000000"
+                                                        BorderThickness="0"
+                                                        Command="{Binding PreviousBannerCommand}"
+                                                        CornerRadius="10"
+                                                        IsVisible="{Binding CanSwitchBanner}">
+                                                    <icons:MaterialIcon Width="18" Height="18" Foreground="White" Kind="ChevronLeft" />
+                                                </Button>
+                                                <Button Width="28"
+                                                        Classes="bannerNavButton"
+                                                        Height="34"
+                                                        Margin="0,0,6,0"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Center"
+                                                        Padding="0"
+                                                        Background="#44000000"
+                                                        BorderThickness="0"
+                                                        Command="{Binding NextBannerCommand}"
+                                                        CornerRadius="10"
+                                                        IsVisible="{Binding CanSwitchBanner}">
+                                                    <icons:MaterialIcon Width="18" Height="18" Foreground="White" Kind="ChevronRight" />
+                                                </Button>
+                                                <StackPanel Margin="0,0,0,10"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Bottom"
+                                                            Orientation="Horizontal"
+                                                            Spacing="5">
+                                                    <ItemsControl ItemsSource="{Binding BannerDots}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" Spacing="5" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate DataType="vm:BannerDotViewModel">
+                                                                <Border Width="{Binding Width}"
+                                                                        Height="4"
+                                                                        Background="White"
+                                                                        CornerRadius="2"
+                                                                        Opacity="{Binding Opacity}">
+                                                                    <Border.Transitions>
+                                                                        <Transitions>
+                                                                            <DoubleTransition Property="Width"
+                                                                                              Duration="0:0:0.18"
+                                                                                              Easing="CubicEaseOut" />
+                                                                            <DoubleTransition Property="Opacity"
+                                                                                              Duration="0:0:0.18"
+                                                                                              Easing="CubicEaseOut" />
+                                                                        </Transitions>
+                                                                    </Border.Transitions>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                        <Grid Grid.Column="1" Margin="20,13,10,12" RowDefinitions="32,*">
+                                            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+                                                <ItemsControl Grid.ColumnSpan="3" ItemsSource="{Binding NoticeTabs}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal" Spacing="22" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate DataType="vm:NoticeTabViewModel">
+                                                            <Button Classes="noticeTabButton"
+                                                                    MinWidth="34"
+                                                                    Height="30"
+                                                                    Command="{Binding SelectCommand}">
+                                                                <Grid RowDefinitions="*,4">
+                                                                    <TextBlock HorizontalAlignment="Center"
+                                                                               VerticalAlignment="Center"
+                                                                               FontSize="18"
+                                                                               FontWeight="{Binding TextWeight}"
+                                                                               Foreground="White"
+                                                                               Opacity="{Binding TextOpacity}"
+                                                                               Text="{Binding Category}" />
+                                                                    <Border Grid.Row="1"
+                                                                            Width="{Binding IndicatorWidth}"
+                                                                            Height="4"
+                                                                            HorizontalAlignment="Center"
+                                                                            Background="{DynamicResource LauncherAccentBrush}"
+                                                                            CornerRadius="2"
+                                                                            Opacity="{Binding IndicatorOpacity}">
+                                                                        <Border.Transitions>
+                                                                            <Transitions>
+                                                                                <DoubleTransition Property="Width"
+                                                                                                  Duration="0:0:0.16"
+                                                                                                  Easing="CubicEaseOut" />
+                                                                                <DoubleTransition Property="Opacity"
+                                                                                                  Duration="0:0:0.16"
+                                                                                                  Easing="CubicEaseOut" />
+                                                                            </Transitions>
+                                                                        </Border.Transitions>
+                                                                    </Border>
+                                                                </Grid>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Button Grid.Column="4"
+                                                        IsVisible="False"
+                                                        Width="30"
+                                                        Height="30"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        ToolTip.Tip="更多公告">
+                                                    <icons:MaterialIcon Width="18" Height="18" Foreground="#B8C5D1DD" Kind="ChevronRight" />
+                                                </Button>
+                                                <Button Grid.Column="5"
+                                                        Width="30"
+                                                        Height="30"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding ToggleNoticesCommand}"
+                                                        ToolTip.Tip="{Binding NoticesCollapseToolTip}">
+                                                    <icons:MaterialIcon Width="18"
+                                                                        Height="18"
+                                                                        Foreground="#D8FFFFFF"
+                                                                        Kind="ChevronDown"
+                                                                        RenderTransformOrigin="50%,50%">
+                                                        <icons:MaterialIcon.RenderTransform>
+                                                            <RotateTransform Angle="{Binding NoticesCollapseArrowAngle}">
+                                                                <RotateTransform.Transitions>
+                                                                    <Transitions>
+                                                                        <DoubleTransition Property="Angle"
+                                                                                          Duration="0:0:0.16"
+                                                                                          Easing="CubicEaseOut" />
+                                                                    </Transitions>
+                                                                </RotateTransform.Transitions>
+                                                            </RotateTransform>
+                                                        </icons:MaterialIcon.RenderTransform>
+                                                    </icons:MaterialIcon>
+                                                </Button>
+                                            </Grid>
+                                            <ScrollViewer x:Name="NoticeScrollHost"
+                                                          Grid.Row="1"
+                                                          Margin="0,8,0,0"
+                                                          ClipToBounds="True"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          VerticalScrollBarVisibility="Auto">
+                                                <ItemsControl Width="{Binding #NoticeScrollHost.Bounds.Width}"
+                                                              HorizontalAlignment="Stretch"
+                                                              ItemsSource="{Binding Notices}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate DataType="vm:NoticeItemViewModel">
+                                                            <Button Classes="noticeItemButton"
+                                                                    MinHeight="28"
+                                                                    Padding="0"
+                                                                    HorizontalContentAlignment="Stretch"
+                                                                    VerticalContentAlignment="Stretch"
+                                                                    Command="{Binding OpenCommand}">
+                                                                <Border Classes="noticeItemFrame"
+                                                                        Height="26"
+                                                                        Margin="0,1,0,1"
+                                                                        Padding="14,0,14,0"
+                                                                        Width="{Binding #NoticeScrollHost.Bounds.Width}"
+                                                                        HorizontalAlignment="Stretch"
+                                                                        ClipToBounds="True">
+                                                                    <Grid HorizontalAlignment="Stretch"
+                                                                          ClipToBounds="True"
+                                                                          ColumnDefinitions="*,56">
+                                                                        <TextBlock Classes="noticeItemTitle"
+                                                                                   VerticalAlignment="Center"
+                                                                                   Margin="0,0,10,0"
+                                                                                   ClipToBounds="True"
+                                                                                   Text="{Binding Title}"
+                                                                                   TextTrimming="CharacterEllipsis"
+                                                                                   TextWrapping="NoWrap" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Classes="noticeItemDate"
+                                                                                   VerticalAlignment="Center"
+                                                                                   HorizontalAlignment="Right"
+                                                                                   Text="{Binding Date}" />
+                                                                    </Grid>
+                                                                </Border>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Grid>
+                                        </Grid>
+                                        <Grid Margin="18,0,10,0"
+                                              VerticalAlignment="Center"
+                                              ColumnDefinitions="Auto,*,Auto"
+                                              IsVisible="{Binding AreNoticesCollapsed}">
+                                            <TextBlock VerticalAlignment="Center"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="White"
+                                                       Text="公告" />
+                                            <Button Grid.Column="2"
+                                                    Width="30"
+                                                    Height="30"
+                                                    Padding="0"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Command="{Binding ToggleNoticesCommand}"
+                                                    ToolTip.Tip="{Binding NoticesCollapseToolTip}">
+                                                <icons:MaterialIcon Width="18"
+                                                                    Height="18"
+                                                                    Foreground="#D8FFFFFF"
+                                                                    Kind="ChevronDown"
+                                                                    RenderTransformOrigin="50%,50%">
+                                                    <icons:MaterialIcon.RenderTransform>
+                                                        <RotateTransform Angle="{Binding NoticesCollapseArrowAngle}">
+                                                            <RotateTransform.Transitions>
+                                                                <Transitions>
+                                                                    <DoubleTransition Property="Angle"
+                                                                                      Duration="0:0:0.16"
+                                                                                      Easing="CubicEaseOut" />
+                                                                </Transitions>
+                                                            </RotateTransform.Transitions>
+                                                        </RotateTransform>
+                                                    </icons:MaterialIcon.RenderTransform>
+                                                </icons:MaterialIcon>
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <StackPanel Grid.Column="1"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            Orientation="Horizontal"
+                                            Spacing="10">
+                                    <Button Classes="roundAction" ToolTip.Tip="账号">
+                                        <icons:MaterialIcon Width="20" Height="20" Foreground="White" Kind="AccountOutline" />
+                                    </Button>
+                                    <ComboBox Classes="launcherAccount"
+                                              PlaceholderText="选择账号"
+                                              SelectedIndex="-1" />
+                                    <Button MinWidth="132"
+                                            Height="44"
+                                            Classes="Flat Rounded"
+                                            Command="{Binding LaunchCommand}">
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="6">
+                                            <icons:MaterialIcon Width="18" Height="18" Kind="Power" />
+                                            <TextBlock FontSize="14" FontWeight="SemiBold" Text="开始游戏" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="roundAction" ToolTip.Tip="更多">
+                                        <icons:MaterialIcon Width="20" Height="20" Foreground="White" Kind="Menu" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+            </ContentControl>
+        </Grid>
+    </Grid>
+</suki:SukiWindow>
