@@ -562,6 +562,7 @@ namespace XelLauncher.Forms
                                 AntdUI.TType.Warn)
                             {
                                 CancelText = null,
+                                Width = 560,
                             });
                         }
                     }
@@ -574,6 +575,7 @@ namespace XelLauncher.Forms
                             AntdUI.TType.Error)
                         {
                             CancelText = null,
+                            Width = 560,
                         });
                     }
                 };
