@@ -56,7 +56,7 @@ namespace XelLauncher.Helpers
                 "Endfield"       => new EndfieldCnPresetConfig(),
                 "BiliEndfield"   => new EndfieldBiliPresetConfig(),
                 "GlobalEndfield" => new EndfieldGlobalPresetConfig(),
-                "PlayEndfield"   => new EndfieldGlobalPresetConfig(), // GooglePlay 与国际服共用同一游戏文件
+                "PlayEndfield"   => new EndfieldGooglePlayPresetConfig(),
                 _ => throw new ArgumentException($"Unknown game type: {iconName}", nameof(iconName))
             };
         }
@@ -368,11 +368,18 @@ namespace XelLauncher.Helpers
                     language = "zh-cn";
                     return true;
                 case "GlobalEndfield":
-                case "PlayEndfield":
                     webApiUrl = "https://launcher.gryphline.com/api/proxy/web/batch_proxy";
                     appCode = "YDUTE5gscDZ229CW";
                     channel = "6";
                     subChannel = "6";
+                    seq = "3";
+                    language = "en-us";
+                    return true;
+                case "PlayEndfield":
+                    webApiUrl = "https://launcher.gryphline.com/api/proxy/web/batch_proxy";
+                    appCode = "YDUTE5gscDZ229CW";
+                    channel = "6";
+                    subChannel = "802";
                     seq = "3";
                     language = "en-us";
                     return true;

@@ -97,10 +97,10 @@ namespace XelLauncher.Forms
             {
                 try
                 {
-                    // Bili/Global/Play 服与官服共用游戏文件，用官服 Preset 读取本地版本
+                    // 共用游戏文件的渠道仍可读取同一份本地版本；Google Play 需保留独立更新源。
                     string svcIconName = game.IconName switch
                     {
-                        "BiliEndfield" or "GlobalEndfield" or "PlayEndfield" => "Endfield",
+                        "BiliEndfield" or "GlobalEndfield" => "Endfield",
                         "BiliArknights" => "Arknights",
                         _ => game.IconName
                     };
