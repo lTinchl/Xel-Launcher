@@ -9,7 +9,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyName>XelLauncher</AssemblyName>
 		<RootNamespace>XelLauncher</RootNamespace>
-		<Version>0.2.3</Version>
+		<Version>0.2.4</Version>
 		<Company>XelLauncher</Company>
 		<Product>XelLauncher</Product>
 		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
