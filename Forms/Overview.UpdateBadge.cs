@@ -14,9 +14,10 @@ namespace XelLauncher.Forms
             using var subFont = new System.Drawing.Font("Microsoft YaHei UI", 9F);
             int iconAndPad = 134;
             int subWidth = TextRenderer.MeasureText(windowBar.SubText ?? "", subFont).Width;
-            int badgeX = iconAndPad + subWidth + 12;
-            int badgeY = 8;
+            int badgeX = iconAndPad + subWidth + 8;
+            int badgeY = 4;
 
+            updateBadge.Size = new System.Drawing.Size(18, 18);
             updateBadge.Location = new System.Drawing.Point(badgeX, badgeY);
             updateBadge.BringToFront();
         }
@@ -27,6 +28,7 @@ namespace XelLauncher.Forms
             {
                 var cfg = ConfigHelper.Load();
                 updateBadge.Visible = UpdateHelper.ShouldShowCachedUpdate(cfg, Application.ProductVersion);
+                updateBadge.RefreshAnimationState();
             }
             catch { }
         }
