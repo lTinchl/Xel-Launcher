@@ -1,22 +1,14 @@
-using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
 {
     /// <summary>
-    /// 显示在版本号右上角的软件更新动态徽标。
+    /// 红色圆形微标控件，叠加在版本号右上角，有新版本时显示。
     /// </summary>
     public class UpdateBadgeControl : Control
     {
-        private const int PulseDurationMs = 1200;
-        private static readonly Color BadgeColor = Color.FromArgb(255, 77, 79);
-        private System.Windows.Forms.Timer _pulseTimer;
-        private Stopwatch _pulseWatch;
-
         public UpdateBadgeControl()
         {
             SetStyle(
@@ -26,7 +18,7 @@ namespace XelLauncher.Forms
                 ControlStyles.UserPaint,
                 true);
             BackColor = Color.Transparent;
-            Size = new Size(18, 18);
+            Size = new Size(10, 10);
         }
 
         protected override CreateParams CreateParams
@@ -44,103 +36,16 @@ namespace XelLauncher.Forms
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            float centerX = Width / 2F;
-            float centerY = Height / 2F;
-            float coreDiameter = Math.Min(8F, Math.Min(Width, Height) * 0.46F);
-            float maxHaloDiameter = Math.Max(coreDiameter, Math.Min(Width, Height) - 1F);
+            // 描边颜色跟随父控件背景，深色模式下用深色描边（自然融入），浅色模式下用白色
+            var borderColor = Parent?.BackColor ?? Color.White;
 
-            double cycleProgress = AntdUI.Config.Animation && _pulseWatch?.IsRunning == true
-                ? (_pulseWatch.Elapsed.TotalMilliseconds % PulseDurationMs) / PulseDurationMs
-                : 0D;
-            double easedProgress = cycleProgress * cycleProgress * (3D - 2D * cycleProgress);
-            float haloDiameter = coreDiameter +
-                (maxHaloDiameter - coreDiameter) * (float)easedProgress;
-            int haloAlpha = (int)Math.Round(78D * (1D - easedProgress));
+            // 描边（1px，向外扩展半像素实现抗锯齿融合）
+            using var borderBrush = new SolidBrush(borderColor);
+            g.FillEllipse(borderBrush, -1f, -1f, Width + 2f, Height + 2f);
 
-            if (haloAlpha > 0)
-            {
-                using var haloBrush = new SolidBrush(Color.FromArgb(haloAlpha, BadgeColor));
-                g.FillEllipse(
-                    haloBrush,
-                    centerX - haloDiameter / 2F,
-                    centerY - haloDiameter / 2F,
-                    haloDiameter,
-                    haloDiameter);
-            }
-
-            using var coreBrush = new SolidBrush(BadgeColor);
-            g.FillEllipse(
-                coreBrush,
-                centerX - coreDiameter / 2F,
-                centerY - coreDiameter / 2F,
-                coreDiameter,
-                coreDiameter);
-        }
-
-        protected override void OnHandleCreated(EventArgs e)
-        {
-            base.OnHandleCreated(e);
-            UpdatePulseAnimationState();
-        }
-
-        protected override void OnVisibleChanged(EventArgs e)
-        {
-            base.OnVisibleChanged(e);
-            UpdatePulseAnimationState();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                StopPulseAnimation();
-                _pulseTimer?.Dispose();
-                _pulseTimer = null;
-                _pulseWatch = null;
-            }
-            base.Dispose(disposing);
-        }
-
-        public void RefreshAnimationState()
-        {
-            UpdatePulseAnimationState();
-        }
-
-        private void UpdatePulseAnimationState()
-        {
-            if (!Visible || !IsHandleCreated || IsDisposed || !AntdUI.Config.Animation)
-            {
-                StopPulseAnimation();
-                Invalidate();
-                return;
-            }
-
-            _pulseWatch ??= new Stopwatch();
-            _pulseWatch.Restart();
-            if (_pulseTimer == null)
-            {
-                _pulseTimer = new System.Windows.Forms.Timer();
-                _pulseTimer.Tick += PulseTimer_Tick;
-            }
-            AnimationFrameHelper.ApplyFrameInterval(_pulseTimer, this);
-            _pulseTimer.Start();
-        }
-
-        private void PulseTimer_Tick(object sender, EventArgs e)
-        {
-            if (!Visible || IsDisposed || !AntdUI.Config.Animation)
-            {
-                StopPulseAnimation();
-                return;
-            }
-
-            Invalidate();
-        }
-
-        private void StopPulseAnimation()
-        {
-            _pulseTimer?.Stop();
-            _pulseWatch?.Stop();
+            // 红色主体
+            using var redBrush = new SolidBrush(Color.FromArgb(255, 77, 79));
+            g.FillEllipse(redBrush, 0.5f, 0.5f, Width - 1f, Height - 1f);
         }
     }
 }
