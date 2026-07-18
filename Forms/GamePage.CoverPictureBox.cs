@@ -64,6 +64,59 @@ namespace XelLauncher.Forms
             Invalidate();
         }
 
+        public bool BeginFadeTo(Image image)
+        {
+            if (image == null) return false;
+            if (_image == null || Width <= 0 || Height <= 0)
+            {
+                FinishFade();
+                Image = image;
+                return false;
+            }
+
+            EnsureRenderCache();
+            if (_renderedImage == null)
+            {
+                FinishFade();
+                Image = image;
+                return false;
+            }
+
+            var currentFrame = new Bitmap(
+                Width,
+                Height,
+                System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+            using (var g = Graphics.FromImage(currentFrame))
+            {
+                g.Clear(Color.Black);
+                g.CompositingQuality = CompositingQuality.HighSpeed;
+                g.CompositingMode = CompositingMode.SourceOver;
+                if (_fadeActive && _renderedFadeFromImage != null)
+                {
+                    g.DrawImageUnscaled(_renderedFadeFromImage, 0, 0);
+                    DrawRenderedImage(g, _renderedImage, _fadeProgress);
+                }
+                else
+                {
+                    g.DrawImageUnscaled(_renderedImage, 0, 0);
+                }
+            }
+
+            _fadeFromImage?.Dispose();
+            _fadeFromImage = null;
+            _renderedFadeFromImage?.Dispose();
+            _renderedFadeFromImage = currentFrame;
+            _renderedImage?.Dispose();
+            _image = image;
+            _renderedImage = RenderCoverBitmap(image);
+            _renderedSize = ClientSize;
+            _renderCacheDirty = false;
+            _fadeActive = true;
+            _fadeProgress = 0F;
+            Invalidate();
+            return true;
+        }
+
         public void FinishFade()
         {
             _fadeActive = false;

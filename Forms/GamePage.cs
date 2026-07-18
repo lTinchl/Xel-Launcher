@@ -43,6 +43,11 @@ namespace XelLauncher.Forms
         private readonly CancellationTokenSource _coverCts = new();
         private const int SwitchAnimationDurationMs = 360;
         private const int SwitchAnimationMinFrameIntervalMs = 7;
+        private const int CoverFadeDurationMs = 420;
+        private const int CoverFadeMinFrameIntervalMs = 7;
+        private System.Windows.Forms.Timer _coverFadeTimer;
+        private Stopwatch _coverFadeWatch;
+        private bool _coverFadeActive;
         private bool _switchAnimationActive = false;
         private float _switchAnimationProgress = 0F;
         private Point _launchPanelHome;

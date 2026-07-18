@@ -187,18 +187,74 @@ namespace XelLauncher.Forms
                 return;
             }
             if (image == null) return;
+            if (ReferenceEquals(image, _coverImage)) return;
 
+            StopCoverFadeAnimation(false);
             var oldImage = _coverImage;
             _coverImage = image;
             _coverAccentPaletteValid = false;
             _coverTransitionKey = NormalizeCoverTransitionKey(imagePath);
             _coverTransitionSignature = CreateCoverTransitionSignature(image);
-            _coverPictureBox.Image = image;
+            bool fadeStarted = oldImage != null && _coverPictureBox.BeginFadeTo(image);
             _noticePanel?.UpdateFallbackImage(image);
             UpdateLaunchPanelColor();
             _coverPictureBox.Invalidate();
             oldImage?.Dispose();
+            if (fadeStarted)
+                StartCoverFadeAnimation();
             LogHelper.Log($"Client cover applied: {_game.IconName} -> {imagePath}");
+        }
+
+        private void StartCoverFadeAnimation()
+        {
+            if (_coverPictureBox == null || _coverPictureBox.IsDisposed) return;
+
+            _coverFadeActive = true;
+            _coverFadeWatch = Stopwatch.StartNew();
+            _coverFadeTimer ??= new System.Windows.Forms.Timer();
+            _coverFadeTimer.Interval = Math.Max(
+                CoverFadeMinFrameIntervalMs,
+                AnimationFrameHelper.GetFrameInterval(_coverPictureBox));
+            _coverFadeTimer.Tick -= CoverFadeTimer_Tick;
+            _coverFadeTimer.Tick += CoverFadeTimer_Tick;
+            _coverFadeTimer.Start();
+        }
+
+        private void CoverFadeTimer_Tick(object sender, EventArgs e)
+        {
+            if (_coverPictureBox == null || _coverPictureBox.IsDisposed || IsDisposed)
+            {
+                StopCoverFadeAnimation(false);
+                return;
+            }
+
+            float progress = Math.Min(
+                1F,
+                (float)(_coverFadeWatch?.Elapsed.TotalMilliseconds ?? CoverFadeDurationMs) /
+                CoverFadeDurationMs);
+            float easedProgress = progress * progress * (3F - 2F * progress);
+            _coverPictureBox.SetFadeProgress(easedProgress);
+
+            if (progress >= 1F)
+                StopCoverFadeAnimation(true);
+        }
+
+        private void StopCoverFadeAnimation(bool finish)
+        {
+            if (_coverFadeTimer != null)
+            {
+                _coverFadeTimer.Stop();
+                _coverFadeTimer.Tick -= CoverFadeTimer_Tick;
+            }
+            _coverFadeWatch?.Stop();
+            _coverFadeWatch = null;
+            _coverFadeActive = false;
+
+            if (finish && _coverPictureBox != null && !_coverPictureBox.IsDisposed)
+            {
+                _coverPictureBox.SetFadeProgress(1F);
+                _coverPictureBox.FinishFade();
+            }
         }
 
         private void PositionLaunchPanel()
