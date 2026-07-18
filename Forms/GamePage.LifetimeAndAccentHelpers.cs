@@ -21,6 +21,9 @@ namespace XelLauncher.Forms
             {
                 try { _coverCts.Cancel(); } catch { }
                 _coverCts.Dispose();
+                StopCoverFadeAnimation(false);
+                _coverFadeTimer?.Dispose();
+                _coverFadeTimer = null;
                 _leftTooltip?.Dispose();
                 _topTooltip?.Dispose();
                 _bottomTooltip?.Dispose();

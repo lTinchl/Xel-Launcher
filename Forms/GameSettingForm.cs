@@ -148,7 +148,11 @@ namespace XelLauncher.Forms
                 PlaceholderText = AntdUI.Localization.Get("App.GameSetting.PathPlaceholder", "未设置路径"),
             };
             _inputPath.TextChanged += (s, e) => AutoSave(_inputPath.Text.Trim());
-            _inputPath.Leave += (s, e) => _onPathChanged?.Invoke();
+            _inputPath.Leave += (s, e) =>
+            {
+                _onPathChanged?.Invoke();
+                ResetPathDisplay();
+            };
 
             // ── 更改路径 ──
             var btnBrowse = new AntdUI.Button
@@ -801,15 +805,29 @@ namespace XelLauncher.Forms
 
             ApplyGameAccentTheme();
 
+            var responsiveLayoutTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 100,
+            };
+            responsiveLayoutTimer.Tick += (s, e) =>
+            {
+                responsiveLayoutTimer.Stop();
+                if (IsDisposed) return;
+
+                FitToDrawerHost();
+                ApplyResponsiveLayout();
+                contentPanel.AutoScrollPosition = Point.Empty;
+            };
+
             swExtra.CheckedChanged += (s, e) => ApplyResponsiveLayout();
-            Resize += (s, e) => ApplyResponsiveLayout();
-            contentPanel.Resize += (s, e) => ApplyResponsiveLayout();
-            HandleCreated += (s, e) => ScheduleResponsiveLayout();
+            Resize += (s, e) => QueueResponsiveLayout();
+            HandleCreated += (s, e) => QueueResponsiveLayout();
+            HandleCreated += (s, e) => SchedulePathDisplayReset();
             Control drawerHost = null;
             EventHandler drawerHostResize = (s, e) =>
             {
                 FitToDrawerHost();
-                ScheduleResponsiveLayout();
+                QueueResponsiveLayout();
             };
             ParentChanged += (s, e) =>
             {
@@ -821,14 +839,16 @@ namespace XelLauncher.Forms
                     drawerHost.Resize += drawerHostResize;
 
                 FitToDrawerHost();
-                ScheduleResponsiveLayout();
+                QueueResponsiveLayout();
             };
             Disposed += (s, e) =>
             {
                 if (drawerHost != null)
                     drawerHost.Resize -= drawerHostResize;
+                responsiveLayoutTimer.Stop();
+                responsiveLayoutTimer.Dispose();
             };
-            VisibleChanged += (s, e) => ScheduleResponsiveLayout();
+            VisibleChanged += (s, e) => QueueResponsiveLayout();
             ApplyResponsiveLayout();
 
             void FitToDrawerHost()
@@ -840,20 +860,12 @@ namespace XelLauncher.Forms
                     Height = hostHeight;
             }
 
-            void ScheduleResponsiveLayout()
+            void QueueResponsiveLayout()
             {
                 if (IsDisposed) return;
-                if (IsHandleCreated) BeginInvoke((Action)(() =>
-                {
-                    FitToDrawerHost();
-                    ApplyResponsiveLayout();
-                    contentPanel.AutoScrollPosition = Point.Empty;
-                }));
-                else
-                {
-                    FitToDrawerHost();
-                    ApplyResponsiveLayout();
-                }
+
+                responsiveLayoutTimer.Stop();
+                responsiveLayoutTimer.Start();
             }
 
             void ApplyResponsiveLayout()
@@ -1046,6 +1058,25 @@ namespace XelLauncher.Forms
             if (entry != null) { entry.RootPath = path; ConfigHelper.Save(cfg); }
         }
 
+        private void SchedulePathDisplayReset()
+        {
+            if (_inputPath == null || _inputPath.IsDisposed || IsDisposed) return;
+
+            if (IsHandleCreated)
+                BeginInvoke((Action)ResetPathDisplay);
+            else
+                ResetPathDisplay();
+        }
+
+        private void ResetPathDisplay()
+        {
+            if (_inputPath == null || _inputPath.IsDisposed || IsDisposed) return;
+
+            _inputPath.SelectionLength = 0;
+            _inputPath.SelectionStart = 0;
+            _inputPath.Invalidate();
+        }
+
         private void ApplyGameAccentTheme()
         {
             var palette = _gamePage?.GetCoverAccentPalette();
@@ -1102,6 +1133,7 @@ namespace XelLauncher.Forms
             _inputPath.Text = path;
             AutoSave(path);
             _onPathChanged?.Invoke();
+            ResetPathDisplay();
         }
 
         private static System.Drawing.Icon LoadIcon(string iconName)

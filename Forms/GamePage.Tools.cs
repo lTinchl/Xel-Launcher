@@ -507,7 +507,8 @@ namespace XelLauncher.Forms
             await AnimateSwitchAsync(0F);
             _switchAnimationActive = false;
             _switchAnimationProgress = 0F;
-            _coverPictureBox?.FinishFade();
+            if (!_coverFadeActive)
+                _coverPictureBox?.FinishFade();
             ApplySwitchAnimationOffset(_switchAnimationProgress);
         }
 
@@ -680,13 +681,13 @@ namespace XelLauncher.Forms
                 float elapsedProgress = Math.Min(1F, (float)stopwatch.Elapsed.TotalMilliseconds / SwitchAnimationDurationMs);
                 float easedProgress = elapsedProgress * elapsedProgress * (3F - 2F * elapsedProgress);
                 _switchAnimationProgress = start + (target - start) * easedProgress;
-                if (target < _switchAnimationProgress)
+                if (target < _switchAnimationProgress && !_coverFadeActive)
                     _coverPictureBox?.SetFadeProgress(1F - _switchAnimationProgress);
 
                 if (elapsedProgress >= 1F)
                 {
                     _switchAnimationProgress = target;
-                    if (target <= 0F)
+                    if (target <= 0F && !_coverFadeActive)
                         _coverPictureBox?.SetFadeProgress(1F);
                 }
 
