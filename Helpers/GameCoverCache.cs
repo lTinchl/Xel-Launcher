@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,12 +8,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.PixelFormats;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 
 namespace XelLauncher.Helpers
@@ -25,7 +30,9 @@ namespace XelLauncher.Helpers
         private const string ClientCoverRefreshStampFileName = "client-cover-refresh.txt";
 
         private static readonly object CoverRefreshLock = new();
+        private static readonly object LauncherArchiveLock = new();
         private static readonly HashSet<string> CoverRefreshAttempts = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> OrganizedArchiveDirectories = new(StringComparer.OrdinalIgnoreCase);
 
         private static readonly HttpClient Client = new()
         {
@@ -147,7 +154,10 @@ namespace XelLauncher.Helpers
             {
                 if (!File.Exists(path)) continue;
                 var image = TryLoadImage(path);
-                if (image != null) return image;
+                if (image == null) continue;
+
+                ArchiveLauncherImageIfEnabled(iconName, imageUrl, path, "notice-banner");
+                return image;
             }
 
             return null;
@@ -272,6 +282,15 @@ namespace XelLauncher.Helpers
                     extension = urlExtension;
                 if (string.IsNullOrEmpty(extension))
                     extension = ".jpg";
+
+                if (cachedPath != null && AreImageContentsEqual(temp, cachedPath))
+                {
+                    TryDelete(temp);
+                    SaveClientCoverMetadata(baseTarget, response);
+                    ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
+                    LogHelper.Log($"Game cover content unchanged, keep cached image: {iconName} -> {cachedPath}");
+                    return cachedPath;
+                }
 
                 if (IsWebpFile(extension, temp))
                 {
@@ -532,26 +551,63 @@ namespace XelLauncher.Helpers
                 if (!ConfigHelper.Load().ArchiveLauncherImages) return;
                 if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath)) return;
 
-                var now = DateTime.Now;
-                var archiveDir = Path.Combine(
-                    AppContext.BaseDirectory,
-                    "img",
-                    NormalizeArchiveGameName(iconName),
-                    now.ToString("yyyy-MM-dd"));
-                Directory.CreateDirectory(archiveDir);
+                lock (LauncherArchiveLock)
+                {
+                    var now = DateTime.Now;
+                    var gameArchiveDir = Path.Combine(
+                        AppContext.BaseDirectory,
+                        "img",
+                        NormalizeArchiveGameName(iconName));
+                    var archiveDir = Path.Combine(gameArchiveDir, now.ToString("yyyy-MM-dd"));
+                    Directory.CreateDirectory(archiveDir);
+                    OrganizeLauncherArchiveDirectories(gameArchiveDir);
 
-                var extension = NormalizeImageExtension(Path.GetExtension(sourcePath));
-                if (string.IsNullOrWhiteSpace(extension)) extension = ".png";
+                    var visualHash = Convert.ToHexString(ComputeVisualImageHash(sourcePath))
+                        .ToLowerInvariant()[..16];
+                    var existingWebp = FindArchivedLauncherImage(gameArchiveDir, kind, visualHash, ".webp");
+                    var existingPng = FindArchivedLauncherImage(gameArchiveDir, kind, visualHash, ".png");
+                    if (existingWebp != null && existingPng != null) return;
 
-                var targetPath = Path.Combine(
-                    archiveDir,
-                    $"{now:HHmmss}-{kind}-{HashUrl(imageUrl)}{extension}");
+                    var existingPath = existingWebp ?? existingPng;
+                    var pairArchiveDir = existingPath == null
+                        ? archiveDir
+                        : GetArchiveDateDirectory(gameArchiveDir, existingPath);
+                    var archiveFileName = existingPath == null
+                        ? $"{now:HHmmss}-{kind}-{HashUrl(imageUrl)}-{visualHash}"
+                        : Path.GetFileNameWithoutExtension(existingPath);
+                    var webpDir = Path.Combine(pairArchiveDir, "webp");
+                    var pngDir = Path.Combine(pairArchiveDir, "png");
+                    Directory.CreateDirectory(webpDir);
+                    Directory.CreateDirectory(pngDir);
 
-                if (HasArchivedLauncherImage(archiveDir, kind, imageUrl)) return;
-                if (File.Exists(targetPath)) return;
+                    var webpPath = existingWebp ?? Path.Combine(webpDir, archiveFileName + ".webp");
+                    var pngPath = existingPng ?? Path.Combine(pngDir, archiveFileName + ".png");
+                    bool createdWebp = false;
+                    bool createdPng = false;
 
-                File.Copy(sourcePath, targetPath, overwrite: false);
-                LogHelper.Log($"Launcher image archived: {iconName} -> {targetPath}");
+                    try
+                    {
+                        using var image = ImageSharpImage.Load(sourcePath);
+                        if (!File.Exists(webpPath))
+                        {
+                            SaveArchiveVariant(image, webpPath, new WebpEncoder { Quality = 90 });
+                            createdWebp = true;
+                        }
+                        if (!File.Exists(pngPath))
+                        {
+                            SaveArchiveVariant(image, pngPath, new PngEncoder());
+                            createdPng = true;
+                        }
+                    }
+                    catch
+                    {
+                        if (createdWebp) TryDelete(webpPath);
+                        if (createdPng) TryDelete(pngPath);
+                        throw;
+                    }
+
+                    LogHelper.Log($"Launcher image archived: {iconName} -> {webpPath}; {pngPath}");
+                }
             }
             catch (Exception ex)
             {
@@ -559,33 +615,150 @@ namespace XelLauncher.Helpers
             }
         }
 
-        private static bool HasArchivedLauncherImage(string archiveDir, string kind, string imageUrl)
-        {
-            var hash = HashUrl(imageUrl);
-            return Directory.EnumerateFiles(archiveDir, $"*-{kind}-{hash}.*").Any();
-        }
-
-        private static bool IsLauncherImageArchiveBackfillNeeded(string iconName, string cachedPath, string kind)
+        private static bool IsLauncherImageArchiveBackfillNeeded(string iconName, string sourcePath, string kind)
         {
             try
             {
                 if (!ConfigHelper.Load().ArchiveLauncherImages) return false;
-                if (string.IsNullOrWhiteSpace(cachedPath) || !File.Exists(cachedPath)) return false;
+                if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath)) return false;
 
-                var archiveDir = Path.Combine(
-                    AppContext.BaseDirectory,
-                    "img",
-                    NormalizeArchiveGameName(iconName),
-                    DateTime.Now.ToString("yyyy-MM-dd"));
+                lock (LauncherArchiveLock)
+                {
+                    var gameArchiveDir = Path.Combine(
+                        AppContext.BaseDirectory,
+                        "img",
+                        NormalizeArchiveGameName(iconName));
+                    OrganizeLauncherArchiveDirectories(gameArchiveDir);
+                    var visualHash = Convert.ToHexString(ComputeVisualImageHash(sourcePath))
+                        .ToLowerInvariant()[..16];
 
-                return !Directory.Exists(archiveDir) ||
-                       !Directory.EnumerateFiles(archiveDir, $"*-{kind}-*.*").Any();
+                    return FindArchivedLauncherImage(gameArchiveDir, kind, visualHash, ".webp") == null ||
+                           FindArchivedLauncherImage(gameArchiveDir, kind, visualHash, ".png") == null;
+                }
             }
             catch (Exception ex)
             {
                 LogHelper.LogError(ex, $"GameCoverCache.IsLauncherImageArchiveBackfillNeeded({iconName})");
                 return false;
             }
+        }
+
+        private static void OrganizeLauncherArchiveDirectories(string gameArchiveDir)
+        {
+            if (!Directory.Exists(gameArchiveDir) ||
+                OrganizedArchiveDirectories.Contains(gameArchiveDir))
+                return;
+
+            foreach (var dateDir in Directory.EnumerateDirectories(gameArchiveDir))
+            {
+                if (!DateTime.TryParseExact(
+                        Path.GetFileName(dateDir),
+                        "yyyy-MM-dd",
+                        null,
+                        System.Globalization.DateTimeStyles.None,
+                        out _))
+                    continue;
+
+                MoveArchiveFilesToFormatDirectory(dateDir, ".webp", "webp");
+                MoveArchiveFilesToFormatDirectory(dateDir, ".png", "png");
+                MoveArchiveFilesToFormatDirectory(dateDir, ".jpg", "jpg");
+            }
+
+            OrganizedArchiveDirectories.Add(gameArchiveDir);
+        }
+
+        private static void MoveArchiveFilesToFormatDirectory(
+            string archiveDateDir,
+            string extension,
+            string formatDirectoryName)
+        {
+            var files = Directory.EnumerateFiles(
+                    archiveDateDir,
+                    $"*{extension}",
+                    SearchOption.TopDirectoryOnly)
+                .ToList();
+            if (files.Count == 0) return;
+
+            var formatDir = Path.Combine(archiveDateDir, formatDirectoryName);
+            Directory.CreateDirectory(formatDir);
+            foreach (var sourcePath in files)
+            {
+                var targetPath = Path.Combine(formatDir, Path.GetFileName(sourcePath));
+                if (File.Exists(targetPath)) continue;
+
+                File.Move(sourcePath, targetPath);
+            }
+        }
+
+        private static string GetArchiveDateDirectory(string gameArchiveDir, string archivePath)
+        {
+            var relativePath = Path.GetRelativePath(gameArchiveDir, archivePath);
+            var separatorIndex = relativePath.IndexOfAny(
+                [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]);
+            return separatorIndex < 0
+                ? gameArchiveDir
+                : Path.Combine(gameArchiveDir, relativePath[..separatorIndex]);
+        }
+
+        private static string FindArchivedLauncherImage(
+            string gameArchiveDir,
+            string kind,
+            string visualHash,
+            string extension)
+        {
+            if (!Directory.Exists(gameArchiveDir)) return null;
+
+            return Directory.EnumerateFiles(
+                    gameArchiveDir,
+                    $"*-{kind}-*-{visualHash}{extension}",
+                    SearchOption.AllDirectories)
+                .FirstOrDefault();
+        }
+
+        private static void SaveArchiveVariant(ImageSharpImage image, string targetPath, IImageEncoder encoder)
+        {
+            var tempPath = targetPath + ".tmp";
+            try
+            {
+                using (var output = File.Create(tempPath))
+                    image.Save(output, encoder);
+                MoveReplacing(tempPath, targetPath);
+            }
+            catch
+            {
+                TryDelete(tempPath);
+                throw;
+            }
+        }
+
+        private static bool AreImageContentsEqual(string leftPath, string rightPath)
+        {
+            try
+            {
+                var leftHash = ComputeVisualImageHash(leftPath);
+                var rightHash = ComputeVisualImageHash(rightPath);
+                return CryptographicOperations.FixedTimeEquals(leftHash, rightHash);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static byte[] ComputeVisualImageHash(string imagePath)
+        {
+            using var image = ImageSharpImage.Load<Rgba32>(imagePath);
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            Span<byte> dimensions = stackalloc byte[8];
+            BinaryPrimitives.WriteInt32LittleEndian(dimensions[..4], image.Width);
+            BinaryPrimitives.WriteInt32LittleEndian(dimensions[4..], image.Height);
+            hash.AppendData(dimensions);
+            image.ProcessPixelRows(accessor =>
+            {
+                for (int y = 0; y < accessor.Height; y++)
+                    hash.AppendData(MemoryMarshal.AsBytes(accessor.GetRowSpan(y)));
+            });
+            return hash.GetHashAndReset();
         }
 
         private static string NormalizeArchiveGameName(string iconName)
