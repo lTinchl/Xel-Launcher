@@ -497,6 +497,9 @@ namespace XelLauncher.Forms
             if (IsDisposed || !IsHandleCreated)
             {
                 _switchAnimationActive = false;
+                _switchAnimationProgress = 0F;
+                if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)
+                    _gameInfoBadge.SetTransitionProgress(0F);
                 return;
             }
 
@@ -728,6 +731,9 @@ namespace XelLauncher.Forms
             {
                 _toolSidebar.Location = new Point(_toolSidebarHome.X + horizontalOffset, _toolSidebarHome.Y);
             }
+
+            if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)
+                _gameInfoBadge.SetTransitionProgress(progress);
         }
 
         private void PositionSubButtons()

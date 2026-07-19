@@ -17,6 +17,7 @@ namespace XelLauncher.Forms
         private string _versionText = "";
         private Color _accentColor = Color.FromArgb(48, 214, 238);
         private Font _channelFont;
+        private float _transitionProgress;
 
         public GameInfoBadgeControl()
         {
@@ -24,6 +25,7 @@ namespace XelLauncher.Forms
                 ControlStyles.SupportsTransparentBackColor |
                 ControlStyles.OptimizedDoubleBuffer |
                 ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.ResizeRedraw |
                 ControlStyles.UserPaint,
                 true);
             BackColor = Color.Transparent;
@@ -57,14 +59,13 @@ namespace XelLauncher.Forms
             Invalidate();
         }
 
-        protected override CreateParams CreateParams
+        public void SetTransitionProgress(float progress)
         {
-            get
-            {
-                var cp = base.CreateParams;
-                cp.ExStyle |= 0x20; // WS_EX_TRANSPARENT
-                return cp;
-            }
+            progress = Math.Max(0F, Math.Min(1F, progress));
+            if (Math.Abs(_transitionProgress - progress) < 0.001F) return;
+
+            _transitionProgress = progress;
+            Invalidate();
         }
 
         protected override void OnFontChanged(EventArgs e)
@@ -83,44 +84,55 @@ namespace XelLauncher.Forms
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            var transitionState = g.Save();
+            g.SetClip(ClientRectangle, CombineMode.Intersect);
+            float transitionOffset = (float)Math.Round((PanelHeight + 2F) * _transitionProgress);
+            g.TranslateTransform(0F, -transitionOffset);
 
-            var panelBounds = new RectangleF(0.5F, 0.5F, Width - 1F, PanelHeight - 1F);
-            DrawAnnouncementSurface(g, panelBounds);
+            try
+            {
+                var panelBounds = new RectangleF(0.5F, 0.5F, Width - 1F, PanelHeight - 1F);
+                DrawAnnouncementSurface(g, panelBounds);
 
-            SplitVersionText(_versionText, out string versionLabel, out string versionValue);
-            float channelWidth = MeasureTextWidth(g, _channelText, _channelFont);
-            float labelWidth = MeasureTextWidth(g, versionLabel, Font);
-            float valueWidth = MeasureTextWidth(g, versionValue, Font);
-            float textTop = panelBounds.Top;
-            float textHeight = panelBounds.Height;
-            float channelLeft = panelBounds.Left + HorizontalPadding;
-            float separatorX = channelLeft + channelWidth + SectionGap;
-            float versionLeft = separatorX + SectionGap + 1F;
+                SplitVersionText(_versionText, out string versionLabel, out string versionValue);
+                float channelWidth = MeasureTextWidth(g, _channelText, _channelFont);
+                float labelWidth = MeasureTextWidth(g, versionLabel, Font);
+                float valueWidth = MeasureTextWidth(g, versionValue, Font);
+                float textTop = panelBounds.Top;
+                float textHeight = panelBounds.Height;
+                float channelLeft = panelBounds.Left + HorizontalPadding;
+                float separatorX = channelLeft + channelWidth + SectionGap;
+                float versionLeft = separatorX + SectionGap + 1F;
 
-            DrawLeftText(
-                g,
-                new RectangleF(channelLeft, textTop, channelWidth + 1F, textHeight),
-                _channelText,
-                _channelFont,
-                Color.FromArgb(245, _accentColor));
+                using (var separatorPen = new Pen(Color.FromArgb(42, 255, 255, 255), 1F))
+                    g.DrawLine(separatorPen, separatorX, panelBounds.Top + 6F, separatorX, panelBounds.Bottom - 6F);
 
-            using (var separatorPen = new Pen(Color.FromArgb(42, 255, 255, 255), 1F))
-                g.DrawLine(separatorPen, separatorX, panelBounds.Top + 6F, separatorX, panelBounds.Bottom - 6F);
+                DrawLeftText(
+                    g,
+                    new RectangleF(channelLeft, textTop, channelWidth + 1F, textHeight),
+                    _channelText,
+                    _channelFont,
+                    Color.FromArgb(245, _accentColor));
 
-            DrawLeftText(
-                g,
-                new RectangleF(versionLeft, textTop, labelWidth + 1F, textHeight),
-                versionLabel,
-                Font,
-                Color.FromArgb(172, 207, 219, 230));
-            DrawLeftText(
-                g,
-                // Latin digits have a shorter visual cap height than the CJK label.
-                // Lift them by one pixel so both text runs share the same optical center.
-                new RectangleF(versionLeft + labelWidth, textTop - 1F, valueWidth + 1F, textHeight),
-                versionValue,
-                Font,
-                Color.FromArgb(224, 222, 235, 244));
+                DrawLeftText(
+                    g,
+                    new RectangleF(versionLeft, textTop, labelWidth + 1F, textHeight),
+                    versionLabel,
+                    Font,
+                    Color.FromArgb(172, 207, 219, 230));
+                DrawLeftText(
+                    g,
+                    // Latin digits have a shorter visual cap height than the CJK label.
+                    // Lift them by one pixel so both text runs share the same optical center.
+                    new RectangleF(versionLeft + labelWidth, textTop - 1F, valueWidth + 1F, textHeight),
+                    versionValue,
+                    Font,
+                    Color.FromArgb(224, 222, 235, 244));
+            }
+            finally
+            {
+                g.Restore(transitionState);
+            }
         }
 
         protected override void Dispose(bool disposing)
