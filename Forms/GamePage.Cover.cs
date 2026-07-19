@@ -50,6 +50,7 @@ namespace XelLauncher.Forms
             _subBtns.Add(CreateAddCustomToolButton());
 
             Controls.Add(pb);
+            BuildGameInfoBadge();
             _coverPictureBox.Controls.Add(panelLaunch);
             BuildToolSidebar();
             _noticePanel = new NoticeCarouselPanel(CreateFallbackBanners(img), CreateFallbackNotices())
@@ -69,6 +70,7 @@ namespace XelLauncher.Forms
             bool cachedContentLoadStarted = false;
             HandleCreated += (s, e) => {
                 PositionLaunchPanel();
+                PositionGameInfoBadge();
                 PositionToolSidebar();
                 PositionNoticePanel();
                 UpdateLaunchPanelColor();
@@ -85,6 +87,7 @@ namespace XelLauncher.Forms
             SizeChanged += (s, e) =>
             {
                 StretchCoverPictureBox();
+                PositionGameInfoBadge();
                 PositionLaunchPanel();
                 PositionNoticePanel();
                 PositionToolSidebar();

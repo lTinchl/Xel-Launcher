@@ -28,6 +28,8 @@ namespace XelLauncher.Forms
             else if (_toolSidebar != null) _toolSidebar.Back = Color.FromArgb(188, 34, 37, 43);
 
             ApplyCoverAccentToLaunchControls();
+            if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)
+                _gameInfoBadge.AccentColor = GetCoverAccentPalette().PrimaryHover;
         }
 
         private void ApplyCoverAccentToLaunchControls()

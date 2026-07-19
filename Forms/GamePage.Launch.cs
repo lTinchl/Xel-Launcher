@@ -130,7 +130,11 @@ namespace XelLauncher.Forms
                 ConfigHelper.Save(cfgToUpdate);
 
                 if (IsHandleCreated)
-                    BeginInvoke(() => RefreshGameStartButton());
+                    BeginInvoke(() =>
+                    {
+                        RefreshGameStartButton();
+                        RefreshGameInfoBadge();
+                    });
 
                 return true;
             }
@@ -635,6 +639,7 @@ namespace XelLauncher.Forms
                 BeginInvoke(() =>
                 {
                     if (!GameStart.IsDisposed) RefreshGameStartButton();
+                    RefreshGameInfoBadge();
                 });
         }
 

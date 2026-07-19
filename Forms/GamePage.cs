@@ -34,6 +34,7 @@ namespace XelLauncher.Forms
         private AntdUI.TooltipComponent _topTooltip;
         private AntdUI.TooltipComponent _bottomTooltip;
         private CoverPictureBox _coverPictureBox;
+        private GameInfoBadgeControl _gameInfoBadge;
         private NoticeCarouselPanel _noticePanel;
         private Image _coverImage;
         private string _coverTransitionKey = "";
