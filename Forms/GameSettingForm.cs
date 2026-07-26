@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
 using XelLauncher.Models;
@@ -45,90 +43,6 @@ namespace XelLauncher.Forms
             Size = LogicalSize(380, 520);
             MinimumSize = LogicalSize(340, 320);
             AutoScroll = false;
-
-            // ── 游戏图标 ──
-            var picIcon = new PictureBox
-            {
-                SizeMode = PictureBoxSizeMode.Zoom,
-                Size = new Size(48, 48),
-                Location = new Point(20, 20),
-            };
-            try
-            {
-                var ico = LoadIcon(game.IconName);
-                if (ico != null)
-                {
-                    var src = ico.ToBitmap();
-                    var dst = new Bitmap(48, 48);
-                    using var g = Graphics.FromImage(dst);
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    g.DrawImage(src, 0, 0, 48, 48);
-                    picIcon.Image = dst;
-                }
-            }
-            catch { }
-
-            // ── 游戏名 ──
-            string displayName = game.IconName == "PlayEndfield"
-                ? (AntdUI.Localization.CurrentLanguage.StartsWith("en")
-                    ? "Endfield (Google)"
-                    : "\u660e\u65e5\u65b9\u821f\uff1a\u7ec8\u672b\u5730(Google\u670d)")
-                : game.GetLocalizedName();
-            var lblName = new AntdUI.Label
-            {
-                Text = displayName,
-                Location = new Point(80, 20),
-                Size = new Size(260, 28),
-                Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
-            };
-
-            // ── 游戏版本 ──
-            string cachedVersion = latest?.LocalVersion ?? "";
-            var lblVersion = new AntdUI.Label
-            {
-                Text = string.IsNullOrEmpty(cachedVersion)
-                    ? AntdUI.Localization.Get("App.GameSetting.VersionChecking", "版本：N/A")
-                    : AntdUI.Localization.Get("App.GameSetting.Version", "版本：") + cachedVersion,
-                Location = new Point(80, 48),
-                Size = new Size(260, 24),
-                Font = new Font("Microsoft YaHei UI", 9F),
-            };
-            HandleCreated += async (s, e) =>
-            {
-                try
-                {
-                    // 共用游戏文件的渠道仍可读取同一份本地版本；Google Play 需保留独立更新源。
-                    string svcIconName = game.IconName switch
-                    {
-                        "BiliEndfield" or "GlobalEndfield" => "Endfield",
-                        "BiliArknights" => "Arknights",
-                        _ => game.IconName
-                    };
-                    using var svc = new EndfieldService(svcIconName);
-                    var status = await svc.CheckStatusAsync(currentPath).ConfigureAwait(false);
-                    if (status == null || string.IsNullOrEmpty(status.LocalVersion)) return;
-                    if (!lblVersion.IsDisposed)
-                        BeginInvoke((System.Windows.Forms.MethodInvoker)(() =>
-                            lblVersion.Text = AntdUI.Localization.Get("App.GameSetting.Version", "版本：") + status.LocalVersion));
-                    // 回写缓存
-                    var cfgSave = ConfigHelper.Load();
-                    var entry = cfgSave.Games.Find(g => g.IconName == game.IconName);
-                    if (entry != null && entry.LocalVersion != status.LocalVersion)
-                    {
-                        entry.LocalVersion = status.LocalVersion;
-                        ConfigHelper.Save(cfgSave);
-                    }
-                }
-                catch { }
-            };
-
-            // ── 分割线 ──
-            var divider1 = new AntdUI.Divider
-            {
-                Location = new Point(20, 82),
-                Size = new Size(320, 1),
-                Thickness = 1F,
-            };
 
             // ── 游戏安装路径 标题 ──
             var lblPathSection = new AntdUI.Label
@@ -770,10 +684,6 @@ namespace XelLauncher.Forms
             Controls.Add(divider2);
             Controls.Add(swExtra);
             Controls.Add(btnManage);
-            Controls.Add(picIcon);
-            Controls.Add(lblName);
-            Controls.Add(divider1);
-            Controls.Add(lblVersion);
             Controls.Add(lblPathSection);
             Controls.Add(_inputPath);
             Controls.Add(btnBrowse);
@@ -781,11 +691,10 @@ namespace XelLauncher.Forms
             Size = GetInitialDrawerSize();
             MinimumSize = new Size(Math.Min(320, Size.Width), Math.Min(300, Size.Height));
 
-            int contentPanelTop = 94;
             var contentPanel = new System.Windows.Forms.Panel
             {
-                Location = new Point(0, contentPanelTop),
-                Size = new Size(Width, Math.Max(1, Height - contentPanelTop)),
+                Location = Point.Empty,
+                Size = new Size(Width, Height),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AutoScroll = true,
                 BackColor = surfaceBack,
@@ -793,12 +702,10 @@ namespace XelLauncher.Forms
             };
             var contentControls = Controls
                 .Cast<Control>()
-                .Where(control => control != picIcon && control != lblName && control != lblVersion && control != divider1)
                 .ToArray();
             foreach (var control in contentControls)
             {
                 Controls.Remove(control);
-                control.Top -= contentPanelTop;
                 contentPanel.Controls.Add(control);
             }
             Controls.Add(contentPanel);
@@ -886,27 +793,8 @@ namespace XelLauncher.Forms
                 int switchX = margin + contentWidth - 36;
                 int contentRight = margin + contentWidth;
 
-                picIcon.Size = new Size(56, 56);
-                picIcon.Left = margin;
-                picIcon.Top = 22;
-                lblName.Left = picIcon.Right + 20;
-                lblVersion.Left = lblName.Left;
-                lblName.Top = picIcon.Top + 4;
-                lblVersion.Top = lblName.Bottom + 6;
-                lblName.Width = Math.Max(120, contentRight - lblName.Left);
-                if (lblName.PreferredSize.Width > lblName.Width)
-                    lblName.Font = new Font(lblName.Font.FontFamily, 12F, lblName.Font.Style);
-                lblVersion.Width = lblName.Width;
-                divider1.Left = margin;
-                divider1.Top = Math.Max(picIcon.Bottom, lblVersion.Bottom) + gapMedium;
-                divider1.Width = contentWidth;
-
-                contentPanelTop = divider1.Bottom + gapSmall;
-                contentPanel.Location = new Point(0, contentPanelTop);
-                contentPanel.Size = new Size(ClientSize.Width, Math.Max(1, ClientSize.Height - contentPanelTop));
-
                 lblPathSection.Left = margin;
-                lblPathSection.Top = gapTiny;
+                lblPathSection.Top = gapMedium;
                 lblPathSection.Width = contentWidth;
                 _inputPath.Left = margin;
                 _inputPath.Top = lblPathSection.Bottom + gapSmall;
@@ -1136,28 +1024,5 @@ namespace XelLauncher.Forms
             ResetPathDisplay();
         }
 
-        private static System.Drawing.Icon LoadIcon(string iconName)
-        {
-            try
-            {
-                string basePath = Path.Combine(AppContext.BaseDirectory, "Resources", "Icon");
-                string file = iconName switch
-                {
-                    "Arknights"      => "Arknights.ico",
-                    "BiliArknights"  => "BiliArknights.ico",
-                    "Endfield"       => "Endfield.ico",
-                    "BiliEndfield"   => "BiliEndfield.ico",
-                    "GlobalEndfield" => "GlobalEndfield.ico",
-                    "PlayEndfield"   => "PlayEndfield.ico",
-                    _ => null
-                };
-                if (file == null) return null;
-                string full = Path.Combine(basePath, file);
-                if (!File.Exists(full))
-                    full = Path.Combine(AppContext.BaseDirectory, "Resources", file);
-                return File.Exists(full) ? new System.Drawing.Icon(full, new Size(256, 256)) : null;
-            }
-            catch { return null; }
-        }
     }
 }
