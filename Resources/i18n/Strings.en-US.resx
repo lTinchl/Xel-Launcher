@@ -2451,8 +2451,20 @@
   <data name="App.Game.CustomToolName" xml:space="preserve">
     <value>Tool name</value>
   </data>
+  <data name="App.Game.CustomToolNamePlaceholder" xml:space="preserve">
+    <value>e.g. Official website</value>
+  </data>
+  <data name="App.Game.CustomToolUrlLabel" xml:space="preserve">
+    <value>Link address</value>
+  </data>
   <data name="App.Game.CustomToolUrl" xml:space="preserve">
     <value>https://example.com</value>
+  </data>
+  <data name="App.Game.CustomToolIconLabel" xml:space="preserve">
+    <value>Tool icon (optional)</value>
+  </data>
+  <data name="App.Game.CustomToolIconHint" xml:space="preserve">
+    <value>Supports PNG, JPG, WebP, and ICO</value>
   </data>
   <data name="App.Game.Notice" xml:space="preserve">
     <value>Announcements</value>

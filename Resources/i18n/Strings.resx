@@ -2448,8 +2448,20 @@
   <data name="App.Game.CustomToolName" xml:space="preserve">
     <value>工具名称</value>
   </data>
+  <data name="App.Game.CustomToolNamePlaceholder" xml:space="preserve">
+    <value>例如：游戏官网</value>
+  </data>
+  <data name="App.Game.CustomToolUrlLabel" xml:space="preserve">
+    <value>链接地址</value>
+  </data>
   <data name="App.Game.CustomToolUrl" xml:space="preserve">
     <value>https://example.com</value>
+  </data>
+  <data name="App.Game.CustomToolIconLabel" xml:space="preserve">
+    <value>工具图标（可选）</value>
+  </data>
+  <data name="App.Game.CustomToolIconHint" xml:space="preserve">
+    <value>支持 PNG、JPG、WebP 和 ICO</value>
   </data>
   <data name="App.Game.Notice" xml:space="preserve">
     <value>公告</value>

@@ -290,36 +290,81 @@ namespace XelLauncher.Forms
         {
             var form = FindForm() as AntdUI.BaseForm;
             string selectedIconPath = "";
+            var fieldLabelFont = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
+            var hintColor = AntdUI.Config.IsDark
+                ? Color.FromArgb(158, 158, 158)
+                : Color.FromArgb(110, 110, 110);
+            var nameLabel = new AntdUI.Label
+            {
+                Text = AntdUI.Localization.Get("App.Game.CustomToolName", "工具名称"),
+                Location = new Point(0, 0),
+                Size = new Size(336, 20),
+                Font = fieldLabelFont,
+            };
             var nameInput = new AntdUI.Input
             {
-                PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolName", "工具名称"),
-                Location = new Point(0, 0),
-                Size = new Size(320, 40),
+                PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolNamePlaceholder", "例如：游戏官网"),
+                Location = new Point(0, 24),
+                Size = new Size(336, 40),
                 Height = 40,
+                Radius = 8,
+                TabIndex = 0,
+            };
+            var urlLabel = new AntdUI.Label
+            {
+                Text = AntdUI.Localization.Get("App.Game.CustomToolUrlLabel", "链接地址"),
+                Location = new Point(0, 76),
+                Size = new Size(336, 20),
+                Font = fieldLabelFont,
             };
             var urlInput = new AntdUI.Input
             {
                 PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolUrl", "https://example.com"),
-                Location = new Point(0, 48),
-                Size = new Size(320, 40),
+                Location = new Point(0, 100),
+                Size = new Size(336, 40),
                 Height = 40,
+                Radius = 8,
+                TabIndex = 1,
             };
-            var iconPreview = new PictureBox
+            var iconLabel = new AntdUI.Label
             {
-                Location = new Point(0, 98),
-                Size = new Size(42, 42),
+                Text = AntdUI.Localization.Get("App.Game.CustomToolIconLabel", "工具图标（可选）"),
+                Location = new Point(0, 152),
+                Size = new Size(336, 20),
+                Font = fieldLabelFont,
+            };
+            var iconPreview = new AntdUI.Avatar
+            {
+                Location = new Point(0, 176),
+                Size = new Size(56, 56),
                 Image = CreatePlusToolImage(),
-                SizeMode = PictureBoxSizeMode.StretchImage,
+                ImageFit = AntdUI.TFit.Cover,
+                Radius = 10,
+                BorderWidth = 0,
+                Cursor = Cursors.Hand,
             };
             var chooseIcon = new AntdUI.Button
             {
                 Text = AntdUI.Localization.Get("App.Game.CustomToolChooseIcon", "选择图标"),
-                Location = new Point(52, 99),
-                Size = new Size(112, 40),
+                IconSvg = "PictureOutlined",
+                IconRatio = .62F,
+                IconGap = .18F,
+                Location = new Point(72, 176),
+                Size = new Size(132, 38),
                 Radius = 8,
                 Ghost = true,
+                TabIndex = 2,
             };
-            chooseIcon.Click += (s, e) =>
+            var iconHint = new AntdUI.Label
+            {
+                Text = AntdUI.Localization.Get("App.Game.CustomToolIconHint", "支持 PNG、JPG、WebP 和 ICO"),
+                Location = new Point(72, 214),
+                Size = new Size(264, 18),
+                Font = new Font("Microsoft YaHei UI", 8F),
+                ForeColor = hintColor,
+            };
+
+            void ChooseIcon()
             {
                 using var dlg = new OpenFileDialog
                 {
@@ -339,12 +384,25 @@ namespace XelLauncher.Forms
                 iconPreview.Image?.Dispose();
                 iconPreview.Image = preview;
                 selectedIconPath = dlg.FileName;
+            }
+
+            chooseIcon.Click += (s, e) => ChooseIcon();
+            iconPreview.MouseUp += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Left)
+                    ChooseIcon();
             };
-            var wrap = new Panel { Size = new Size(320, 144), Padding = new Padding(0, 0, 0, 0) };
+
+            var wrap = new Panel { Size = new Size(336, 232) };
+            wrap.Controls.Add(iconHint);
             wrap.Controls.Add(chooseIcon);
             wrap.Controls.Add(iconPreview);
+            wrap.Controls.Add(iconLabel);
             wrap.Controls.Add(urlInput);
+            wrap.Controls.Add(urlLabel);
             wrap.Controls.Add(nameInput);
+            wrap.Controls.Add(nameLabel);
+            wrap.HandleCreated += (s, e) => wrap.BeginInvoke((Action)(() => nameInput.Focus()));
 
             var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Game.CustomToolAdd", "添加自定义工具"), wrap)
             {
