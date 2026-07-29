@@ -660,7 +660,7 @@ namespace XelLauncher.Forms
                 {
                     Text = string.IsNullOrWhiteSpace(version)
                         ? L("App.PayloadUpdate.Waiting", "等待更新")
-                        : L("App.PayloadUpdate.Cached", "已有缓存"),
+                        : L("App.PayloadUpdate.PendingCheck", "待检查"),
                     Location = new Point(475, 7),
                     Size = new Size(180, 34),
                     ForeColor = subtleText,

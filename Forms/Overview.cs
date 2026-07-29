@@ -109,13 +109,14 @@ namespace XelLauncher.Forms
                 var t1 = RefreshUpdateStateOnStartupAsync();
                 var t2 = RunSkylandAutoSignOnLaunchAsync();
                 var t3 = RunSkportAutoSignOnLaunchAsync();
+                var t4 = RunServerPayloadAutoUpdateOnLaunchAsync();
                 
                 if (StartupAnnouncementEnabled)
                     BeginInvoke(new Action(ShowStartupAnnouncementIfNeeded));
 
                 try
                 {
-                    await System.Threading.Tasks.Task.WhenAll(t1, t2, t3);
+                    await System.Threading.Tasks.Task.WhenAll(t1, t2, t3, t4);
                 }
                 catch { }
 
@@ -123,13 +124,18 @@ namespace XelLauncher.Forms
                 Program.TrimMemory();
             };
 
-            windowBar.SizeChanged += (s, e) => PositionUpdateBadge();
+            windowBar.SizeChanged += (s, e) =>
+            {
+                PositionUpdateBadge();
+                PositionServerPayloadNotification();
+            };
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
+                StopServerPayloadAutoUpdate();
                 RemoveCloseCommandFilter();
                 _sidebarSelectionTimer?.Stop();
                 _sidebarSelectionTimer?.Dispose();

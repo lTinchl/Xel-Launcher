@@ -66,6 +66,9 @@ namespace XelLauncher.Forms
             foreach (var id in ordered)
                 if (!disabled.Contains(id))
                     accountSelect.Items.Add(new AntdUI.SelectItem("  " + accounts[id], id));
+
+            ApplyLaunchPopupItemColors(GetCoverAccentPalette());
+
             if (!string.IsNullOrEmpty(defaultId) && !disabled.Contains(defaultId))
                 accountSelect.SelectedValue = defaultId;
             else if (accountSelect.Items.Count > 0)

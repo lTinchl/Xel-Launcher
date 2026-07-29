@@ -429,14 +429,23 @@
   <data name="App.PayloadUpdate.Notification.FailedTitle" xml:space="preserve">
     <value>切服文件更新失败</value>
   </data>
+  <data name="App.PayloadUpdate.Notification.UpdatingTitle" xml:space="preserve">
+    <value>正在更新切服资源</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.StartupSuccess" xml:space="preserve">
+    <value>切服资源检查完成：更新 {0} 个，已是最新 {1} 个。</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.StartupFailure" xml:space="preserve">
+    <value>切服资源更新完成：成功 {0} 个，失败 {1} 个。</value>
+  </data>
   <data name="App.PayloadUpdate.NotUpdated" xml:space="preserve">
     <value>未更新</value>
   </data>
   <data name="App.PayloadUpdate.Waiting" xml:space="preserve">
     <value>等待更新</value>
   </data>
-  <data name="App.PayloadUpdate.Cached" xml:space="preserve">
-    <value>本地资源</value>
+  <data name="App.PayloadUpdate.PendingCheck" xml:space="preserve">
+    <value>待检查</value>
   </data>
   <data name="App.PayloadUpdate.Region.Arknights" xml:space="preserve">
     <value>明日方舟（官服）</value>

@@ -65,7 +65,18 @@ namespace XelLauncher.Forms
             accountSelect.PlaceholderColor = Color.FromArgb(190, 245, 245, 245);
             accountSelect.SelectionColor = Color.FromArgb(80, palette.PrimaryHover);
             ApplyGlobalAccentPalette(palette);
+            ApplyLaunchPopupItemColors(palette);
             GameStart.LoadingWaveColor = Color.FromArgb(64, 255, 255, 255);
+        }
+
+        private void ApplyLaunchPopupItemColors(
+            (Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) palette)
+        {
+            foreach (var item in accountSelect.Items.OfType<AntdUI.SelectItem>())
+                item.BackActive = palette.MutedHover;
+
+            foreach (var item in floatMenu.Items.OfType<AntdUI.SelectItem>())
+                item.BackActive = palette.MutedHover;
         }
 
         private static void ApplyGlobalAccentPalette((Color Primary, Color PrimaryHover, Color PrimaryActive, Color Muted, Color MutedHover, Color MutedActive, Color Danger, Color DangerHover, Color Text) palette)

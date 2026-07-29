@@ -56,6 +56,7 @@ namespace XelLauncher.Forms
                 Font = new Font("Microsoft YaHei UI", 11F),
                 DropDownRadius = 8,
                 Placement = AntdUI.TAlignFrom.TL,
+                ColorScheme = AntdUI.TAMode.Dark,
             };
 
             btnPreload = new AntdUI.Button
@@ -102,6 +103,7 @@ namespace XelLauncher.Forms
                 MaxCount = 5,
                 DropDownArrow = false,
                 DropDownRadius = 8,
+                ColorScheme = AntdUI.TAMode.Dark,
             };
 
             AcrylicPopupHelper.Attach(accountSelect);

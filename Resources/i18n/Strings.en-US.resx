@@ -429,14 +429,23 @@
   <data name="App.PayloadUpdate.Notification.FailedTitle" xml:space="preserve">
     <value>Server file update failed</value>
   </data>
+  <data name="App.PayloadUpdate.Notification.UpdatingTitle" xml:space="preserve">
+    <value>Updating server-switch resources</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.StartupSuccess" xml:space="preserve">
+    <value>Server-switch resource check complete: {0} updated, {1} already current.</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.StartupFailure" xml:space="preserve">
+    <value>Server-switch resource update complete: {0} succeeded, {1} failed.</value>
+  </data>
   <data name="App.PayloadUpdate.NotUpdated" xml:space="preserve">
     <value>Not updated</value>
   </data>
   <data name="App.PayloadUpdate.Waiting" xml:space="preserve">
     <value>Waiting</value>
   </data>
-  <data name="App.PayloadUpdate.Cached" xml:space="preserve">
-    <value>Local files</value>
+  <data name="App.PayloadUpdate.PendingCheck" xml:space="preserve">
+    <value>Pending check</value>
   </data>
   <data name="App.PayloadUpdate.Region.Arknights" xml:space="preserve">
     <value>Arknights (Official)</value>
