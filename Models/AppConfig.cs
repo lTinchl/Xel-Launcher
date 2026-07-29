@@ -113,6 +113,7 @@ namespace XelLauncher.Models
             "GlobalEndfield",
             "PlayEndfield",
         };
+        public string ServerPayloadLastAutoCheckSlotLocal { get; set; } = "";
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
         public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
         public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();

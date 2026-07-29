@@ -43,6 +43,7 @@ namespace XelLauncher.Helpers
                     "GlobalEndfield",
                     "PlayEndfield",
                 };
+                cfg.ServerPayloadLastAutoCheckSlotLocal ??= "";
                 MigrateLegacySecrets(cfg);
                 return cfg;
             }
