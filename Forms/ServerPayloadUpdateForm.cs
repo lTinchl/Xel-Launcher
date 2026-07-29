@@ -31,7 +31,7 @@ namespace XelLauncher.Forms
         private bool _busy;
         private bool _suppressSelectionEvents;
 
-        public ServerPayloadUpdateForm(Overview overview, string currentIconName)
+        public ServerPayloadUpdateForm(Overview overview)
         {
             _overview = overview;
 
@@ -53,7 +53,7 @@ namespace XelLauncher.Forms
                 Text = L("App.PayloadUpdate.Description",
                     "选择需要更新的服区，仅下载官方清单中发生变化的渠道文件。"),
                 Location = new Point(22, 12),
-                Size = new Size(FormWidth - 266, 28),
+                Size = new Size(FormWidth - 44, 28),
                 ForeColor = subtleText,
                 Font = new Font(Font.FontFamily, 9.5F),
                 BackColor = Color.Transparent,
@@ -86,13 +86,14 @@ namespace XelLauncher.Forms
             {
                 Text = L("App.PayloadUpdate.OpenFolder", "打开切服资源目录"),
                 IconSvg = "FolderOpenOutlined",
-                Location = new Point(FormWidth - 210, 5),
-                Size = new Size(186, 30),
+                Location = new Point(24, 480),
+                Size = new Size(186, 34),
                 BorderWidth = 0,
                 Radius = 7,
                 WaveSize = 0,
                 Type = AntdUI.TTypeMini.Default,
                 Ghost = true,
+                TextAlign = ContentAlignment.MiddleLeft,
             };
             btnOpenPayloadDirectory.Click += (s, e) => OpenPayloadDirectory();
 
@@ -137,8 +138,6 @@ namespace XelLauncher.Forms
                     };
                     row.SelectionChanged += OnRowSelectionChanged;
                     _rows[profile.IconName] = row;
-                    row.Selected = string.Equals(
-                        profile.IconName, currentIconName, StringComparison.OrdinalIgnoreCase);
                     list.Controls.Add(row);
                     rowIndex++;
                 }

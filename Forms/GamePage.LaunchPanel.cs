@@ -145,7 +145,7 @@ namespace XelLauncher.Forms
                     BeginInvoke(() =>
                     {
                         ResetFloatMenuVisualState();
-                        var content = new ServerPayloadUpdateForm(_overview, _game.IconName);
+                        var content = new ServerPayloadUpdateForm(_overview);
                         AntdUI.Modal.open(new AntdUI.Modal.Config(
                             _overview,
                             AntdUI.Localization.Get(
