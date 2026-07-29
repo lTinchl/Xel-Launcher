@@ -278,6 +278,11 @@ namespace XelLauncher.Forms
                     }
                     else
                     {
+                        config.Text = AntdUI.Localization.Get(
+                            "App.PayloadUpdate.AutoUpdating",
+                            "正在同步切服差异文件...");
+                        config.Refresh();
+                        await UpdateServerPayloadAfterGameUpdateAsync(update.IconName);
                         MarkGameReadyAfterInstall(capturedPath);
                         config.OK(AntdUI.Localization.Get("App.Game.Install.Success", "安装/更新完成"));
                     }
@@ -643,6 +648,30 @@ namespace XelLauncher.Forms
                 });
         }
 
+        private static async Task UpdateServerPayloadAfterGameUpdateAsync(string iconName)
+        {
+            var profile = ServerPayloadUpdater.GetProfile(iconName);
+            if (profile == null) return;
+
+            try
+            {
+                await ServerPayloadUpdater.UpdateAsync(
+                    profile,
+                    force: false,
+                    progress: null,
+                    CancellationToken.None);
+                LogHelper.Log(
+                    $"Server payload auto update completed: {iconName}");
+            }
+            catch (Exception ex)
+            {
+                // The game itself is already updated. Keep it usable and leave the
+                // manual updater as the recovery path when the CDN is unavailable.
+                LogHelper.LogError(
+                    ex, $"Server payload auto update failed: {iconName}");
+            }
+        }
+
         private static string FormatDownloadProgress(long downloaded, long total)
         {
             if (total <= 0) return null;
@@ -770,7 +799,10 @@ namespace XelLauncher.Forms
                             config.Refresh();
                         }, isEndfield, result => usedHardLink = result);
 
-                        if (!usedHardLink)
+                        if (!usedHardLink &&
+                            cfg.UseHardLink &&
+                            ServerPayloadUpdater.GetCachedPayloadDirectory(
+                                _game.IconName) == null)
                         {
                             _overview.BeginInvoke(new Action(() =>
                                 AntdUI.Message.info(_overview,

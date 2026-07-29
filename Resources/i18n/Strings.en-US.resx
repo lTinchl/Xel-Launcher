@@ -330,6 +330,126 @@
   <data name="App.Game.Sign" xml:space="preserve">
     <value>Skyland Sign</value>
   </data>
+  <data name="App.Game.PayloadUpdate" xml:space="preserve">
+    <value>Update Server Files</value>
+  </data>
+  <data name="App.PayloadUpdate.Title" xml:space="preserve">
+    <value>Server Difference File Update</value>
+  </data>
+  <data name="App.PayloadUpdate.Description" xml:space="preserve">
+    <value>Select regions to update. Only changed channel files from the official manifest are downloaded.</value>
+  </data>
+  <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
+    <value>Syncing server-switch payload...</value>
+  </data>
+  <data name="App.PayloadUpdate.SelectAll" xml:space="preserve">
+    <value>All regions</value>
+  </data>
+  <data name="App.PayloadUpdate.SelectedCount" xml:space="preserve">
+    <value>Selected {0} / {1}</value>
+  </data>
+  <data name="App.PayloadUpdate.Region" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="App.PayloadUpdate.ResourceVersion" xml:space="preserve">
+    <value>Resource version</value>
+  </data>
+  <data name="App.PayloadUpdate.Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="App.PayloadUpdate.UpdateSelected" xml:space="preserve">
+    <value>Update selected</value>
+  </data>
+  <data name="App.PayloadUpdate.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="App.PayloadUpdate.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="App.PayloadUpdate.Canceling" xml:space="preserve">
+    <value>Canceling...</value>
+  </data>
+  <data name="App.PayloadUpdate.NoSelection" xml:space="preserve">
+    <value>Select at least one region.</value>
+  </data>
+  <data name="App.PayloadUpdate.Ready" xml:space="preserve">
+    <value>Select the regions you want to update.</value>
+  </data>
+  <data name="App.PayloadUpdate.Checking" xml:space="preserve">
+    <value>Checking manifest...</value>
+  </data>
+  <data name="App.PayloadUpdate.CheckingRegion" xml:space="preserve">
+    <value>Checking the official manifest for {0}...</value>
+  </data>
+  <data name="App.PayloadUpdate.Comparing" xml:space="preserve">
+    <value>Comparing files...</value>
+  </data>
+  <data name="App.PayloadUpdate.Downloading" xml:space="preserve">
+    <value>Downloading...</value>
+  </data>
+  <data name="App.PayloadUpdate.DownloadProgress" xml:space="preserve">
+    <value>Downloading {0}: {1:F1} / {2:F1} MB</value>
+  </data>
+  <data name="App.PayloadUpdate.Verifying" xml:space="preserve">
+    <value>Verifying...</value>
+  </data>
+  <data name="App.PayloadUpdate.Applying" xml:space="preserve">
+    <value>Applying...</value>
+  </data>
+  <data name="App.PayloadUpdate.ApplyingRegion" xml:space="preserve">
+    <value>Applying the {0} update...</value>
+  </data>
+  <data name="App.PayloadUpdate.Latest" xml:space="preserve">
+    <value>Up to date</value>
+  </data>
+  <data name="App.PayloadUpdate.Success" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="App.PayloadUpdate.Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="App.PayloadUpdate.Canceled" xml:space="preserve">
+    <value>Canceled</value>
+  </data>
+  <data name="App.PayloadUpdate.Summary" xml:space="preserve">
+    <value>Update complete: {0} succeeded, {1} failed.</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.SuccessTitle" xml:space="preserve">
+    <value>Server files updated</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.PartialTitle" xml:space="preserve">
+    <value>Some server files failed to update</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.FailedTitle" xml:space="preserve">
+    <value>Server file update failed</value>
+  </data>
+  <data name="App.PayloadUpdate.NotUpdated" xml:space="preserve">
+    <value>Not updated</value>
+  </data>
+  <data name="App.PayloadUpdate.Waiting" xml:space="preserve">
+    <value>Waiting</value>
+  </data>
+  <data name="App.PayloadUpdate.Cached" xml:space="preserve">
+    <value>Cached</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.Arknights" xml:space="preserve">
+    <value>Arknights (Official)</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.BiliArknights" xml:space="preserve">
+    <value>Arknights (Bilibili)</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.Endfield" xml:space="preserve">
+    <value>Endfield (Official)</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.BiliEndfield" xml:space="preserve">
+    <value>Endfield (Bilibili)</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.GlobalEndfield" xml:space="preserve">
+    <value>Endfield (Global)</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.PlayEndfield" xml:space="preserve">
+    <value>Endfield (Google Play)</value>
+  </data>
   <data name="App.Game.Repair" xml:space="preserve">
     <value>Verify Game Integrity</value>
   </data>

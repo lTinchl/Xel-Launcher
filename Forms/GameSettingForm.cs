@@ -712,29 +712,19 @@ namespace XelLauncher.Forms
 
             ApplyGameAccentTheme();
 
-            var responsiveLayoutTimer = new System.Windows.Forms.Timer
+            swExtra.CheckedChanged += (s, e) => ApplyResponsiveLayout();
+            Resize += (s, e) => ApplyResponsiveLayout();
+            HandleCreated += (s, e) =>
             {
-                Interval = 100,
-            };
-            responsiveLayoutTimer.Tick += (s, e) =>
-            {
-                responsiveLayoutTimer.Stop();
-                if (IsDisposed) return;
-
                 FitToDrawerHost();
                 ApplyResponsiveLayout();
-                contentPanel.AutoScrollPosition = Point.Empty;
+                ResetPathDisplay();
             };
-
-            swExtra.CheckedChanged += (s, e) => ApplyResponsiveLayout();
-            Resize += (s, e) => QueueResponsiveLayout();
-            HandleCreated += (s, e) => QueueResponsiveLayout();
-            HandleCreated += (s, e) => SchedulePathDisplayReset();
             Control drawerHost = null;
             EventHandler drawerHostResize = (s, e) =>
             {
                 FitToDrawerHost();
-                QueueResponsiveLayout();
+                ApplyResponsiveLayout();
             };
             ParentChanged += (s, e) =>
             {
@@ -746,16 +736,20 @@ namespace XelLauncher.Forms
                     drawerHost.Resize += drawerHostResize;
 
                 FitToDrawerHost();
-                QueueResponsiveLayout();
+                ApplyResponsiveLayout();
             };
             Disposed += (s, e) =>
             {
                 if (drawerHost != null)
                     drawerHost.Resize -= drawerHostResize;
-                responsiveLayoutTimer.Stop();
-                responsiveLayoutTimer.Dispose();
             };
-            VisibleChanged += (s, e) => QueueResponsiveLayout();
+            VisibleChanged += (s, e) =>
+            {
+                if (!Visible) return;
+
+                FitToDrawerHost();
+                ApplyResponsiveLayout();
+            };
             ApplyResponsiveLayout();
 
             void FitToDrawerHost()
@@ -765,14 +759,6 @@ namespace XelLauncher.Forms
                 int hostHeight = Parent.ClientSize.Height;
                 if (hostHeight > 0 && Height != hostHeight)
                     Height = hostHeight;
-            }
-
-            void QueueResponsiveLayout()
-            {
-                if (IsDisposed) return;
-
-                responsiveLayoutTimer.Stop();
-                responsiveLayoutTimer.Start();
             }
 
             void ApplyResponsiveLayout()
@@ -944,16 +930,6 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             var entry = cfg.Games.Find(g => g.Name == _game.Name && g.IconName == _game.IconName);
             if (entry != null) { entry.RootPath = path; ConfigHelper.Save(cfg); }
-        }
-
-        private void SchedulePathDisplayReset()
-        {
-            if (_inputPath == null || _inputPath.IsDisposed || IsDisposed) return;
-
-            if (IsHandleCreated)
-                BeginInvoke((Action)ResetPathDisplay);
-            else
-                ResetPathDisplay();
         }
 
         private void ResetPathDisplay()

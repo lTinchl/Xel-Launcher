@@ -46,19 +46,7 @@ namespace XelLauncher.Helpers
 
         public static string GetPayloadDirPath(string iconName)
         {
-            string exeDir = AppContext.BaseDirectory;
-            string dirName = iconName switch
-            {
-                "BiliArknights"  => "ArkBilibili",
-                "Arknights"      => "ArkOfficial",
-                "BiliEndfield"   => "EndBilibili",
-                "GlobalEndfield" => "EndGlobal",
-                "PlayEndfield"   => "EndPlay",
-                "Endfield"       => "EndOfficial",
-                _ => null
-            };
-            if (dirName == null) return null;
-            return Path.Combine(exeDir, "load", dirName);
+            return ServerPayloadUpdater.GetPreferredPayloadDirectory(iconName);
         }
 
         // 判断两个路径是否在同一磁盘分区（根据盘符）
@@ -75,6 +63,22 @@ namespace XelLauncher.Helpers
 
             File.SetAttributes(path, FileAttributes.Normal);
             File.Delete(path);
+        }
+
+        private static void DeleteStalePayloadManifests(string targetDirectory)
+        {
+            if (!Directory.Exists(targetDirectory)) return;
+
+            foreach (var path in Directory.EnumerateFiles(
+                         targetDirectory, "*", SearchOption.TopDirectoryOnly))
+            {
+                var fileName = Path.GetFileName(path);
+                if (fileName.Equals("game_files", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.StartsWith("game_files_", StringComparison.OrdinalIgnoreCase))
+                {
+                    DeleteFileIfExists(path);
+                }
+            }
         }
 
         // 尝试创建硬链接；失败则回退到文件复制
@@ -122,7 +126,11 @@ namespace XelLauncher.Helpers
             sourceDir = Path.GetFullPath(sourceDir).TrimEnd(Path.DirectorySeparatorChar);
             targetDir = Path.GetFullPath(targetDir).TrimEnd(Path.DirectorySeparatorChar);
 
-            bool useHardLink = preferHardLink && OnSameVolume(sourceDir, targetDir);
+            // Managed payloads are cache masters. Copy them so a game patch that
+            // writes in place cannot mutate the cached source through a hard link.
+            bool useHardLink = preferHardLink &&
+                               !ServerPayloadUpdater.IsManagedCachePath(sourceDir) &&
+                               OnSameVolume(sourceDir, targetDir);
             bool allHardLinked = useHardLink;
 
             await Task.Run(() =>
@@ -131,6 +139,9 @@ namespace XelLauncher.Helpers
                 foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
                 {
                     string relativePath = file.Substring(sourceDir.Length + 1);
+                    if (ServerPayloadUpdater.IsDeploymentExcluded(relativePath))
+                        continue;
+
                     string destFile = Path.Combine(targetDir, relativePath);
                     Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
 
@@ -156,15 +167,32 @@ namespace XelLauncher.Helpers
         // 带结果回调的切服入口，onResult(true) = 使用了硬链接，onResult(false) = 文件复制
         public static async Task SwitchServerWithResult(string rootPath, string iconName, Action<string> onProgress, bool isEndfield, Action<bool> onResult)
         {
-            string payloadDir = GetPayloadDirPath(iconName);
-            if (payloadDir == null || !Directory.Exists(payloadDir))
-                throw new FileNotFoundException(AntdUI.Localization.Get("App.Switch.NoPayload", "未找到切服资源（文件夹或 ZIP 均不存在）"));
-
             bool preferHardLink = ConfigHelper.Load().UseHardLink;
-            onProgress(preferHardLink
-                ? AntdUI.Localization.Get("App.Switch.Linking", "切服中（硬链接）...")
-                : AntdUI.Localization.Get("App.Switch.Copying", "切服中..."));
-            bool usedHardLink = await HardLinkOrCopyDirectory(payloadDir, rootPath, preferHardLink);
+            bool usedHardLink = await ServerPayloadUpdater.UsePreferredPayloadDirectoryAsync(
+                iconName,
+                async payloadDir =>
+                {
+                    if (payloadDir == null || !Directory.Exists(payloadDir))
+                    {
+                        throw new FileNotFoundException(
+                            AntdUI.Localization.Get(
+                                "App.Switch.NoPayload",
+                                "未找到切服资源（文件夹或 ZIP 均不存在）"));
+                    }
+
+                    var canUseHardLink = preferHardLink &&
+                                         !ServerPayloadUpdater.IsManagedCachePath(payloadDir) &&
+                                         OnSameVolume(payloadDir, rootPath);
+                    onProgress(canUseHardLink
+                        ? AntdUI.Localization.Get(
+                            "App.Switch.Linking", "切服中（硬链接）...")
+                        : AntdUI.Localization.Get(
+                            "App.Switch.Copying", "切服中..."));
+
+                    DeleteStalePayloadManifests(rootPath);
+                    return await HardLinkOrCopyDirectory(
+                        payloadDir, rootPath, preferHardLink);
+                });
             onResult(usedHardLink);
 
             string doneMsg = usedHardLink

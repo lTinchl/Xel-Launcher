@@ -330,6 +330,126 @@
   <data name="App.Game.Sign" xml:space="preserve">
     <value>森空岛签到</value>
   </data>
+  <data name="App.Game.PayloadUpdate" xml:space="preserve">
+    <value>更新切服资源</value>
+  </data>
+  <data name="App.PayloadUpdate.Title" xml:space="preserve">
+    <value>切服差异文件更新</value>
+  </data>
+  <data name="App.PayloadUpdate.Description" xml:space="preserve">
+    <value>选择需要更新的服区，仅下载官方清单中发生变化的渠道文件。</value>
+  </data>
+  <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
+    <value>正在同步切服差异文件...</value>
+  </data>
+  <data name="App.PayloadUpdate.SelectAll" xml:space="preserve">
+    <value>全部服区</value>
+  </data>
+  <data name="App.PayloadUpdate.SelectedCount" xml:space="preserve">
+    <value>已选择 {0} / {1}</value>
+  </data>
+  <data name="App.PayloadUpdate.Region" xml:space="preserve">
+    <value>服区</value>
+  </data>
+  <data name="App.PayloadUpdate.ResourceVersion" xml:space="preserve">
+    <value>资源版本</value>
+  </data>
+  <data name="App.PayloadUpdate.Status" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="App.PayloadUpdate.UpdateSelected" xml:space="preserve">
+    <value>更新所选</value>
+  </data>
+  <data name="App.PayloadUpdate.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="App.PayloadUpdate.Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="App.PayloadUpdate.Canceling" xml:space="preserve">
+    <value>正在取消...</value>
+  </data>
+  <data name="App.PayloadUpdate.NoSelection" xml:space="preserve">
+    <value>请至少选择一个服区。</value>
+  </data>
+  <data name="App.PayloadUpdate.Ready" xml:space="preserve">
+    <value>请选择需要更新的服区。</value>
+  </data>
+  <data name="App.PayloadUpdate.Checking" xml:space="preserve">
+    <value>检查清单...</value>
+  </data>
+  <data name="App.PayloadUpdate.CheckingRegion" xml:space="preserve">
+    <value>正在检查 {0} 的官方资源清单...</value>
+  </data>
+  <data name="App.PayloadUpdate.Comparing" xml:space="preserve">
+    <value>比较文件...</value>
+  </data>
+  <data name="App.PayloadUpdate.Downloading" xml:space="preserve">
+    <value>下载中...</value>
+  </data>
+  <data name="App.PayloadUpdate.DownloadProgress" xml:space="preserve">
+    <value>正在下载 {0}：{1:F1} / {2:F1} MB</value>
+  </data>
+  <data name="App.PayloadUpdate.Verifying" xml:space="preserve">
+    <value>校验中...</value>
+  </data>
+  <data name="App.PayloadUpdate.Applying" xml:space="preserve">
+    <value>正在应用...</value>
+  </data>
+  <data name="App.PayloadUpdate.ApplyingRegion" xml:space="preserve">
+    <value>正在应用 {0} 的更新...</value>
+  </data>
+  <data name="App.PayloadUpdate.Latest" xml:space="preserve">
+    <value>已是最新</value>
+  </data>
+  <data name="App.PayloadUpdate.Success" xml:space="preserve">
+    <value>更新完成</value>
+  </data>
+  <data name="App.PayloadUpdate.Failed" xml:space="preserve">
+    <value>更新失败</value>
+  </data>
+  <data name="App.PayloadUpdate.Canceled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="App.PayloadUpdate.Summary" xml:space="preserve">
+    <value>更新完成：成功 {0} 个，失败 {1} 个。</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.SuccessTitle" xml:space="preserve">
+    <value>切服文件更新完成</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.PartialTitle" xml:space="preserve">
+    <value>部分切服文件更新失败</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.FailedTitle" xml:space="preserve">
+    <value>切服文件更新失败</value>
+  </data>
+  <data name="App.PayloadUpdate.NotUpdated" xml:space="preserve">
+    <value>未更新</value>
+  </data>
+  <data name="App.PayloadUpdate.Waiting" xml:space="preserve">
+    <value>等待更新</value>
+  </data>
+  <data name="App.PayloadUpdate.Cached" xml:space="preserve">
+    <value>已有缓存</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.Arknights" xml:space="preserve">
+    <value>明日方舟（官服）</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.BiliArknights" xml:space="preserve">
+    <value>明日方舟（B服）</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.Endfield" xml:space="preserve">
+    <value>终末地（官服）</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.BiliEndfield" xml:space="preserve">
+    <value>终末地（B服）</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.GlobalEndfield" xml:space="preserve">
+    <value>终末地（国际服）</value>
+  </data>
+  <data name="App.PayloadUpdate.Region.PlayEndfield" xml:space="preserve">
+    <value>终末地（Google Play）</value>
+  </data>
   <data name="App.Game.Repair" xml:space="preserve">
     <value>校验游戏完整性</value>
   </data>

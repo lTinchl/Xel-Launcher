@@ -45,6 +45,20 @@ namespace XelLauncher.Forms
             TabHeaderForm.Open("https://endfieldtools.dev/");
         }
 
+        private void btnSignHub_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new Action(() =>
+            {
+                AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, new SignHubForm(_overview, 0))
+                {
+                    OkText = null,
+                    CancelText = null,
+                    BtnHeight = 0,
+                    MaskClosable = true,
+                });
+            }));
+        }
+
         private AntdUI.Avatar CreateSubButton(System.Drawing.Icon icon, EventHandler clickHandler, string tip)
         {
             var bmp = new Bitmap(42, 42);
@@ -96,6 +110,11 @@ namespace XelLauncher.Forms
 
         private void AddBuiltInToolButtons()
         {
+            _subBtns.Add(CreateSubButton(
+                LoadPaddedToolImage("Skland.png"),
+                btnSignHub_Click,
+                AntdUI.Localization.Get("App.Game.Sign", "森空岛签到")));
+
             switch (_game.IconName)
             {
                 case "Arknights":
@@ -619,15 +638,30 @@ namespace XelLauncher.Forms
             }
         }
 
-        private static Image LoadMenuIcon(string fileName)
+        private static Image LoadPaddedToolImage(string fileName)
         {
             try
             {
                 string path = FindResourceFile(fileName);
                 if (!File.Exists(path)) return null;
 
-                using var icon = new Icon(path, new Size(32, 32));
-                return icon.ToBitmap();
+                using var source = Image.FromFile(path);
+                var bitmap = new Bitmap(42, 42, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using var graphics = Graphics.FromImage(bitmap);
+                graphics.Clear(Color.Transparent);
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                const int contentSize = 32;
+                var scale = Math.Min(contentSize / (float)source.Width, contentSize / (float)source.Height);
+                var width = source.Width * scale;
+                var height = source.Height * scale;
+                var x = (bitmap.Width - width) / 2F;
+                var y = (bitmap.Height - height) / 2F;
+                graphics.DrawImage(source, x, y, width, height);
+                return bitmap;
             }
             catch
             {

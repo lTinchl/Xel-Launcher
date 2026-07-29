@@ -99,28 +99,13 @@ namespace XelLauncher.Forms
                 WaveSize = 0,
                 Type = AntdUI.TTypeMini.Primary,
                 Placement = AntdUI.TAlignFrom.TR,
+                MaxCount = 5,
                 DropDownArrow = false,
                 DropDownRadius = 8,
             };
 
-            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Sign", "森空岛签到"), "sign").SetIcon(LoadMenuIcon("Skland_Sign.ico")));
-            floatMenu.SelectedValueChanged += (s, e) =>
-            {
-                if (e.Value is string v && v == "sign")
-                {
-                    BeginInvoke(() =>
-                    {
-                        ResetFloatMenuVisualState();
-                        AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, new SignHubForm(_overview, 0))
-                        {
-                            OkText = null,
-                            CancelText = null,
-                            BtnHeight = 0,
-                            MaskClosable = true,
-                        });
-                    });
-                }
-            };
+            AcrylicPopupHelper.Attach(accountSelect);
+            AcrylicPopupHelper.Attach(floatMenu);
 
             floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Setting", "游戏设置"), "setting").SetIcon("SettingOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
@@ -129,10 +114,11 @@ namespace XelLauncher.Forms
                 {
                     BeginInvoke(() =>
                     {
-                        ResetFloatMenuVisualState();
                         var drawer = AntdUI.Drawer.open(_overview, new GameSettingForm(_game, _overview, UpdateAccountControlsVisibility, () => _ = CheckGameStatusAsync(), this), AntdUI.TAlignMini.Right);
                         if (drawer != null)
                             drawer.Disposed += (sender, args) => BeginInvokeResetFloatMenuVisualState();
+                        else
+                            ResetFloatMenuVisualState();
                     });
                 }
             };
@@ -145,6 +131,34 @@ namespace XelLauncher.Forms
                     {
                         ResetFloatMenuVisualState();
                         RepairGameIntegrity();
+                    });
+                }
+            };
+
+            floatMenu.Items.Add(new AntdUI.SelectItem(
+                AntdUI.Localization.Get("App.Game.PayloadUpdate", "更新切服资源"),
+                "payloadUpdate").SetIcon("CloudSyncOutlined"));
+            floatMenu.SelectedValueChanged += (s, e) =>
+            {
+                if (e.Value is string v && v == "payloadUpdate")
+                {
+                    BeginInvoke(() =>
+                    {
+                        ResetFloatMenuVisualState();
+                        var content = new ServerPayloadUpdateForm(_overview, _game.IconName);
+                        AntdUI.Modal.open(new AntdUI.Modal.Config(
+                            _overview,
+                            AntdUI.Localization.Get(
+                                "App.PayloadUpdate.Title",
+                                "切服差异文件更新"),
+                            content)
+                        {
+                            OkText = null,
+                            CancelText = null,
+                            BtnHeight = 0,
+                            MaskClosable = false,
+                            Keyboard = false,
+                        });
                     });
                 }
             };

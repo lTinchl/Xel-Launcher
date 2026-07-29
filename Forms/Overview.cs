@@ -56,6 +56,8 @@ namespace XelLauncher.Forms
         public Overview(bool top)
         {
             InitializeComponent();
+            // Keep the docked header actions from painting over PageHeader's bottom divider.
+            windowBar.Padding = new Padding(0, 0, 0, 1);
             this.Icon = Properties.Resources.icon;
             windowBar.Text = "Xel Launcher ";
             AntdUI.Config.DropDownMarginFurther = true;
