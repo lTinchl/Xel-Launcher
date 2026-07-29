@@ -46,7 +46,7 @@ namespace XelLauncher.Helpers
 
         public static string GetPayloadDirPath(string iconName)
         {
-            return ServerPayloadUpdater.GetPreferredPayloadDirectory(iconName);
+            return ServerPayloadUpdater.GetPayloadDirectory(iconName);
         }
 
         // 判断两个路径是否在同一磁盘分区（根据盘符）
@@ -126,11 +126,7 @@ namespace XelLauncher.Helpers
             sourceDir = Path.GetFullPath(sourceDir).TrimEnd(Path.DirectorySeparatorChar);
             targetDir = Path.GetFullPath(targetDir).TrimEnd(Path.DirectorySeparatorChar);
 
-            // Managed payloads are cache masters. Copy them so a game patch that
-            // writes in place cannot mutate the cached source through a hard link.
-            bool useHardLink = preferHardLink &&
-                               !ServerPayloadUpdater.IsManagedCachePath(sourceDir) &&
-                               OnSameVolume(sourceDir, targetDir);
+            bool useHardLink = preferHardLink && OnSameVolume(sourceDir, targetDir);
             bool allHardLinked = useHardLink;
 
             await Task.Run(() =>
@@ -168,7 +164,7 @@ namespace XelLauncher.Helpers
         public static async Task SwitchServerWithResult(string rootPath, string iconName, Action<string> onProgress, bool isEndfield, Action<bool> onResult)
         {
             bool preferHardLink = ConfigHelper.Load().UseHardLink;
-            bool usedHardLink = await ServerPayloadUpdater.UsePreferredPayloadDirectoryAsync(
+            bool usedHardLink = await ServerPayloadUpdater.UsePayloadDirectoryAsync(
                 iconName,
                 async payloadDir =>
                 {
@@ -180,9 +176,8 @@ namespace XelLauncher.Helpers
                                 "未找到切服资源（文件夹或 ZIP 均不存在）"));
                     }
 
-                    var canUseHardLink = preferHardLink &&
-                                         !ServerPayloadUpdater.IsManagedCachePath(payloadDir) &&
-                                         OnSameVolume(payloadDir, rootPath);
+                    var canUseHardLink =
+                        preferHardLink && OnSameVolume(payloadDir, rootPath);
                     onProgress(canUseHardLink
                         ? AntdUI.Localization.Get(
                             "App.Switch.Linking", "切服中（硬链接）...")

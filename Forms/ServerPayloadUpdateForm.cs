@@ -215,10 +215,10 @@ namespace XelLauncher.Forms
         {
             try
             {
-                Directory.CreateDirectory(ServerPayloadUpdater.CacheRoot);
+                Directory.CreateDirectory(ServerPayloadUpdater.PayloadRoot);
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = ServerPayloadUpdater.CacheRoot,
+                    FileName = ServerPayloadUpdater.PayloadRoot,
                     UseShellExecute = true,
                 });
             }

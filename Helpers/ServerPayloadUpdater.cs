@@ -184,11 +184,11 @@ namespace XelLauncher.Helpers
 
         public static IReadOnlyList<ServerPayloadProfile> Profiles => ProfileList;
 
-        public static string CacheRoot =>
-            Path.Combine(ConfigHelper.ConfigDir, "ServerPayloads");
+        public static string PayloadRoot =>
+            Path.Combine(AppContext.BaseDirectory, "load");
 
         private static string StateRoot =>
-            Path.Combine(CacheRoot, ".state");
+            Path.Combine(PayloadRoot, ".state");
 
         public static ServerPayloadProfile GetProfile(string iconName)
         {
@@ -196,56 +196,15 @@ namespace XelLauncher.Helpers
                 string.Equals(x.IconName, iconName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static string GetBundledPayloadDirectory(string iconName)
+        public static string GetPayloadDirectory(string iconName)
         {
             var profile = GetProfile(iconName);
             return profile == null
                 ? null
-                : Path.Combine(AppContext.BaseDirectory, "load", profile.PayloadDirectoryName);
+                : GetPayloadDirectory(profile);
         }
 
-        public static string GetCachedPayloadDirectory(string iconName)
-        {
-            var profile = GetProfile(iconName);
-            if (profile == null) return null;
-
-            var directory = GetCacheDirectory(profile);
-            var state = GetState(iconName);
-            if (state == null ||
-                state.FileCount <= 0 ||
-                state.TotalBytes < 0 ||
-                string.IsNullOrWhiteSpace(state.Version) ||
-                state.ManifestSha256?.Length != 64 ||
-                !string.Equals(state.IconName, profile.IconName,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            try
-            {
-                var info = new DirectoryInfo(directory);
-                return info.Exists &&
-                       !info.Attributes.HasFlag(FileAttributes.ReparsePoint)
-                    ? directory
-                    : null;
-            }
-            catch (IOException)
-            {
-                return null;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return null;
-            }
-        }
-
-        public static string GetPreferredPayloadDirectory(string iconName)
-        {
-            return GetCachedPayloadDirectory(iconName) ?? GetBundledPayloadDirectory(iconName);
-        }
-
-        public static async Task<TResult> UsePreferredPayloadDirectoryAsync<TResult>(
+        public static async Task<TResult> UsePayloadDirectoryAsync<TResult>(
             string iconName,
             Func<string, Task<TResult>> action,
             CancellationToken cancellationToken = default)
@@ -261,26 +220,13 @@ namespace XelLauncher.Helpers
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return await action(GetPreferredPayloadDirectory(iconName))
+                return await action(GetPayloadDirectory(iconName))
                     .ConfigureAwait(false);
             }
             finally
             {
                 gate.Release();
             }
-        }
-
-        public static bool IsManagedCachePath(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path)) return false;
-
-            var root = Path.GetFullPath(CacheRoot)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
-                       Path.DirectorySeparatorChar;
-            var candidate = Path.GetFullPath(path)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
-                            Path.DirectorySeparatorChar;
-            return candidate.StartsWith(root, StringComparison.OrdinalIgnoreCase);
         }
 
         public static ServerPayloadState GetState(string iconName)
@@ -363,13 +309,13 @@ namespace XelLauncher.Helpers
 
             ValidateSelectedPayload(profile, selectedFiles);
 
-            var cacheDirectory = GetCacheDirectory(profile);
+            var payloadDirectory = GetPayloadDirectory(profile);
             var previousState = GetState(profile.IconName);
             if (!force &&
                 previousState != null &&
                 previousState.FileCount == selectedFiles.Count &&
                 previousState.TotalBytes == selectedFiles.Sum(x => x.Size) &&
-                Directory.Exists(cacheDirectory) &&
+                Directory.Exists(payloadDirectory) &&
                 string.Equals(previousState.IconName, profile.IconName,
                     StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(previousState.Version, remote.Version,
@@ -377,7 +323,7 @@ namespace XelLauncher.Helpers
                 string.Equals(previousState.ManifestSha256, remote.ManifestSha256,
                     StringComparison.OrdinalIgnoreCase) &&
                 await IsPayloadDirectoryCurrentAsync(
-                        profile, cacheDirectory, selectedFiles, progress,
+                        profile, payloadDirectory, selectedFiles, progress,
                         remote.Version, cancellationToken)
                     .ConfigureAwait(false))
             {
@@ -427,7 +373,7 @@ namespace XelLauncher.Helpers
             var lastDownloadReportAt = Environment.TickCount64;
             var lastDownloadReportBytes = 0L;
             var stagingDirectory = Path.Combine(
-                CacheRoot, ".staging", profile.PayloadDirectoryName + "-" + Guid.NewGuid().ToString("N"));
+                PayloadRoot, ".staging", profile.PayloadDirectoryName + "-" + Guid.NewGuid().ToString("N"));
 
             Directory.CreateDirectory(stagingDirectory);
 
@@ -838,17 +784,9 @@ namespace XelLauncher.Helpers
 
         private static IEnumerable<string> GetSourceDirectories(ServerPayloadProfile profile)
         {
-            var cache = GetCacheDirectory(profile);
-            if (Directory.Exists(cache))
-                yield return cache;
-
-            var bundled = Path.Combine(
-                AppContext.BaseDirectory, "load", profile.PayloadDirectoryName);
-            if (Directory.Exists(bundled) &&
-                !string.Equals(cache, bundled, StringComparison.OrdinalIgnoreCase))
-            {
-                yield return bundled;
-            }
+            var payloadDirectory = GetPayloadDirectory(profile);
+            if (Directory.Exists(payloadDirectory))
+                yield return payloadDirectory;
         }
 
         private static async Task DownloadFileAsync(
@@ -1002,10 +940,10 @@ namespace XelLauncher.Helpers
             string stagingDirectory,
             ServerPayloadState state)
         {
-            Directory.CreateDirectory(CacheRoot);
+            Directory.CreateDirectory(PayloadRoot);
             Directory.CreateDirectory(StateRoot);
 
-            var targetDirectory = GetCacheDirectory(profile);
+            var targetDirectory = GetPayloadDirectory(profile);
             var backupDirectory = targetDirectory + ".backup";
             var statePath = GetStatePath(profile);
             var targetMovedToBackup = false;
@@ -1059,9 +997,9 @@ namespace XelLauncher.Helpers
             File.Move(tempPath, path, true);
         }
 
-        private static string GetCacheDirectory(ServerPayloadProfile profile)
+        private static string GetPayloadDirectory(ServerPayloadProfile profile)
         {
-            return Path.Combine(CacheRoot, profile.PayloadDirectoryName);
+            return Path.Combine(PayloadRoot, profile.PayloadDirectoryName);
         }
 
         private static string GetStatePath(ServerPayloadProfile profile)
@@ -1138,12 +1076,12 @@ namespace XelLauncher.Helpers
 
         private static void DeleteControlledDirectory(string path)
         {
-            var root = Path.GetFullPath(CacheRoot)
+            var root = Path.GetFullPath(PayloadRoot)
                 .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
             var target = Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
             if (!target.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException($"Refusing to delete outside payload cache: {path}");
+                throw new InvalidOperationException($"Refusing to delete outside payload root: {path}");
 
             Directory.Delete(path, true);
         }

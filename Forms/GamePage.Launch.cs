@@ -799,10 +799,7 @@ namespace XelLauncher.Forms
                             config.Refresh();
                         }, isEndfield, result => usedHardLink = result);
 
-                        if (!usedHardLink &&
-                            cfg.UseHardLink &&
-                            ServerPayloadUpdater.GetCachedPayloadDirectory(
-                                _game.IconName) == null)
+                        if (!usedHardLink && cfg.UseHardLink)
                         {
                             _overview.BeginInvoke(new Action(() =>
                                 AntdUI.Message.info(_overview,

@@ -436,7 +436,7 @@
     <value>Waiting</value>
   </data>
   <data name="App.PayloadUpdate.Cached" xml:space="preserve">
-    <value>Cached</value>
+    <value>Local files</value>
   </data>
   <data name="App.PayloadUpdate.Region.Arknights" xml:space="preserve">
     <value>Arknights (Official)</value>
