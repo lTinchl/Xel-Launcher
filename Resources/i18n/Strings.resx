@@ -387,6 +387,15 @@
   <data name="App.PayloadUpdate.CheckingRegion" xml:space="preserve">
     <value>正在检查 {0} 的官方资源清单...</value>
   </data>
+  <data name="App.PayloadUpdate.CheckingVersion" xml:space="preserve">
+    <value>检查版本...</value>
+  </data>
+  <data name="App.PayloadUpdate.CheckingVersionRegion" xml:space="preserve">
+    <value>正在检查 {0} 的最新资源版本...</value>
+  </data>
+  <data name="App.PayloadUpdate.VersionCurrentRegion" xml:space="preserve">
+    <value>{0} 已是最新版本</value>
+  </data>
   <data name="App.PayloadUpdate.Comparing" xml:space="preserve">
     <value>比较文件...</value>
   </data>
@@ -431,6 +440,15 @@
   </data>
   <data name="App.PayloadUpdate.Notification.UpdatingTitle" xml:space="preserve">
     <value>正在更新切服资源</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.CheckingTitle" xml:space="preserve">
+    <value>正在检查切服资源</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.LatestTitle" xml:space="preserve">
+    <value>切服资源已是最新</value>
+  </data>
+  <data name="App.PayloadUpdate.Notification.StartupLatest" xml:space="preserve">
+    <value>版本检查完成：{0} 个服区均为最新版本。</value>
   </data>
   <data name="App.PayloadUpdate.Notification.StartupSuccess" xml:space="preserve">
     <value>切服资源检查完成：更新 {0} 个，已是最新 {1} 个。</value>

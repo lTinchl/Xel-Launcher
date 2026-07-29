@@ -92,6 +92,14 @@ namespace XelLauncher.Forms
             _ = CheckGameStatusAsync();
         }
 
+        internal Control GetServerPayloadNotificationHost()
+        {
+            if (_coverPictureBox != null && !_coverPictureBox.IsDisposed)
+                return _coverPictureBox;
+
+            return this;
+        }
+
         private void ApplyCachedGameStatus()
         {
             try

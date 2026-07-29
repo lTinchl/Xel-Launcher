@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
@@ -11,6 +12,8 @@ namespace XelLauncher.Forms
         private ServerPayloadUpdateNotification _serverPayloadUpdateNotification;
         private bool _serverPayloadNotificationDismissed;
         private bool _serverPayloadStartupRunning;
+        private bool _serverPayloadAnyDownloadStarted;
+        private bool _serverPayloadCurrentProfileDownloadStarted;
 
         private async Task RunServerPayloadAutoUpdateOnLaunchAsync()
         {
@@ -19,6 +22,8 @@ namespace XelLauncher.Forms
 
             _serverPayloadStartupRunning = true;
             _serverPayloadNotificationDismissed = false;
+            _serverPayloadAnyDownloadStarted = false;
+            _serverPayloadCurrentProfileDownloadStarted = false;
             _serverPayloadStartupCancellation?.Dispose();
             var operation = new CancellationTokenSource();
             _serverPayloadStartupCancellation = operation;
@@ -33,10 +38,10 @@ namespace XelLauncher.Forms
             {
                 ShowServerPayloadProgress(
                     PayloadText(
-                        "App.PayloadUpdate.Notification.UpdatingTitle",
+                        "App.PayloadUpdate.Notification.CheckingTitle",
                         "正在更新切服资源"),
                     PayloadText(
-                        "App.PayloadUpdate.Checking",
+                        "App.PayloadUpdate.CheckingVersion",
                         "检查清单..."),
                     0F,
                     loading: true);
@@ -44,9 +49,23 @@ namespace XelLauncher.Forms
                 for (var profileIndex = 0; profileIndex < profiles.Count; profileIndex++)
                 {
                     operation.Token.ThrowIfCancellationRequested();
+                    _serverPayloadCurrentProfileDownloadStarted = false;
 
                     var profile = profiles[profileIndex];
                     var capturedIndex = profileIndex;
+                    var profileName = GetServerPayloadProfileDisplayName(profile.IconName);
+                    ShowServerPayloadProgress(
+                        PayloadText(
+                            "App.PayloadUpdate.Notification.CheckingTitle",
+                            "正在检查切服资源"),
+                        string.Format(
+                            PayloadText(
+                                "App.PayloadUpdate.CheckingVersionRegion",
+                                "正在检查 {0} 的最新资源版本..."),
+                            profileName),
+                        (float)profileIndex / profiles.Count,
+                        loading: true);
+
                     var progress = new Progress<ServerPayloadUpdateProgress>(value =>
                     {
                         if (operation.IsCancellationRequested || IsDisposed || Disposing)
@@ -60,14 +79,26 @@ namespace XelLauncher.Forms
 
                     try
                     {
-                        var result = await ServerPayloadUpdater.UpdateAsync(
+                        var result = await ServerPayloadUpdater.UpdateIfOutdatedAsync(
                             profile,
-                            force: false,
                             progress,
                             operation.Token);
 
                         if (result.AlreadyCurrent)
+                        {
                             current++;
+                            ShowServerPayloadProgress(
+                                PayloadText(
+                                    "App.PayloadUpdate.Notification.CheckingTitle",
+                                    "正在检查切服资源"),
+                                string.Format(
+                                    PayloadText(
+                                        "App.PayloadUpdate.VersionCurrentRegion",
+                                        "{0} 已是最新版本"),
+                                    profileName),
+                                (float)(profileIndex + 1) / profiles.Count,
+                                loading: false);
+                        }
                         else
                             updated++;
                         succeeded++;
@@ -81,13 +112,29 @@ namespace XelLauncher.Forms
                         failed++;
                         LogHelper.LogError(
                             ex,
-                            $"Server payload startup update failed: {profile.IconName}");
+                            $"Server payload startup check/update failed: {profile.IconName}");
                     }
                 }
 
                 if (failed == 0)
                 {
-                    ShowServerPayloadResult(
+                    if (updated == 0)
+                    {
+                        ShowServerPayloadResult(
+                            PayloadText(
+                                "App.PayloadUpdate.Notification.LatestTitle",
+                                "切服资源已是最新"),
+                            string.Format(
+                                PayloadText(
+                                    "App.PayloadUpdate.Notification.StartupLatest",
+                                    "版本检查完成：{0} 个服区均为最新版本。"),
+                                current),
+                            ServerPayloadNotificationState.Success,
+                            autoCloseSeconds: 5);
+                    }
+                    else
+                    {
+                        ShowServerPayloadResult(
                         PayloadText(
                             "App.PayloadUpdate.Notification.SuccessTitle",
                             "切服文件更新完成"),
@@ -99,6 +146,7 @@ namespace XelLauncher.Forms
                             current),
                         ServerPayloadNotificationState.Success,
                         autoCloseSeconds: 5);
+                    }
                 }
                 else
                 {
@@ -129,7 +177,7 @@ namespace XelLauncher.Forms
             }
             catch (Exception ex)
             {
-                LogHelper.LogError(ex, "Server payload startup update");
+                LogHelper.LogError(ex, "Server payload startup check/update");
                 ShowServerPayloadResult(
                     PayloadText(
                         "App.PayloadUpdate.Notification.FailedTitle",
@@ -152,6 +200,15 @@ namespace XelLauncher.Forms
             int profileIndex,
             int profileCount)
         {
+            if (value.Stage == ServerPayloadUpdateStage.Downloading)
+            {
+                _serverPayloadAnyDownloadStarted = true;
+                _serverPayloadCurrentProfileDownloadStarted = true;
+            }
+
+            if (!_serverPayloadCurrentProfileDownloadStarted)
+                return;
+
             var profileName = GetServerPayloadProfileDisplayName(value.Profile.IconName);
             var stageProgress = GetServerPayloadStageProgress(value);
             var overallProgress = Math.Clamp(
@@ -231,7 +288,11 @@ namespace XelLauncher.Forms
             float progress,
             bool loading)
         {
-            if (!_serverPayloadStartupRunning) return;
+            if (!_serverPayloadStartupRunning ||
+                !_serverPayloadCurrentProfileDownloadStarted)
+            {
+                return;
+            }
 
             var notification = EnsureServerPayloadNotification();
             if (notification == null) return;
@@ -246,6 +307,12 @@ namespace XelLauncher.Forms
             ServerPayloadNotificationState state,
             int autoCloseSeconds)
         {
+            if (state == ServerPayloadNotificationState.Success &&
+                !_serverPayloadAnyDownloadStarted)
+            {
+                return;
+            }
+
             if (_serverPayloadNotificationDismissed) return;
 
             var notification = EnsureServerPayloadNotification();
@@ -263,13 +330,13 @@ namespace XelLauncher.Forms
             if (_serverPayloadUpdateNotification != null &&
                 !_serverPayloadUpdateNotification.IsDisposed)
             {
+                RehostServerPayloadNotification();
                 return _serverPayloadUpdateNotification;
             }
 
             var notification = new ServerPayloadUpdateNotification
             {
-                Anchor = System.Windows.Forms.AnchorStyles.Top |
-                         System.Windows.Forms.AnchorStyles.Right,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
             };
             notification.DismissRequested += (_, _) =>
             {
@@ -280,10 +347,30 @@ namespace XelLauncher.Forms
                 HideServerPayloadNotification();
 
             _serverPayloadUpdateNotification = notification;
-            Controls.Add(notification);
+            RehostServerPayloadNotification();
+            return notification;
+        }
+
+        private Control GetServerPayloadNotificationHost()
+        {
+            var host = _currentGamePage?.GetServerPayloadNotificationHost();
+            return host != null && !host.IsDisposed ? host : this;
+        }
+
+        private void RehostServerPayloadNotification()
+        {
+            var notification = _serverPayloadUpdateNotification;
+            if (notification == null || notification.IsDisposed) return;
+
+            var host = GetServerPayloadNotificationHost();
+            if (!ReferenceEquals(notification.Parent, host))
+            {
+                notification.Parent?.Controls.Remove(notification);
+                host.Controls.Add(notification);
+            }
+
             PositionServerPayloadNotification();
             notification.BringToFront();
-            return notification;
         }
 
         private void PositionServerPayloadNotification()
@@ -291,10 +378,14 @@ namespace XelLauncher.Forms
             var notification = _serverPayloadUpdateNotification;
             if (notification == null || notification.IsDisposed) return;
 
+            var host = notification.Parent ?? this;
             var margin = ScaleForDpi(16);
+            var top = ReferenceEquals(host, this)
+                ? windowBar.Bottom + ScaleForDpi(12)
+                : ScaleForDpi(12);
             notification.Location = new System.Drawing.Point(
-                Math.Max(margin, ClientSize.Width - notification.Width - margin),
-                windowBar.Bottom + ScaleForDpi(12));
+                Math.Max(margin, host.ClientSize.Width - notification.Width - margin),
+                top);
         }
 
         private void HideServerPayloadNotification()
@@ -303,7 +394,7 @@ namespace XelLauncher.Forms
             _serverPayloadUpdateNotification = null;
             if (notification == null || notification.IsDisposed) return;
 
-            Controls.Remove(notification);
+            notification.Parent?.Controls.Remove(notification);
             notification.Dispose();
         }
 

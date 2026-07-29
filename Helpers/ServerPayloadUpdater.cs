@@ -172,6 +172,9 @@ namespace XelLauncher.Helpers
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> PayloadAccessLocks =
             new(StringComparer.OrdinalIgnoreCase);
 
+        private static readonly ConcurrentDictionary<string, CurrentVersionSnapshot> CurrentVersionStates =
+            new(StringComparer.OrdinalIgnoreCase);
+
         private static readonly JsonSerializerOptions StateJsonOptions = new()
         {
             WriteIndented = true,
@@ -183,6 +186,8 @@ namespace XelLauncher.Helpers
             CreateHttpClient(TimeSpan.FromMinutes(30));
 
         public static IReadOnlyList<ServerPayloadProfile> Profiles => ProfileList;
+
+        public static event Action<string, bool> CurrentVersionStateChanged;
 
         public static string PayloadRoot =>
             Path.Combine(AppContext.BaseDirectory, "load");
@@ -249,6 +254,28 @@ namespace XelLauncher.Helpers
             }
         }
 
+        public static bool IsStateCurrentVersion(
+            string iconName,
+            ServerPayloadState state)
+        {
+            if (state == null ||
+                !CurrentVersionStates.TryGetValue(iconName, out var current))
+            {
+                return false;
+            }
+
+            return string.Equals(
+                       state.Version,
+                       current.Version,
+                       StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(
+                       state.ManifestSha256,
+                       current.ManifestSha256,
+                       StringComparison.OrdinalIgnoreCase) &&
+                   state.FileCount == current.FileCount &&
+                   state.TotalBytes == current.TotalBytes;
+        }
+
         public static bool IsDeploymentExcluded(string relativePath)
         {
             if (string.IsNullOrWhiteSpace(relativePath)) return true;
@@ -279,8 +306,14 @@ namespace XelLauncher.Helpers
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return await UpdateCoreAsync(profile, force, progress, cancellationToken)
+                SetCurrentVersionState(profile.IconName, null);
+
+                var result = await UpdateCoreAsync(
+                        profile, force, progress, cancellationToken)
                     .ConfigureAwait(false);
+
+                RememberCurrentVersionState(profile, result);
+                return result;
             }
             finally
             {
@@ -288,14 +321,168 @@ namespace XelLauncher.Helpers
             }
         }
 
+        public static async Task<ServerPayloadUpdateResult> UpdateIfOutdatedAsync(
+            ServerPayloadProfile profile,
+            IProgress<ServerPayloadUpdateProgress> progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (profile == null) throw new ArgumentNullException(nameof(profile));
+
+            var gate = UpdateLocks.GetOrAdd(profile.IconName, _ => new SemaphoreSlim(1, 1));
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                SetCurrentVersionState(profile.IconName, null);
+
+                var latestPackage = await GetLatestPackageAsync(
+                        profile, cancellationToken)
+                    .ConfigureAwait(false);
+                var state = GetState(profile.IconName);
+                if (IsLocalPayloadAtVersion(profile, state, latestPackage.Version))
+                {
+                    SetCurrentVersionState(
+                        profile.IconName,
+                        new CurrentVersionSnapshot(
+                            state.Version,
+                            state.ManifestSha256,
+                            state.FileCount,
+                            state.TotalBytes));
+                    return new ServerPayloadUpdateResult
+                    {
+                        Profile = profile,
+                        Version = latestPackage.Version,
+                        FileCount = state.FileCount,
+                        AlreadyCurrent = true
+                    };
+                }
+
+                var result = await UpdateCoreAsync(
+                        profile,
+                        force: false,
+                        progress,
+                        cancellationToken,
+                        latestPackage)
+                    .ConfigureAwait(false);
+                RememberCurrentVersionState(profile, result);
+                return result;
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+
+        private static void RememberCurrentVersionState(
+            ServerPayloadProfile profile,
+            ServerPayloadUpdateResult result)
+        {
+            var state = GetState(profile.IconName);
+            if (state == null ||
+                !string.Equals(
+                    state.Version,
+                    result.Version,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            SetCurrentVersionState(
+                profile.IconName,
+                new CurrentVersionSnapshot(
+                    state.Version,
+                    state.ManifestSha256,
+                    state.FileCount,
+                    state.TotalBytes));
+        }
+
+        private static void SetCurrentVersionState(
+            string iconName,
+            CurrentVersionSnapshot state)
+        {
+            if (state == null)
+                CurrentVersionStates.TryRemove(iconName, out _);
+            else
+                CurrentVersionStates[iconName] = state;
+
+            var handlers = CurrentVersionStateChanged;
+            if (handlers == null) return;
+
+            foreach (Action<string, bool> handler in handlers.GetInvocationList())
+            {
+                try
+                {
+                    handler(iconName, state != null);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.LogError(
+                        ex,
+                        $"Server payload version state notification failed: {iconName}");
+                }
+            }
+        }
+
+        private static bool IsLocalPayloadAtVersion(
+            ServerPayloadProfile profile,
+            ServerPayloadState state,
+            string remoteVersion)
+        {
+            if (state == null ||
+                state.FileCount <= 0 ||
+                state.TotalBytes <= 0 ||
+                state.ManifestSha256?.Length != 64 ||
+                !state.ManifestSha256.All(Uri.IsHexDigit) ||
+                !string.Equals(
+                    state.IconName,
+                    profile.IconName,
+                    StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(
+                    state.Version,
+                    remoteVersion,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var payloadDirectory = GetPayloadDirectory(profile);
+            try
+            {
+                var root = new DirectoryInfo(payloadDirectory);
+                if (!root.Exists ||
+                    root.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                {
+                    return false;
+                }
+
+                foreach (var relativePath in GetRequiredPayloadFiles(profile))
+                {
+                    var file = new FileInfo(SafeCombine(payloadDirectory, relativePath));
+                    if (!file.Exists ||
+                        file.Length <= 0 ||
+                        file.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                        return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex) when (
+                ex is IOException or UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
         private static async Task<ServerPayloadUpdateResult> UpdateCoreAsync(
             ServerPayloadProfile profile,
             bool force,
             IProgress<ServerPayloadUpdateProgress> progress,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            RemotePayloadPackage latestPackage = null)
         {
             Report(progress, profile, ServerPayloadUpdateStage.Checking);
-            var remote = await GetRemoteManifestAsync(profile, cancellationToken).ConfigureAwait(false);
+            var remote = await GetRemoteManifestAsync(
+                    profile, cancellationToken, latestPackage)
+                .ConfigureAwait(false);
 
             var rules = BuildSeedRules(profile);
             var selectedFiles = remote.Files
@@ -491,7 +678,7 @@ namespace XelLauncher.Helpers
                     Version = remote.Version,
                     FileCount = selectedFiles.Count,
                     DownloadedBytes = downloadedBytes,
-                    AlreadyCurrent = totalDownloadBytes == 0
+                    AlreadyCurrent = false
                 };
             }
             finally
@@ -502,6 +689,37 @@ namespace XelLauncher.Helpers
         }
 
         private static async Task<RemotePayloadManifest> GetRemoteManifestAsync(
+            ServerPayloadProfile profile,
+            CancellationToken cancellationToken,
+            RemotePayloadPackage latestPackage = null)
+        {
+            var latest = latestPackage ??
+                await GetLatestPackageAsync(profile, cancellationToken)
+                    .ConfigureAwait(false);
+            var manifestUri = new Uri(
+                latest.ResourceBaseUri.AbsoluteUri.TrimEnd('/') + "/game_files",
+                UriKind.Absolute);
+            var encryptedManifest = await ApiClient.GetByteArrayAsync(
+                    manifestUri, cancellationToken)
+                .ConfigureAwait(false);
+            var decryptedManifest = HgCrypto.DecryptBytesToString(encryptedManifest);
+            if (string.IsNullOrWhiteSpace(decryptedManifest))
+                throw new InvalidDataException(
+                    $"Unable to decrypt the {profile.IconName} game_files manifest.");
+
+            var nodes = ParseManifest(decryptedManifest);
+            if (nodes.Count == 0)
+                throw new InvalidDataException(
+                    $"The {profile.IconName} game_files manifest is empty.");
+
+            return new RemotePayloadManifest(
+                latest.Version,
+                latest.ResourceBaseUri,
+                Convert.ToHexString(SHA256.HashData(encryptedManifest)),
+                nodes);
+        }
+
+        private static async Task<RemotePayloadPackage> GetLatestPackageAsync(
             ServerPayloadProfile profile,
             CancellationToken cancellationToken)
         {
@@ -552,25 +770,7 @@ namespace XelLauncher.Helpers
                     $"The {profile.IconName} launcher API returned an invalid resource URL.");
             }
 
-            var manifestUri = new Uri(
-                resourceBaseUri.AbsoluteUri.TrimEnd('/') + "/game_files", UriKind.Absolute);
-            var encryptedManifest = await ApiClient.GetByteArrayAsync(manifestUri, cancellationToken)
-                .ConfigureAwait(false);
-            var decryptedManifest = HgCrypto.DecryptBytesToString(encryptedManifest);
-            if (string.IsNullOrWhiteSpace(decryptedManifest))
-                throw new InvalidDataException(
-                    $"Unable to decrypt the {profile.IconName} game_files manifest.");
-
-            var nodes = ParseManifest(decryptedManifest);
-            if (nodes.Count == 0)
-                throw new InvalidDataException(
-                    $"The {profile.IconName} game_files manifest is empty.");
-
-            return new RemotePayloadManifest(
-                version,
-                resourceBaseUri,
-                Convert.ToHexString(SHA256.HashData(encryptedManifest)),
-                nodes);
+            return new RemotePayloadPackage(version, resourceBaseUri);
         }
 
         private static bool TryReadLatestPackage(
@@ -728,6 +928,20 @@ namespace XelLauncher.Helpers
                 throw new InvalidDataException(
                     $"The payload file {oversized.RelativePath} is unexpectedly large.");
 
+            var required = GetRequiredPayloadFiles(profile);
+
+            var paths = new HashSet<string>(
+                files.Select(x => x.RelativePath.Replace('\\', '/')),
+                StringComparer.OrdinalIgnoreCase);
+            var missing = required.Where(x => !paths.Contains(x)).ToArray();
+            if (missing.Length > 0)
+                throw new InvalidDataException(
+                    $"The {profile.IconName} payload is missing required files: {string.Join(", ", missing)}.");
+        }
+
+        private static IReadOnlyList<string> GetRequiredPayloadFiles(
+            ServerPayloadProfile profile)
+        {
             var required = new List<string>
             {
                 "U8CoreUI.dll",
@@ -773,13 +987,7 @@ namespace XelLauncher.Helpers
                     break;
             }
 
-            var paths = new HashSet<string>(
-                files.Select(x => x.RelativePath.Replace('\\', '/')),
-                StringComparer.OrdinalIgnoreCase);
-            var missing = required.Where(x => !paths.Contains(x)).ToArray();
-            if (missing.Length > 0)
-                throw new InvalidDataException(
-                    $"The {profile.IconName} payload is missing required files: {string.Join(", ", missing)}.");
+            return required;
         }
 
         private static IEnumerable<string> GetSourceDirectories(ServerPayloadProfile profile)
@@ -1125,6 +1333,10 @@ namespace XelLauncher.Helpers
             string ManifestSha256,
             IReadOnlyList<RemotePayloadFile> Files);
 
+        private sealed record RemotePayloadPackage(
+            string Version,
+            Uri ResourceBaseUri);
+
         private sealed record RemotePayloadFile(
             string RelativePath,
             string UrlPath,
@@ -1134,6 +1346,12 @@ namespace XelLauncher.Helpers
         private sealed record PayloadFilePlan(
             RemotePayloadFile Node,
             string SourcePath);
+
+        private sealed record CurrentVersionSnapshot(
+            string Version,
+            string ManifestSha256,
+            int FileCount,
+            long TotalBytes);
 
         private sealed record PayloadSeedRules(
             HashSet<string> RootFiles,

@@ -15,11 +15,21 @@ namespace XelLauncher.Forms
 
     internal sealed class ServerPayloadUpdateNotification : UserControl
     {
+        private static readonly Color GlassSurface =
+            Color.FromArgb(160, 34, 37, 43);
+        private static readonly Color GlassBorder =
+            Color.FromArgb(26, 255, 255, 255);
+        private static readonly Color PrimaryText =
+            Color.FromArgb(245, 255, 255, 255);
+        private static readonly Color SecondaryText =
+            Color.FromArgb(172, 207, 219, 230);
+
         private readonly AntdUI.Panel _card;
         private readonly AntdUI.Label _statusGlyph;
         private readonly AntdUI.Label _title;
         private readonly AntdUI.Label _detail;
         private readonly AntdUI.Progress _progress;
+        private readonly AntdUI.Label _progressPercent;
         private readonly AntdUI.Button _closeButton;
         private readonly Timer _autoCloseTimer;
 
@@ -41,8 +51,12 @@ namespace XelLauncher.Forms
             {
                 Dock = DockStyle.Fill,
                 Radius = 10,
-                Shadow = 8,
-                ShadowOpacity = 0.16F,
+                Shadow = 0,
+                ShadowOpacity = 0F,
+                BackColor = Color.Transparent,
+                Back = GlassSurface,
+                BorderWidth = 1F,
+                BorderColor = GlassBorder,
             };
 
             _statusGlyph = new AntdUI.Label
@@ -70,9 +84,26 @@ namespace XelLauncher.Forms
             _progress = new AntdUI.Progress
             {
                 Location = new Point(44, 91),
-                Size = new Size(306, 8),
+                Size = new Size(278, 8),
                 Value = 0F,
                 Loading = true,
+                BackColor = Color.Transparent,
+                Back = Color.FromArgb(48, 255, 255, 255),
+                Fill = Color.FromArgb(218, 123, 207, 211),
+                ForeColor = PrimaryText,
+                UseSystemText = true,
+                // AntdUI suppresses the entire track when system text is empty.
+                Text = " ",
+            };
+
+            _progressPercent = new AntdUI.Label
+            {
+                Text = "0%",
+                Location = new Point(328, 82),
+                Size = new Size(36, 26),
+                Font = new Font("Microsoft YaHei UI", 8.5F),
+                ForeColor = PrimaryText,
+                TextAlign = ContentAlignment.MiddleRight,
             };
 
             _closeButton = new AntdUI.Button
@@ -93,6 +124,7 @@ namespace XelLauncher.Forms
             _card.Controls.Add(_title);
             _card.Controls.Add(_detail);
             _card.Controls.Add(_progress);
+            _card.Controls.Add(_progressPercent);
             _card.Controls.Add(_closeButton);
             Controls.Add(_card);
 
@@ -117,7 +149,10 @@ namespace XelLauncher.Forms
             _title.Text = title;
             _detail.Text = detail;
             _progress.Loading = loading;
-            _progress.Value = Math.Clamp(value, 0F, 1F);
+            var progress = Math.Clamp(value, 0F, 1F);
+            _progress.Value = progress;
+            _progressPercent.Text =
+                $"{(int)Math.Round(progress * 100F, MidpointRounding.AwayFromZero)}%";
         }
 
         public void ShowResult(
@@ -132,6 +167,7 @@ namespace XelLauncher.Forms
             _detail.Text = detail;
             _progress.Loading = false;
             _progress.Value = 1F;
+            _progressPercent.Text = "100%";
 
             _autoCloseTimer.Stop();
             _autoCloseTimer.Interval = Math.Max(1, autoCloseSeconds) * 1000;
@@ -140,15 +176,12 @@ namespace XelLauncher.Forms
 
         private void ApplyTheme()
         {
-            var dark = AntdUI.Config.IsDark;
-            _card.BackColor = dark ? AppTheme.DarkSurface : Color.White;
-            _title.ForeColor = dark
-                ? AppTheme.DarkForeground
-                : AppTheme.LightForeground;
-            _detail.ForeColor = dark
-                ? AppTheme.DarkForegroundSecondary
-                : Color.FromArgb(105, 112, 122);
-            _closeButton.ForeColor = _detail.ForeColor;
+            _card.Back = GlassSurface;
+            _card.BorderColor = GlassBorder;
+            _title.ForeColor = PrimaryText;
+            _detail.ForeColor = SecondaryText;
+            _progressPercent.ForeColor = PrimaryText;
+            _closeButton.ForeColor = SecondaryText;
         }
 
         private void ApplyState(ServerPayloadNotificationState state)

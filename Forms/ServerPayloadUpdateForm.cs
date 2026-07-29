@@ -26,6 +26,7 @@ namespace XelLauncher.Forms
         private readonly AntdUI.Progress _progress;
         private readonly AntdUI.Button _btnUpdate;
         private readonly AntdUI.Button _btnClose;
+        private readonly SynchronizationContext _uiContext;
 
         private CancellationTokenSource _cancellation;
         private bool _busy;
@@ -34,6 +35,7 @@ namespace XelLauncher.Forms
         public ServerPayloadUpdateForm(Overview overview)
         {
             _overview = overview;
+            _uiContext = SynchronizationContext.Current;
 
             var dark = AntdUI.Config.IsDark;
             var surface = dark ? AppTheme.DarkBackground : Color.White;
@@ -139,6 +141,14 @@ namespace XelLauncher.Forms
                     row.SelectionChanged += OnRowSelectionChanged;
                     _rows[profile.IconName] = row;
                     list.Controls.Add(row);
+                    if (ServerPayloadUpdater.IsStateCurrentVersion(
+                            profile.IconName,
+                            state))
+                    {
+                        row.SetStatus(
+                            L("App.PayloadUpdate.Latest", "已是最新"),
+                            StatusKind.Success);
+                    }
                     rowIndex++;
                 }
             }
@@ -209,6 +219,8 @@ namespace XelLauncher.Forms
             Controls.Add(_btnClose);
             Controls.Add(_btnUpdate);
 
+            ServerPayloadUpdater.CurrentVersionStateChanged +=
+                OnCurrentVersionStateChanged;
             UpdateSelectionSummary();
         }
 
@@ -236,9 +248,53 @@ namespace XelLauncher.Forms
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
+                ServerPayloadUpdater.CurrentVersionStateChanged -=
+                    OnCurrentVersionStateChanged;
                 _cancellation?.Cancel();
+            }
 
             base.Dispose(disposing);
+        }
+
+        private void OnCurrentVersionStateChanged(string iconName, bool isCurrent)
+        {
+            if (_uiContext != null &&
+                !ReferenceEquals(SynchronizationContext.Current, _uiContext))
+            {
+                _uiContext.Post(
+                    _ => ApplyCurrentVersionState(iconName, isCurrent),
+                    null);
+                return;
+            }
+
+            ApplyCurrentVersionState(iconName, isCurrent);
+        }
+
+        private void ApplyCurrentVersionState(string iconName, bool isCurrent)
+        {
+            if (IsDisposed || Disposing || _busy ||
+                !_rows.TryGetValue(iconName, out var row))
+            {
+                return;
+            }
+
+            var state = ServerPayloadUpdater.GetState(iconName);
+            if (isCurrent &&
+                ServerPayloadUpdater.IsStateCurrentVersion(iconName, state))
+            {
+                row.SetVersion(state.Version);
+                row.SetStatus(
+                    L("App.PayloadUpdate.Latest", "已是最新"),
+                    StatusKind.Success);
+                return;
+            }
+
+            row.SetStatus(
+                string.IsNullOrWhiteSpace(state?.Version)
+                    ? L("App.PayloadUpdate.Waiting", "等待更新")
+                    : L("App.PayloadUpdate.PendingCheck", "待检查"),
+                StatusKind.Normal);
         }
 
         private async Task UpdateSelectedAsync()
@@ -292,9 +348,7 @@ namespace XelLauncher.Forms
                         {
                             row.SetVersion(result.Version);
                             row.SetStatus(
-                                result.AlreadyCurrent
-                                    ? L("App.PayloadUpdate.Latest", "已是最新")
-                                    : L("App.PayloadUpdate.Success", "更新完成"),
+                                L("App.PayloadUpdate.Latest", "已是最新"),
                                 StatusKind.Success);
                         }
                         succeeded++;

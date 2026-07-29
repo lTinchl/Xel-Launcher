@@ -86,6 +86,7 @@ namespace XelLauncher.Forms
                 _currentGamePage = newPage;
                 newPage.Visible = true;
                 newPage.BringToFront();
+                RehostServerPayloadNotification();
                 newPage.Update();
 
                 if (oldPage != null)
