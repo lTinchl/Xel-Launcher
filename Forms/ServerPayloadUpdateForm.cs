@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +53,7 @@ namespace XelLauncher.Forms
                 Text = L("App.PayloadUpdate.Description",
                     "选择需要更新的服区，仅下载官方清单中发生变化的渠道文件。"),
                 Location = new Point(22, 12),
-                Size = new Size(FormWidth - 44, 28),
+                Size = new Size(FormWidth - 266, 28),
                 ForeColor = subtleText,
                 Font = new Font(Font.FontFamily, 9.5F),
                 BackColor = Color.Transparent,
@@ -79,6 +81,18 @@ namespace XelLauncher.Forms
                 ForeColor = subtleText,
                 BackColor = Color.Transparent,
             };
+
+            var btnOpenPayloadDirectory = new AntdUI.Button
+            {
+                Text = L("App.PayloadUpdate.OpenFolder", "打开切服资源目录"),
+                IconSvg = "FolderOpenOutlined",
+                Location = new Point(FormWidth - 210, 5),
+                Size = new Size(186, 30),
+                Radius = 7,
+                Type = AntdUI.TTypeMini.Default,
+                Ghost = true,
+            };
+            btnOpenPayloadDirectory.Click += (s, e) => OpenPayloadDirectory();
 
             var header = new Panel
             {
@@ -186,6 +200,7 @@ namespace XelLauncher.Forms
             Controls.Add(description);
             Controls.Add(_selectAll);
             Controls.Add(_selectedCount);
+            Controls.Add(btnOpenPayloadDirectory);
             Controls.Add(header);
             Controls.Add(list);
             Controls.Add(_progressText);
@@ -194,6 +209,27 @@ namespace XelLauncher.Forms
             Controls.Add(_btnUpdate);
 
             UpdateSelectionSummary();
+        }
+
+        private void OpenPayloadDirectory()
+        {
+            try
+            {
+                Directory.CreateDirectory(ServerPayloadUpdater.CacheRoot);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = ServerPayloadUpdater.CacheRoot,
+                    UseShellExecute = true,
+                });
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "ServerPayloadDirectory.Open");
+                AntdUI.Message.error(
+                    FindForm() ?? _overview,
+                    L("App.PayloadUpdate.OpenFolderFailed",
+                        "无法打开切服资源目录。"));
+            }
         }
 
         protected override void Dispose(bool disposing)

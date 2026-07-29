@@ -339,6 +339,12 @@
   <data name="App.PayloadUpdate.Description" xml:space="preserve">
     <value>Select regions to update. Only changed channel files from the official manifest are downloaded.</value>
   </data>
+  <data name="App.PayloadUpdate.OpenFolder" xml:space="preserve">
+    <value>Open Payload Folder</value>
+  </data>
+  <data name="App.PayloadUpdate.OpenFolderFailed" xml:space="preserve">
+    <value>Unable to open the server payload folder.</value>
+  </data>
   <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
     <value>Syncing server-switch payload...</value>
   </data>
