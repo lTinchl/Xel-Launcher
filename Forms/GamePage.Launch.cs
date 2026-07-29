@@ -278,11 +278,16 @@ namespace XelLauncher.Forms
                     }
                     else
                     {
-                        config.Text = AntdUI.Localization.Get(
-                            "App.PayloadUpdate.AutoUpdating",
-                            "正在同步切服差异文件...");
-                        config.Refresh();
-                        await UpdateServerPayloadAfterGameUpdateAsync(update.IconName);
+                        if (IsServerPayloadAutoUpdateEnabled(update.IconName))
+                        {
+                            config.Text = AntdUI.Localization.Get(
+                                "App.PayloadUpdate.AutoUpdating",
+                                "正在同步切服差异文件...");
+                            config.Refresh();
+                            await UpdateServerPayloadAfterGameUpdateAsync(
+                                update.IconName);
+                        }
+
                         MarkGameReadyAfterInstall(capturedPath);
                         config.OK(AntdUI.Localization.Get("App.Game.Install.Success", "安装/更新完成"));
                     }
@@ -670,6 +675,13 @@ namespace XelLauncher.Forms
                 LogHelper.LogError(
                     ex, $"Server payload auto update failed: {iconName}");
             }
+        }
+
+        private static bool IsServerPayloadAutoUpdateEnabled(string iconName)
+        {
+            return ConfigHelper.Load()
+                .ServerPayloadAutoUpdateProfiles
+                .Contains(iconName, StringComparer.OrdinalIgnoreCase);
         }
 
         private static string FormatDownloadProgress(long downloaded, long total)

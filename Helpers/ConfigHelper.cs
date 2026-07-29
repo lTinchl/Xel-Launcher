@@ -34,6 +34,15 @@ namespace XelLauncher.Helpers
                 cfg.GameStatusCache ??= new();
                 cfg.CustomToolLinks ??= new();
                 cfg.NoticePanelCollapsed ??= new();
+                cfg.ServerPayloadAutoUpdateProfiles ??= new()
+                {
+                    "Arknights",
+                    "BiliArknights",
+                    "Endfield",
+                    "BiliEndfield",
+                    "GlobalEndfield",
+                    "PlayEndfield",
+                };
                 MigrateLegacySecrets(cfg);
                 return cfg;
             }

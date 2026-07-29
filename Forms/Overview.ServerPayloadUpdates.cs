@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,6 +21,16 @@ namespace XelLauncher.Forms
             if (_serverPayloadStartupRunning || IsDisposed || Disposing)
                 return;
 
+            var enabledProfiles = ConfigHelper.Load()
+                .ServerPayloadAutoUpdateProfiles;
+            var profiles = ServerPayloadUpdater.Profiles
+                .Where(profile => enabledProfiles.Contains(
+                    profile.IconName,
+                    StringComparer.OrdinalIgnoreCase))
+                .ToList();
+            if (profiles.Count == 0)
+                return;
+
             _serverPayloadStartupRunning = true;
             _serverPayloadNotificationDismissed = false;
             _serverPayloadAnyDownloadStarted = false;
@@ -28,7 +39,6 @@ namespace XelLauncher.Forms
             var operation = new CancellationTokenSource();
             _serverPayloadStartupCancellation = operation;
 
-            var profiles = ServerPayloadUpdater.Profiles;
             var updated = 0;
             var current = 0;
             var succeeded = 0;

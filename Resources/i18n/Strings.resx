@@ -337,13 +337,16 @@
     <value>切服差异文件更新</value>
   </data>
   <data name="App.PayloadUpdate.Description" xml:space="preserve">
-    <value>选择需要更新的服区，仅下载官方清单中发生变化的渠道文件。</value>
+    <value>勾选的服区会在启动时自动更新，也可点击下方按钮立即更新；未勾选的服区将被跳过。</value>
   </data>
   <data name="App.PayloadUpdate.OpenFolder" xml:space="preserve">
     <value>打开切服资源目录</value>
   </data>
   <data name="App.PayloadUpdate.OpenFolderFailed" xml:space="preserve">
     <value>无法打开切服资源目录。</value>
+  </data>
+  <data name="App.PayloadUpdate.SaveSelectionFailed" xml:space="preserve">
+    <value>无法保存切服资源自动更新范围。</value>
   </data>
   <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
     <value>正在同步切服差异文件...</value>
@@ -352,7 +355,7 @@
     <value>全部服区</value>
   </data>
   <data name="App.PayloadUpdate.SelectedCount" xml:space="preserve">
-    <value>已选择 {0} / {1}</value>
+    <value>自动更新 {0} / {1}</value>
   </data>
   <data name="App.PayloadUpdate.Region" xml:space="preserve">
     <value>服区</value>
@@ -376,10 +379,10 @@
     <value>正在取消...</value>
   </data>
   <data name="App.PayloadUpdate.NoSelection" xml:space="preserve">
-    <value>请至少选择一个服区。</value>
+    <value>请至少选择一个服区后再手动更新。</value>
   </data>
   <data name="App.PayloadUpdate.Ready" xml:space="preserve">
-    <value>请选择需要更新的服区。</value>
+    <value>请选择需要自动更新或立即更新的服区。</value>
   </data>
   <data name="App.PayloadUpdate.Checking" xml:space="preserve">
     <value>检查清单...</value>

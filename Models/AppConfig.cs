@@ -104,6 +104,15 @@ namespace XelLauncher.Models
         /// </summary>
         public string ThemeMode { get; set; } = "system";
         public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
+        public List<string> ServerPayloadAutoUpdateProfiles { get; set; } = new()
+        {
+            "Arknights",
+            "BiliArknights",
+            "Endfield",
+            "BiliEndfield",
+            "GlobalEndfield",
+            "PlayEndfield",
+        };
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
         public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
         public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();

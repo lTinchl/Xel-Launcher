@@ -337,13 +337,16 @@
     <value>Server Difference File Update</value>
   </data>
   <data name="App.PayloadUpdate.Description" xml:space="preserve">
-    <value>Select regions to update. Only changed channel files from the official manifest are downloaded.</value>
+    <value>Selected regions auto-update at startup and can be updated now; unselected regions are skipped.</value>
   </data>
   <data name="App.PayloadUpdate.OpenFolder" xml:space="preserve">
     <value>Open Payload Folder</value>
   </data>
   <data name="App.PayloadUpdate.OpenFolderFailed" xml:space="preserve">
     <value>Unable to open the server payload folder.</value>
+  </data>
+  <data name="App.PayloadUpdate.SaveSelectionFailed" xml:space="preserve">
+    <value>Unable to save the automatic server payload update selection.</value>
   </data>
   <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
     <value>Syncing server-switch payload...</value>
@@ -352,7 +355,7 @@
     <value>All regions</value>
   </data>
   <data name="App.PayloadUpdate.SelectedCount" xml:space="preserve">
-    <value>Selected {0} / {1}</value>
+    <value>Auto-update {0} / {1}</value>
   </data>
   <data name="App.PayloadUpdate.Region" xml:space="preserve">
     <value>Region</value>
@@ -376,10 +379,10 @@
     <value>Canceling...</value>
   </data>
   <data name="App.PayloadUpdate.NoSelection" xml:space="preserve">
-    <value>Select at least one region.</value>
+    <value>Select at least one region before updating.</value>
   </data>
   <data name="App.PayloadUpdate.Ready" xml:space="preserve">
-    <value>Select the regions you want to update.</value>
+    <value>Select regions to auto-update or update now.</value>
   </data>
   <data name="App.PayloadUpdate.Checking" xml:space="preserve">
     <value>Checking manifest...</value>

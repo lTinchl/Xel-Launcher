@@ -53,7 +53,7 @@ namespace XelLauncher.Forms
             var description = new AntdUI.Label
             {
                 Text = L("App.PayloadUpdate.Description",
-                    "选择需要更新的服区，仅下载官方清单中发生变化的渠道文件。"),
+                    "勾选的服区会在启动时自动更新，也可点击下方按钮立即更新；未勾选的服区将被跳过。"),
                 Location = new Point(22, 12),
                 Size = new Size(FormWidth - 44, 28),
                 ForeColor = subtleText,
@@ -119,6 +119,9 @@ namespace XelLauncher.Forms
                 BackColor = surface,
             };
 
+            var autoUpdateProfiles = new HashSet<string>(
+                ConfigHelper.Load().ServerPayloadAutoUpdateProfiles,
+                StringComparer.OrdinalIgnoreCase);
             var rowIndex = 0;
             _suppressSelectionEvents = true;
             try
@@ -139,6 +142,7 @@ namespace XelLauncher.Forms
                         Size = new Size(list.Width, RowHeight - 4),
                     };
                     row.SelectionChanged += OnRowSelectionChanged;
+                    row.Selected = autoUpdateProfiles.Contains(profile.IconName);
                     _rows[profile.IconName] = row;
                     list.Controls.Add(row);
                     if (ServerPayloadUpdater.IsStateCurrentVersion(
@@ -159,7 +163,9 @@ namespace XelLauncher.Forms
 
             _progressText = new AntdUI.Label
             {
-                Text = L("App.PayloadUpdate.Ready", "请选择需要更新的服区。"),
+                Text = L(
+                    "App.PayloadUpdate.Ready",
+                    "请选择需要自动更新或立即更新的服区。"),
                 Location = new Point(24, 428),
                 Size = new Size(FormWidth - 48, 24),
                 ForeColor = subtleText,
@@ -309,7 +315,9 @@ namespace XelLauncher.Forms
             {
                 AntdUI.Message.warn(
                     FindForm() ?? _overview,
-                    L("App.PayloadUpdate.NoSelection", "请至少选择一个服区。"));
+                    L(
+                        "App.PayloadUpdate.NoSelection",
+                        "请至少选择一个服区后再手动更新。"));
                 return;
             }
 
@@ -580,19 +588,43 @@ namespace XelLauncher.Forms
             }
 
             UpdateSelectionSummary();
+            SaveAutoUpdateSelection();
         }
 
         private void OnRowSelectionChanged()
         {
             if (_suppressSelectionEvents) return;
             UpdateSelectionSummary();
+            SaveAutoUpdateSelection();
+        }
+
+        private void SaveAutoUpdateSelection()
+        {
+            try
+            {
+                var config = ConfigHelper.Load();
+                config.ServerPayloadAutoUpdateProfiles = _rows.Values
+                    .Where(row => row.Selected)
+                    .Select(row => row.Profile.IconName)
+                    .ToList();
+                ConfigHelper.Save(config);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "ServerPayloadAutoUpdateSelection.Save");
+                AntdUI.Message.error(
+                    FindForm() ?? _overview,
+                    L(
+                        "App.PayloadUpdate.SaveSelectionFailed",
+                        "无法保存切服资源自动更新范围。"));
+            }
         }
 
         private void UpdateSelectionSummary()
         {
             var selected = _rows.Values.Count(x => x.Selected);
             _selectedCount.Text = string.Format(
-                L("App.PayloadUpdate.SelectedCount", "已选择 {0} / {1}"),
+                L("App.PayloadUpdate.SelectedCount", "自动更新 {0} / {1}"),
                 selected,
                 _rows.Count);
 
