@@ -88,7 +88,9 @@ namespace XelLauncher.Forms
                 IconSvg = "FolderOpenOutlined",
                 Location = new Point(FormWidth - 210, 5),
                 Size = new Size(186, 30),
+                BorderWidth = 0,
                 Radius = 7,
+                WaveSize = 0,
                 Type = AntdUI.TTypeMini.Default,
                 Ghost = true,
             };
