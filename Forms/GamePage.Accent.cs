@@ -21,11 +21,11 @@ namespace XelLauncher.Forms
             panelLaunch.Back = Color.Transparent;
             panelLaunch.BackColor = Color.Transparent;
 
-            if (AntdUI.Config.IsDark)
+            if (_toolSidebar != null)
             {
-                if (_toolSidebar != null) _toolSidebar.Back = Color.FromArgb(188, 34, 37, 43);
+                _toolSidebar.Back = Color.FromArgb(188, 34, 37, 43);
+                _toolSidebar.BorderColor = Color.FromArgb(34, 255, 255, 255);
             }
-            else if (_toolSidebar != null) _toolSidebar.Back = Color.FromArgb(188, 34, 37, 43);
 
             ApplyCoverAccentToLaunchControls();
             if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)

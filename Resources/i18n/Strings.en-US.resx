@@ -2625,4 +2625,7 @@
   <data name="App.Game.Notice" xml:space="preserve">
     <value>Announcements</value>
   </data>
+  <data name="App.Setting.HideToolSidebar" xml:space="preserve">
+    <value>Hide game toolbar</value>
+  </data>
 </root>

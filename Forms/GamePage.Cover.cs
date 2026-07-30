@@ -416,7 +416,7 @@ namespace XelLauncher.Forms
             }
 
             int rightLimit = _coverPictureBox?.Width - 28 ?? Width - 28;
-            if (_toolSidebar != null)
+            if (_toolSidebar != null && _toolSidebar.Visible)
             {
                 var toolHome = GetToolSidebarHome();
                 if (!toolHome.IsEmpty)

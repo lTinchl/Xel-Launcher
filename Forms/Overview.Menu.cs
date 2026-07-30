@@ -32,7 +32,9 @@ namespace XelLauncher.Forms
             cfg.UpdateDownloadSource = setting.UpdateDownloadSource;
             cfg.ArchiveLauncherImages = setting.ArchiveLauncherImages;
             cfg.RunAsAdministrator = setting.RunAsAdministrator;
+            cfg.HideToolSidebar = setting.HideToolSidebar;
             ConfigHelper.Save(cfg);
+            _currentGamePage?.ApplyToolSidebarVisibility(setting.HideToolSidebar);
             Setting.ApplyStartWithWindows(setting.StartWithWindows);
             LoadUpdateBadgeFromCache();
             RebuildGameButtons();

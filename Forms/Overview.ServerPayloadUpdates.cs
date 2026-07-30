@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,13 +9,8 @@ namespace XelLauncher.Forms
 {
     public partial class Overview
     {
-        private const int ServerPayloadAutoCheckIntervalHours = 4;
-
         private CancellationTokenSource _serverPayloadStartupCancellation;
-        private System.Windows.Forms.Timer _serverPayloadAutoCheckTimer;
         private ServerPayloadUpdateNotification _serverPayloadUpdateNotification;
-        private string _serverPayloadLastAttemptedCheckSlot = "";
-        private bool _serverPayloadAutoCheckStopped;
         private bool _serverPayloadNotificationDismissed;
         private bool _serverPayloadStartupRunning;
         private bool _serverPayloadAnyDownloadStarted;
@@ -24,34 +18,11 @@ namespace XelLauncher.Forms
 
         private async Task RunServerPayloadAutoUpdateOnLaunchAsync()
         {
-            var slotBeforeRun = GetServerPayloadAutoCheckSlotKey(DateTime.Now);
-            try
-            {
-                await RunServerPayloadAutoUpdateIfDueAsync();
-                if (!_serverPayloadAutoCheckStopped &&
-                    !IsDisposed &&
-                    !Disposing &&
-                    !string.Equals(
-                        slotBeforeRun,
-                        GetServerPayloadAutoCheckSlotKey(DateTime.Now),
-                        StringComparison.Ordinal))
-                {
-                    await RunServerPayloadAutoUpdateIfDueAsync();
-                }
-            }
-            finally
-            {
-                ScheduleNextServerPayloadAutoCheck();
-            }
-        }
-
-        private async Task RunServerPayloadAutoUpdateIfDueAsync()
-        {
             if (_serverPayloadStartupRunning || IsDisposed || Disposing)
                 return;
 
-            var config = ConfigHelper.Load();
-            var enabledProfiles = config.ServerPayloadAutoUpdateProfiles;
+            var enabledProfiles = ConfigHelper.Load()
+                .ServerPayloadAutoUpdateProfiles;
             var profiles = ServerPayloadUpdater.Profiles
                 .Where(profile => enabledProfiles.Contains(
                     profile.IconName,
@@ -59,32 +30,6 @@ namespace XelLauncher.Forms
                 .ToList();
             if (profiles.Count == 0)
                 return;
-
-            var checkSlot = GetServerPayloadAutoCheckSlotKey(DateTime.Now);
-            if (string.Equals(
-                    _serverPayloadLastAttemptedCheckSlot,
-                    checkSlot,
-                    StringComparison.Ordinal) ||
-                string.Equals(
-                    config.ServerPayloadLastAutoCheckSlotLocal,
-                    checkSlot,
-                    StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            _serverPayloadLastAttemptedCheckSlot = checkSlot;
-            try
-            {
-                config.ServerPayloadLastAutoCheckSlotLocal = checkSlot;
-                ConfigHelper.Save(config);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.LogError(
-                    ex,
-                    $"Server payload check slot save failed: {checkSlot}");
-            }
 
             _serverPayloadStartupRunning = true;
             _serverPayloadNotificationDismissed = false;
@@ -177,7 +122,7 @@ namespace XelLauncher.Forms
                         failed++;
                         LogHelper.LogError(
                             ex,
-                            $"Server payload scheduled check/update failed: {profile.IconName}");
+                            $"Server payload startup check/update failed: {profile.IconName}");
                     }
                 }
 
@@ -242,7 +187,7 @@ namespace XelLauncher.Forms
             }
             catch (Exception ex)
             {
-                LogHelper.LogError(ex, "Server payload scheduled check/update");
+                LogHelper.LogError(ex, "Server payload startup check/update");
                 ShowServerPayloadResult(
                     PayloadText(
                         "App.PayloadUpdate.Notification.FailedTitle",
@@ -258,62 +203,6 @@ namespace XelLauncher.Forms
                     _serverPayloadStartupCancellation = null;
                 operation.Dispose();
             }
-        }
-
-        private async void ServerPayloadAutoCheckTimer_Tick(
-            object sender,
-            EventArgs e)
-        {
-            _serverPayloadAutoCheckTimer?.Stop();
-            try
-            {
-                await RunServerPayloadAutoUpdateOnLaunchAsync();
-            }
-            catch (Exception ex)
-            {
-                LogHelper.LogError(ex, "Server payload scheduled timer");
-            }
-        }
-
-        private void ScheduleNextServerPayloadAutoCheck()
-        {
-            if (_serverPayloadAutoCheckStopped || IsDisposed || Disposing)
-                return;
-
-            var now = DateTime.Now;
-            var nextCheck = GetServerPayloadAutoCheckSlot(now)
-                .AddHours(ServerPayloadAutoCheckIntervalHours);
-            var delayMilliseconds = Math.Clamp(
-                Math.Ceiling((nextCheck - now).TotalMilliseconds),
-                1000D,
-                int.MaxValue);
-
-            if (_serverPayloadAutoCheckTimer == null)
-            {
-                _serverPayloadAutoCheckTimer = new System.Windows.Forms.Timer();
-                _serverPayloadAutoCheckTimer.Tick +=
-                    ServerPayloadAutoCheckTimer_Tick;
-            }
-
-            _serverPayloadAutoCheckTimer.Stop();
-            _serverPayloadAutoCheckTimer.Interval = (int)delayMilliseconds;
-            _serverPayloadAutoCheckTimer.Start();
-        }
-
-        private static DateTime GetServerPayloadAutoCheckSlot(
-            DateTime localTime)
-        {
-            var slotHour = localTime.Hour -
-                           localTime.Hour % ServerPayloadAutoCheckIntervalHours;
-            return localTime.Date.AddHours(slotHour);
-        }
-
-        private static string GetServerPayloadAutoCheckSlotKey(
-            DateTime localTime)
-        {
-            return GetServerPayloadAutoCheckSlot(localTime).ToString(
-                "yyyy-MM-dd'T'HH:mm",
-                CultureInfo.InvariantCulture);
         }
 
         private void ApplyServerPayloadProgress(
@@ -521,16 +410,6 @@ namespace XelLauncher.Forms
 
         private void StopServerPayloadAutoUpdate()
         {
-            _serverPayloadAutoCheckStopped = true;
-            if (_serverPayloadAutoCheckTimer != null)
-            {
-                _serverPayloadAutoCheckTimer.Stop();
-                _serverPayloadAutoCheckTimer.Tick -=
-                    ServerPayloadAutoCheckTimer_Tick;
-                _serverPayloadAutoCheckTimer.Dispose();
-                _serverPayloadAutoCheckTimer = null;
-            }
-
             try
             {
                 _serverPayloadStartupCancellation?.Cancel();

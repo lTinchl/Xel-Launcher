@@ -99,6 +99,7 @@ namespace XelLauncher.Models
         public bool UseExternalBrowser { get; set; } = false;              // 使用外部浏览器打开链接
         public bool CheckGameUpdates { get; set; } = false;                // 检查游戏更新
         public bool ArchiveLauncherImages { get; set; } = false;           // 保存 API 新启动器图片
+        public bool HideToolSidebar { get; set; } = false;                 // 隐藏游戏页工具栏
         /// <summary>
         /// 主题模式："system"（跟随系统）、"light"（强制浅色）、"dark"（强制深色）
         /// </summary>
@@ -113,7 +114,6 @@ namespace XelLauncher.Models
             "GlobalEndfield",
             "PlayEndfield",
         };
-        public string ServerPayloadLastAutoCheckSlotLocal { get; set; } = "";
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
         public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
         public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();

@@ -255,6 +255,8 @@ namespace XelLauncher.Forms
                 ShadowOpacity = 0F,
                 BackColor = Color.Transparent,
                 Back = Color.FromArgb(188, 34, 37, 43),
+                BorderWidth = 1F,
+                BorderColor = Color.FromArgb(34, 255, 255, 255),
                 Anchor = AnchorStyles.None,
             };
 
@@ -271,6 +273,7 @@ namespace XelLauncher.Forms
             }
 
             _coverPictureBox.Controls.Add(_toolSidebar);
+            ApplyToolSidebarVisibility(ConfigHelper.Load().HideToolSidebar);
             _toolSidebar.BringToFront();
         }
 
@@ -536,7 +539,8 @@ namespace XelLauncher.Forms
             if (_switchAnimationActive) return;
 
             _toolSidebar.Location = _toolSidebarHome;
-            _toolSidebar.BringToFront();
+            if (_toolSidebar.Visible)
+                _toolSidebar.BringToFront();
         }
 
         private Point GetToolSidebarHome()
@@ -547,6 +551,21 @@ namespace XelLauncher.Forms
             int x = _coverPictureBox.Width - _toolSidebar.Width - 22;
             int y = Math.Max(76, (availableHeight - _toolSidebar.Height) / 2);
             return new Point(Math.Max(0, x), Math.Max(0, y));
+        }
+
+        internal void ApplyToolSidebarVisibility(bool hidden)
+        {
+            if (_toolSidebar == null || _toolSidebar.IsDisposed) return;
+
+            _toolSidebar.Visible = !hidden;
+            if (!hidden)
+            {
+                PositionToolSidebar();
+                _toolSidebar.BringToFront();
+            }
+
+            if (_noticePanel != null && !_noticePanel.IsDisposed)
+                PositionNoticePanel();
         }
 
         public void PrepareSwitchInStart()

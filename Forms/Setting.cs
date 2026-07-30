@@ -107,7 +107,7 @@ namespace XelLauncher
             return Math.Max(96, (int)Math.Round(graphics.DpiX));
         }
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages, RunAsAdministrator;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages, RunAsAdministrator, HideToolSidebar;
         public string UpdateDownloadSource = UpdateHelper.DownloadSourceGitHub;
 
         public Setting(AntdUI.BaseForm _form)
@@ -150,6 +150,7 @@ namespace XelLauncher
             switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
             switch10.Checked = UseExternalBrowser = cfg.UseExternalBrowser;
             switch11.Checked = UseHardLink = cfg.UseHardLink;
+            switch12.Checked = HideToolSidebar = cfg.HideToolSidebar;
             CheckGameUpdates = cfg.CheckGameUpdates;
             UpdateDownloadSource = UpdateHelper.NormalizeDownloadSource(cfg.UpdateDownloadSource);
             _netdiskSourceMode = UpdateHelper.IsNetdiskDownloadSource(UpdateDownloadSource);
@@ -167,6 +168,7 @@ namespace XelLauncher
             switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
             switch10.CheckedChanged += (s, e) => { UseExternalBrowser = e.Value; };
             switch11.CheckedChanged += (s, e) => { UseHardLink = e.Value; };
+            switch12.CheckedChanged += (s, e) => { HideToolSidebar = e.Value; };
             _archiveLauncherImagesSwitch.CheckedChanged += (s, e) => { ArchiveLauncherImages = e.Value; };
 
             BindUpdatePanel();
@@ -191,17 +193,26 @@ namespace XelLauncher
                 TabIndex = 0,
             };
 
-            if (tableSoftware.RowCount < 14)
-                tableSoftware.RowCount = 14;
+            if (tableSoftware.RowCount < 15)
+                tableSoftware.RowCount = 15;
             while (tableSoftware.RowStyles.Count < tableSoftware.RowCount)
                 tableSoftware.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
 
-            tableSoftware.RowStyles[12].SizeType = SizeType.Absolute;
-            tableSoftware.RowStyles[12].Height = 46F;
+            const int archiveOptionRow = 12;
+            foreach (Control option in tableSoftware.Controls)
+            {
+                if (tableSoftware.GetRow(option) >= archiveOptionRow)
+                    tableSoftware.SetRow(option, tableSoftware.GetRow(option) + 1);
+            }
+
+            tableSoftware.RowStyles[archiveOptionRow].SizeType = SizeType.Absolute;
+            tableSoftware.RowStyles[archiveOptionRow].Height = 46F;
             tableSoftware.RowStyles[13].SizeType = SizeType.Absolute;
-            tableSoftware.RowStyles[13].Height = 20F;
-            tableSoftware.Controls.Add(_archiveLauncherImagesLabel, 0, 12);
-            tableSoftware.Controls.Add(_archiveLauncherImagesSwitch, 1, 12);
+            tableSoftware.RowStyles[13].Height = 46F;
+            tableSoftware.RowStyles[14].SizeType = SizeType.Absolute;
+            tableSoftware.RowStyles[14].Height = 20F;
+            tableSoftware.Controls.Add(_archiveLauncherImagesLabel, 0, archiveOptionRow);
+            tableSoftware.Controls.Add(_archiveLauncherImagesSwitch, 1, archiveOptionRow);
         }
 
         private void AddRunAsAdministratorOption()
@@ -1200,6 +1211,8 @@ namespace XelLauncher
             label9.Text = "启动游戏后隐藏至托盘";
             label10.Text = "使用外部浏览器";
             label11.Text = "使用硬链接切服";
+
+            label12.Text = L("App.Setting.HideToolSidebar", "隐藏游戏工具栏");
 
             if (_archiveLauncherImagesLabel != null)
                 _archiveLauncherImagesLabel.Text = L("App.Setting.ArchiveLauncherImages", string.Empty);
