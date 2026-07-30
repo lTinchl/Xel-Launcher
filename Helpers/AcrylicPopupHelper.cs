@@ -115,8 +115,9 @@ namespace XelLauncher.Helpers
 
                 _popup = popup;
                 popup.Disposed += Popup_Disposed;
-
-                popup.Print();
+                // The popup's own opening animation renders the prepared acrylic
+                // background. Forcing another full render here races that animation
+                // and makes the first menu item's text jump into place.
             }
 
             public void Restore()
