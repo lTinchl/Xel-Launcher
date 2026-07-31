@@ -9,6 +9,8 @@ namespace XelLauncher.Forms
 {
     public partial class Overview
     {
+        private static readonly Localizer PayloadLocalizer = new();
+
         private CancellationTokenSource _serverPayloadStartupCancellation;
         private ServerPayloadUpdateNotification _serverPayloadUpdateNotification;
         private bool _serverPayloadNotificationDismissed;
@@ -47,12 +49,8 @@ namespace XelLauncher.Forms
             try
             {
                 ShowServerPayloadProgress(
-                    PayloadText(
-                        "App.PayloadUpdate.Notification.CheckingTitle",
-                        "正在更新切服资源"),
-                    PayloadText(
-                        "App.PayloadUpdate.CheckingVersion",
-                        "检查清单..."),
+                    PayloadText("App.PayloadUpdate.Notification.CheckingTitle"),
+                    PayloadText("App.PayloadUpdate.CheckingVersion"),
                     0F,
                     loading: true);
 
@@ -65,13 +63,9 @@ namespace XelLauncher.Forms
                     var capturedIndex = profileIndex;
                     var profileName = GetServerPayloadProfileDisplayName(profile.IconName);
                     ShowServerPayloadProgress(
-                        PayloadText(
-                            "App.PayloadUpdate.Notification.CheckingTitle",
-                            "正在检查切服资源"),
+                        PayloadText("App.PayloadUpdate.Notification.CheckingTitle"),
                         string.Format(
-                            PayloadText(
-                                "App.PayloadUpdate.CheckingVersionRegion",
-                                "正在检查 {0} 的最新资源版本..."),
+                            PayloadText("App.PayloadUpdate.CheckingVersionRegion"),
                             profileName),
                         (float)profileIndex / profiles.Count,
                         loading: true);
@@ -98,13 +92,9 @@ namespace XelLauncher.Forms
                         {
                             current++;
                             ShowServerPayloadProgress(
-                                PayloadText(
-                                    "App.PayloadUpdate.Notification.CheckingTitle",
-                                    "正在检查切服资源"),
+                                PayloadText("App.PayloadUpdate.Notification.CheckingTitle"),
                                 string.Format(
-                                    PayloadText(
-                                        "App.PayloadUpdate.VersionCurrentRegion",
-                                        "{0} 已是最新版本"),
+                                    PayloadText("App.PayloadUpdate.VersionCurrentRegion"),
                                     profileName),
                                 (float)(profileIndex + 1) / profiles.Count,
                                 loading: false);
@@ -131,13 +121,9 @@ namespace XelLauncher.Forms
                     if (updated == 0)
                     {
                         ShowServerPayloadResult(
-                            PayloadText(
-                                "App.PayloadUpdate.Notification.LatestTitle",
-                                "切服资源已是最新"),
+                            PayloadText("App.PayloadUpdate.Notification.LatestTitle"),
                             string.Format(
-                                PayloadText(
-                                    "App.PayloadUpdate.Notification.StartupLatest",
-                                    "版本检查完成：{0} 个服区均为最新版本。"),
+                                PayloadText("App.PayloadUpdate.Notification.StartupLatest"),
                                 current),
                             ServerPayloadNotificationState.Success,
                             autoCloseSeconds: 5);
@@ -145,17 +131,13 @@ namespace XelLauncher.Forms
                     else
                     {
                         ShowServerPayloadResult(
-                        PayloadText(
-                            "App.PayloadUpdate.Notification.SuccessTitle",
-                            "切服文件更新完成"),
-                        string.Format(
-                            PayloadText(
-                                "App.PayloadUpdate.Notification.StartupSuccess",
-                                "切服资源检查完成：更新 {0} 个，已是最新 {1} 个。"),
-                            updated,
-                            current),
-                        ServerPayloadNotificationState.Success,
-                        autoCloseSeconds: 5);
+                            PayloadText("App.PayloadUpdate.Notification.SuccessTitle"),
+                            string.Format(
+                                PayloadText("App.PayloadUpdate.Notification.StartupSuccess"),
+                                updated,
+                                current),
+                            ServerPayloadNotificationState.Success,
+                            autoCloseSeconds: 5);
                     }
                 }
                 else
@@ -165,14 +147,9 @@ namespace XelLauncher.Forms
                         PayloadText(
                             allFailed
                                 ? "App.PayloadUpdate.Notification.FailedTitle"
-                                : "App.PayloadUpdate.Notification.PartialTitle",
-                            allFailed
-                                ? "切服文件更新失败"
-                                : "部分切服文件更新失败"),
+                                : "App.PayloadUpdate.Notification.PartialTitle"),
                         string.Format(
-                            PayloadText(
-                                "App.PayloadUpdate.Notification.StartupFailure",
-                                "切服资源更新完成：成功 {0} 个，失败 {1} 个。"),
+                            PayloadText("App.PayloadUpdate.Notification.StartupFailure"),
                             succeeded,
                             failed),
                         allFailed
@@ -189,9 +166,7 @@ namespace XelLauncher.Forms
             {
                 LogHelper.LogError(ex, "Server payload startup check/update");
                 ShowServerPayloadResult(
-                    PayloadText(
-                        "App.PayloadUpdate.Notification.FailedTitle",
-                        "切服文件更新失败"),
+                    PayloadText("App.PayloadUpdate.Notification.FailedTitle"),
                     ex.Message,
                     ServerPayloadNotificationState.Error,
                     autoCloseSeconds: 8);
@@ -233,49 +208,37 @@ namespace XelLauncher.Forms
                 case ServerPayloadUpdateStage.Checking:
                     loading = true;
                     detail = string.Format(
-                        PayloadText(
-                            "App.PayloadUpdate.CheckingRegion",
-                            "正在检查 {0} 的官方资源清单..."),
+                        PayloadText("App.PayloadUpdate.CheckingRegion"),
                         profileName);
                     break;
                 case ServerPayloadUpdateStage.Comparing:
                     detail = FormatServerPayloadFileProgress(
                         profileName,
-                        PayloadText(
-                            "App.PayloadUpdate.Comparing",
-                            "比较文件..."),
+                        PayloadText("App.PayloadUpdate.Comparing"),
                         value);
                     break;
                 case ServerPayloadUpdateStage.Downloading:
                     loading = value.TotalBytes <= 0;
                     detail = value.TotalBytes > 0
                         ? string.Format(
-                            PayloadText(
-                                "App.PayloadUpdate.DownloadProgress",
-                                "正在下载 {0}：{1:F1} / {2:F1} MB"),
+                            PayloadText("App.PayloadUpdate.DownloadProgress"),
                             profileName,
                             value.DownloadedBytes / 1048576D,
                             value.TotalBytes / 1048576D)
                         : FormatServerPayloadFileProgress(
                             profileName,
-                            PayloadText(
-                                "App.PayloadUpdate.Downloading",
-                                "下载中..."),
+                            PayloadText("App.PayloadUpdate.Downloading"),
                             value);
                     break;
                 case ServerPayloadUpdateStage.Verifying:
                     detail = FormatServerPayloadFileProgress(
                         profileName,
-                        PayloadText(
-                            "App.PayloadUpdate.Verifying",
-                            "校验中..."),
+                        PayloadText("App.PayloadUpdate.Verifying"),
                         value);
                     break;
                 case ServerPayloadUpdateStage.Applying:
                     detail = string.Format(
-                        PayloadText(
-                            "App.PayloadUpdate.ApplyingRegion",
-                            "正在应用 {0} 的更新..."),
+                        PayloadText("App.PayloadUpdate.ApplyingRegion"),
                         profileName);
                     break;
                 default:
@@ -284,9 +247,7 @@ namespace XelLauncher.Forms
             }
 
             ShowServerPayloadProgress(
-                PayloadText(
-                    "App.PayloadUpdate.Notification.UpdatingTitle",
-                    "正在更新切服资源"),
+                PayloadText("App.PayloadUpdate.Notification.UpdatingTitle"),
                 detail,
                 overallProgress,
                 loading);
@@ -451,38 +412,37 @@ namespace XelLauncher.Forms
             string stage,
             ServerPayloadUpdateProgress value)
         {
-            return value.FileCount <= 0
-                ? $"{profileName}：{stage}"
-                : $"{profileName}：{stage}  {value.FileIndex} / {value.FileCount}";
+            if (value.FileCount <= 0)
+            {
+                return string.Format(
+                    PayloadText("App.PayloadUpdate.StageProgress"),
+                    profileName,
+                    stage);
+            }
+
+            return string.Format(
+                PayloadText("App.PayloadUpdate.FileProgress"),
+                profileName,
+                stage,
+                value.FileIndex,
+                value.FileCount);
         }
 
         private static string GetServerPayloadProfileDisplayName(string iconName)
         {
             return iconName switch
             {
-                "Arknights" => PayloadText(
-                    "App.PayloadUpdate.Region.Arknights",
-                    "明日方舟（官服）"),
-                "BiliArknights" => PayloadText(
-                    "App.PayloadUpdate.Region.BiliArknights",
-                    "明日方舟（B服）"),
-                "Endfield" => PayloadText(
-                    "App.PayloadUpdate.Region.Endfield",
-                    "终末地（官服）"),
-                "BiliEndfield" => PayloadText(
-                    "App.PayloadUpdate.Region.BiliEndfield",
-                    "终末地（B服）"),
-                "GlobalEndfield" => PayloadText(
-                    "App.PayloadUpdate.Region.GlobalEndfield",
-                    "终末地（国际服）"),
-                "PlayEndfield" => PayloadText(
-                    "App.PayloadUpdate.Region.PlayEndfield",
-                    "终末地（Google Play）"),
+                "Arknights" => PayloadText("App.PayloadUpdate.Region.Arknights"),
+                "BiliArknights" => PayloadText("App.PayloadUpdate.Region.BiliArknights"),
+                "Endfield" => PayloadText("App.PayloadUpdate.Region.Endfield"),
+                "BiliEndfield" => PayloadText("App.PayloadUpdate.Region.BiliEndfield"),
+                "GlobalEndfield" => PayloadText("App.PayloadUpdate.Region.GlobalEndfield"),
+                "PlayEndfield" => PayloadText("App.PayloadUpdate.Region.PlayEndfield"),
                 _ => iconName,
             };
         }
 
-        private static string PayloadText(string key, string fallback) =>
-            AntdUI.Localization.Get(key, fallback);
+        private static string PayloadText(string key) =>
+            PayloadLocalizer.GetLocalizedString(key) ?? key;
     }
 }
