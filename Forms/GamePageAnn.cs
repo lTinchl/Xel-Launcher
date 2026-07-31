@@ -160,7 +160,16 @@ public class NoticeItem
 
         public void UpdateFallbackImage(Image image)
         {
-            if (_banners.Count == 0 || _banners[0].Image == image) return;
+            if (image == null) return;
+            if (_banners.Count == 0)
+            {
+                _banners.Add(new NoticeBannerItem(image, "", false));
+                _selectedBannerIndex = 0;
+                Invalidate();
+                return;
+            }
+
+            if (_banners[0].Image == image) return;
             if (string.IsNullOrEmpty(_banners[0].Url))
                 _banners[0].Image = image;
             Invalidate();
@@ -418,8 +427,7 @@ public class NoticeItem
             PaintCollapseToggle(g, false);
 
             int pad = 8;
-            int thumbW = Width >= 560 ? 242 : 154;
-            if (Width < 410) thumbW = 0;
+            int thumbW = GetBannerThumbnailWidth();
             int thumbH = Height - pad * 2;
             _bannerRect = thumbW > 0 ? new Rectangle(pad, pad, thumbW, thumbH) : Rectangle.Empty;
 
@@ -873,8 +881,7 @@ public class NoticeItem
             }
 
             const int pad = 8;
-            int thumbW = Width >= 560 ? 242 : 154;
-            if (Width < 410) thumbW = 0;
+            int thumbW = GetBannerThumbnailWidth();
             int textX = pad + thumbW + (thumbW > 0 ? 20 : 0);
             int textW = Width - textX - pad;
             if (textW <= 0)
@@ -884,6 +891,14 @@ public class NoticeItem
             }
 
             Invalidate(new Rectangle(Math.Max(0, textX - 6), 8, Math.Min(Width - textX + 6, textW + 12), 38));
+        }
+
+        private int GetBannerThumbnailWidth()
+        {
+            if (CurrentBannerImage == null || Width < 410)
+                return 0;
+
+            return Width >= 560 ? 242 : 154;
         }
 
         private static bool NearlySame(RectangleF a, RectangleF b, float tolerance = 0.1F) =>

@@ -482,7 +482,13 @@ namespace XelLauncher.Forms
 
         private List<NoticeBannerItem> CreateFallbackBanners(Image image)
         {
-            return new List<NoticeBannerItem>();
+            if (image == null)
+                return new List<NoticeBannerItem>();
+
+            return new List<NoticeBannerItem>
+            {
+                new NoticeBannerItem(image, "", false)
+            };
         }
 
         private List<NoticeItem> CreateFallbackNotices()
