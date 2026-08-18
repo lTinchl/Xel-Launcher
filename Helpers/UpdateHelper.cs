@@ -143,20 +143,23 @@ namespace XelLauncher.Helpers
 
         public static async Task<AppUpdateState> CheckAndPersistAsync(string currentVersion)
         {
-            var cfg = ConfigHelper.Load();
-            cfg.UpdateState ??= new AppUpdateState();
-            cfg.UpdateState.LastCheckedAtUtc = DateTimeOffset.UtcNow.ToString("O");
-
+            var checkedAtUtc = DateTimeOffset.UtcNow.ToString("O");
             var info = await CheckAsync();
-            if (info == null)
-            {
-                ConfigHelper.Save(cfg);
-                return null;
-            }
 
-            SaveInfo(cfg.UpdateState, info, IsNewer(currentVersion, info.LatestVersion));
-            ConfigHelper.Save(cfg);
-            return cfg.UpdateState;
+            var updatedConfig = ConfigHelper.Update(cfg =>
+            {
+                cfg.UpdateState ??= new AppUpdateState();
+                cfg.UpdateState.LastCheckedAtUtc = checkedAtUtc;
+                if (info != null)
+                {
+                    SaveInfo(
+                        cfg.UpdateState,
+                        info,
+                        IsNewer(currentVersion, info.LatestVersion));
+                }
+            });
+
+            return info == null ? null : updatedConfig.UpdateState;
         }
 
         public static UpdateInfo ToUpdateInfo(AppUpdateState state)

@@ -2631,4 +2631,133 @@
   <data name="App.Setting.HideToolSidebar" xml:space="preserve">
     <value>隐藏游戏工具栏</value>
   </data>
+  <data name="App.LinkedClient.CreateBili" xml:space="preserve">
+    <value>从官服创建 B 服硬链接客户端</value>
+  </data>
+  <data name="App.LinkedClient.SelectTarget" xml:space="preserve">
+    <value>选择 B 服客户端目录</value>
+  </data>
+  <data name="App.LinkedClient.ConfirmTitle" xml:space="preserve">
+    <value>创建独立 B 服客户端</value>
+  </data>
+  <data name="App.LinkedClient.ConfirmMessage" xml:space="preserve">
+    <value>将在所选空目录中创建独立 B 服客户端，并与官服共享相同的游戏资源文件。官服与目标目录必须位于同一 NTFS 分区，目标目录必须为空；创建期间请关闭游戏、官服启动器和 B 服启动器。共享期间请勿使用任何启动器更新或修复；需要更新时，请先在 Xel Launcher 的 B 服设置中解除共享。是否继续？</value>
+  </data>
+  <data name="App.LinkedClient.Creating" xml:space="preserve">
+    <value>正在创建硬链接客户端…</value>
+  </data>
+  <data name="App.LinkedClient.Success" xml:space="preserve">
+    <value>已通过硬链接共享 {0} 个文件，B 服客户端版本为 {1}。</value>
+  </data>
+  <data name="App.LinkedClient.Failed" xml:space="preserve">
+    <value>创建硬链接客户端失败：{0}</value>
+  </data>
+  <data name="App.LinkedClient.Detach" xml:space="preserve">
+    <value>解除硬链接共享</value>
+  </data>
+  <data name="App.LinkedClient.DetachConfirmTitle" xml:space="preserve">
+    <value>解除客户端共享</value>
+  </data>
+  <data name="App.LinkedClient.DetachConfirmMessage" xml:space="preserve">
+    <value>将把当前客户端中的共享硬链接替换为独立文件。此操作需要额外磁盘空间，期间请关闭游戏；完成后两个客户端可分别使用官方启动器更新。是否继续？</value>
+  </data>
+  <data name="App.LinkedClient.Detaching" xml:space="preserve">
+    <value>正在解除硬链接共享…</value>
+  </data>
+  <data name="App.LinkedClient.DetachSuccess" xml:space="preserve">
+    <value>已解除硬链接共享，当前客户端现在拥有独立文件。</value>
+  </data>
+  <data name="App.LinkedClient.DetachFailed" xml:space="preserve">
+    <value>解除硬链接共享失败：{0}</value>
+  </data>
+  <data name="App.LinkedClient.Stage.Validating" xml:space="preserve">
+    <value>正在检查目录与磁盘…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.FetchingManifests" xml:space="preserve">
+    <value>正在获取官服与 B 服文件清单…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.VerifyingSource" xml:space="preserve">
+    <value>正在校验官服客户端…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.LinkingFiles" xml:space="preserve">
+    <value>正在创建共享硬链接…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.RepairingTarget" xml:space="preserve">
+    <value>正在补全 B 服专用文件…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.VerifyingTarget" xml:space="preserve">
+    <value>正在校验 B 服客户端…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.Finalizing" xml:space="preserve">
+    <value>正在写入客户端目录…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.Completed" xml:space="preserve">
+    <value>创建完成</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetRoot" xml:space="preserve">
+    <value>不能将磁盘根目录用作硬链接客户端目录</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceMissing" xml:space="preserve">
+    <value>未找到完整的明日方舟官服客户端</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceLink" xml:space="preserve">
+    <value>官服目录不能是符号链接、目录联接或其他重解析点</value>
+  </data>
+  <data name="App.LinkedClient.Error.PathOverlap" xml:space="preserve">
+    <value>官服与 B 服目录必须是互不包含的两个目录</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetLink" xml:space="preserve">
+    <value>B 服目标目录不能是符号链接、目录联接或其他重解析点</value>
+  </data>
+  <data name="App.LinkedClient.Error.Ntfs" xml:space="preserve">
+    <value>官服与 B 服目录都必须位于 NTFS 分区</value>
+  </data>
+  <data name="App.LinkedClient.Error.Volume" xml:space="preserve">
+    <value>官服与 B 服目录必须位于同一个磁盘分区</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceVersion" xml:space="preserve">
+    <value>官服客户端不是最新版本（需要 {0}），请先更新并修复官服客户端</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceHash" xml:space="preserve">
+    <value>官服文件校验失败：{0}。请先修复官服客户端</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceFile" xml:space="preserve">
+    <value>官服文件缺失或大小不正确：{0}。请先修复官服客户端</value>
+  </data>
+  <data name="App.LinkedClient.Error.Config" xml:space="preserve">
+    <value>无法读取官服 config.ini</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetVerify" xml:space="preserve">
+    <value>B 服客户端最终校验失败，未写入游戏设置</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetFileVerify" xml:space="preserve">
+    <value>B 服客户端最终校验失败：{0}</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetNotEmpty" xml:space="preserve">
+    <value>B 服目标目录必须为空，以免覆盖已有文件</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetParent" xml:space="preserve">
+    <value>B 服目标目录的父目录不存在</value>
+  </data>
+  <data name="App.LinkedClient.Error.PathMissing" xml:space="preserve">
+    <value>路径不能为空</value>
+  </data>
+  <data name="App.LinkedClient.Error.GroupBusy" xml:space="preserve">
+    <value>关联客户端正在执行更新、修复或共享操作，请稍后重试</value>
+  </data>
+  <data name="App.LinkedClient.Error.MutationBlocked" xml:space="preserve">
+    <value>该客户端仍与另一渠道共享硬链接文件。请先在 B 服设置中解除共享，再更新、预下载或修复。</value>
+  </data>
+  <data name="App.LinkedClient.Error.NoSharedFiles" xml:space="preserve">
+    <value>官服与 B 服清单中没有可安全共享的相同资源文件</value>
+  </data>
+  <data name="App.LinkedClient.Error.LinkIntegrity" xml:space="preserve">
+    <value>共享硬链接校验失败：{0}</value>
+  </data>
+  <data name="App.LinkedClient.Error.FreeSpace" xml:space="preserve">
+    <value>磁盘空间不足。至少需要 {0:N0} 字节，当前可用 {1:N0} 字节</value>
+  </data>
+  <data name="App.LinkedClient.Error.ConfigChanged" xml:space="preserve">
+    <value>创建期间游戏设置已发生变化，请重新开始</value>
+  </data>
 </root>

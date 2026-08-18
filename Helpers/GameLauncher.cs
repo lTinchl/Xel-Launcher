@@ -161,39 +161,67 @@ namespace XelLauncher.Helpers
         }
 
         // 带结果回调的切服入口，onResult(true) = 使用了硬链接，onResult(false) = 文件复制
-        public static async Task SwitchServerWithResult(string rootPath, string iconName, Action<string> onProgress, bool isEndfield, Action<bool> onResult)
+        public static async Task SwitchServerWithResult(
+            string rootPath,
+            string iconName,
+            Action<string> onProgress,
+            bool isEndfield,
+            Action<bool> onResult,
+            bool operationAlreadyCoordinated = false)
         {
-            bool preferHardLink = ConfigHelper.Load().UseHardLink;
-            bool usedHardLink = await ServerPayloadUpdater.UsePayloadDirectoryAsync(
-                iconName,
-                async payloadDir =>
+            IDisposable operationLease = null;
+            try
+            {
+                LinkedClientPolicy.ThrowIfSharedClient(iconName, rootPath);
+                if (!operationAlreadyCoordinated &&
+                    LinkedClientPolicy.IsArknightsChannel(iconName) &&
+                    !LinkedClientOperationCoordinator.TryAcquire(
+                        iconName, rootPath, out operationLease))
                 {
-                    if (payloadDir == null || !Directory.Exists(payloadDir))
+                    throw new InvalidOperationException(
+                        AntdUI.Localization.Get(
+                            "App.LinkedClient.Error.GroupBusy",
+                            "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                }
+
+                bool preferHardLink = ConfigHelper.Load().UseHardLink;
+                bool usedHardLink = await ServerPayloadUpdater.UsePayloadDirectoryAsync(
+                    iconName,
+                    async payloadDir =>
                     {
-                        throw new FileNotFoundException(
-                            AntdUI.Localization.Get(
-                                "App.Switch.NoPayload",
-                                "未找到切服资源（文件夹或 ZIP 均不存在）"));
-                    }
+                        if (payloadDir == null || !Directory.Exists(payloadDir))
+                        {
+                            throw new FileNotFoundException(
+                                AntdUI.Localization.Get(
+                                    "App.Switch.NoPayload",
+                                    "未找到切服资源（文件夹或 ZIP 均不存在）"));
+                        }
 
-                    var canUseHardLink =
-                        preferHardLink && OnSameVolume(payloadDir, rootPath);
-                    onProgress(canUseHardLink
-                        ? AntdUI.Localization.Get(
-                            "App.Switch.Linking", "切服中（硬链接）...")
-                        : AntdUI.Localization.Get(
-                            "App.Switch.Copying", "切服中..."));
+                        var canUseHardLink =
+                            preferHardLink && OnSameVolume(payloadDir, rootPath);
+                        onProgress(canUseHardLink
+                            ? AntdUI.Localization.Get(
+                                "App.Switch.Linking", "切服中（硬链接）...")
+                            : AntdUI.Localization.Get(
+                                "App.Switch.Copying", "切服中..."));
 
-                    DeleteStalePayloadManifests(rootPath);
-                    return await HardLinkOrCopyDirectory(
-                        payloadDir, rootPath, preferHardLink);
-                });
-            onResult(usedHardLink);
+                        DeleteStalePayloadManifests(rootPath);
+                        return await HardLinkOrCopyDirectory(
+                            payloadDir, rootPath, preferHardLink);
+                    });
+                onResult(usedHardLink);
 
-            string doneMsg = usedHardLink
-                ? AntdUI.Localization.Get("App.Switch.DoneHardLink", "游戏启动中···")
-                : AntdUI.Localization.Get("App.Switch.DoneCopy", "游戏启动中···");
-            onProgress(doneMsg);
+                string doneMsg = usedHardLink
+                    ? AntdUI.Localization.Get(
+                        "App.Switch.DoneHardLink", "游戏启动中···")
+                    : AntdUI.Localization.Get(
+                        "App.Switch.DoneCopy", "游戏启动中···");
+                onProgress(doneMsg);
+            }
+            finally
+            {
+                operationLease?.Dispose();
+            }
         }
 
         public static void StartArknights(string rootPath, string iconName)

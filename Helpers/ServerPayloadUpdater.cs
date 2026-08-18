@@ -89,6 +89,25 @@ namespace XelLauncher.Helpers
         public bool AlreadyCurrent { get; init; }
     }
 
+    public sealed class ServerGameManifest
+    {
+        public ServerPayloadProfile Profile { get; init; }
+        public string Version { get; init; } = "";
+        public Uri ResourceBaseUri { get; init; }
+        public string ManifestSha256 { get; init; } = "";
+        public byte[] EncryptedManifest { get; init; } = Array.Empty<byte>();
+        public IReadOnlyList<ServerGameManifestFile> Files { get; init; } =
+            Array.Empty<ServerGameManifestFile>();
+    }
+
+    public sealed class ServerGameManifestFile
+    {
+        public string RelativePath { get; init; } = "";
+        public string UrlPath { get; init; } = "";
+        public string Md5 { get; init; } = "";
+        public long Size { get; init; }
+    }
+
     /// <summary>
     /// Updates the small, channel-specific payload used by server switching.
     /// The remote game manifest is only used as an authenticated file index;
@@ -199,6 +218,76 @@ namespace XelLauncher.Helpers
         {
             return ProfileList.FirstOrDefault(x =>
                 string.Equals(x.IconName, iconName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static async Task<ServerGameManifest> GetGameManifestAsync(
+            string iconName,
+            CancellationToken cancellationToken = default)
+        {
+            var profile = GetProfile(iconName) ??
+                          throw new ArgumentException(
+                              $"Unknown server payload profile: {iconName}", nameof(iconName));
+            var manifest = await GetRemoteManifestAsync(profile, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new ServerGameManifest
+            {
+                Profile = profile,
+                Version = manifest.Version,
+                ResourceBaseUri = manifest.ResourceBaseUri,
+                ManifestSha256 = manifest.ManifestSha256,
+                EncryptedManifest = manifest.EncryptedManifest.ToArray(),
+                Files = manifest.Files.Select(x => new ServerGameManifestFile
+                {
+                    RelativePath = x.RelativePath,
+                    UrlPath = x.UrlPath,
+                    Md5 = x.Md5,
+                    Size = x.Size
+                }).ToArray()
+            };
+        }
+
+        public static async Task DownloadGameManifestFileAsync(
+            ServerGameManifest manifest,
+            ServerGameManifestFile file,
+            string destinationPath,
+            IProgress<long> progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(manifest);
+            ArgumentNullException.ThrowIfNull(file);
+            ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
+            var parent = Path.GetDirectoryName(destinationPath) ??
+                         throw new ArgumentException(
+                             "The destination path has no parent directory.",
+                             nameof(destinationPath));
+            Directory.CreateDirectory(parent);
+
+            var tempPath = destinationPath + ".download-" + Guid.NewGuid().ToString("N");
+            try
+            {
+                await DownloadFileAsync(
+                        BuildFileUri(manifest.ResourceBaseUri, file.UrlPath),
+                        tempPath,
+                        file.Size,
+                        delta => progress?.Report(delta),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!await HasExpectedMd5Async(tempPath, file.Md5, cancellationToken)
+                        .ConfigureAwait(false))
+                {
+                    throw new InvalidDataException(
+                        $"Downloaded file hash mismatch: {file.RelativePath}");
+                }
+
+                File.Move(tempPath, destinationPath, overwrite: false);
+            }
+            finally
+            {
+                if (File.Exists(tempPath)) File.Delete(tempPath);
+            }
         }
 
         public static string GetPayloadDirectory(string iconName)
@@ -716,6 +805,7 @@ namespace XelLauncher.Helpers
                 latest.Version,
                 latest.ResourceBaseUri,
                 Convert.ToHexString(SHA256.HashData(encryptedManifest)),
+                encryptedManifest,
                 nodes);
         }
 
@@ -845,8 +935,6 @@ namespace XelLauncher.Helpers
                         $"Invalid MD5 for {node.Path}.");
 
                 var relativePath = NormalizeRelativePath(node.Path);
-                if (IsDeploymentExcluded(relativePath)) continue;
-
                 var normalizedUrlPath = relativePath.Replace('\\', '/');
                 var item = new RemotePayloadFile(
                     relativePath, normalizedUrlPath, node.Md5.ToLowerInvariant(), node.Size);
@@ -1331,6 +1419,7 @@ namespace XelLauncher.Helpers
             string Version,
             Uri ResourceBaseUri,
             string ManifestSha256,
+            byte[] EncryptedManifest,
             IReadOnlyList<RemotePayloadFile> Files);
 
         private sealed record RemotePayloadPackage(

@@ -206,14 +206,46 @@ namespace XelLauncher.Forms
                 if (path == null) return;
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
-                if (e2 != null) { e2.RootPath = path; ConfigHelper.Save(cfg2); }
+                if (e2 != null)
+                {
+                    try
+                    {
+                        LinkedClientPolicy.UpdatePath(cfg2, e2, path);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        AntdUI.Message.warn(_overview, ex.Message);
+                        return;
+                    }
+                    ConfigHelper.Save(cfg2);
+                }
+            }
+
+            try
+            {
+                LinkedClientPolicy.ThrowIfSharedClient(_game.IconName, path);
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+
+            var capturedPath = path;
+            ActiveGameUpdate update;
+            bool started;
+            try
+            {
+                update = GameUpdateManager.StartOrAttach(
+                    _game.IconName, capturedPath, out started);
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
             }
 
             _gameState = GameState.Downloading;
-            RefreshGameStartButton();
-
-            var capturedPath = path;
-            var update = GameUpdateManager.StartOrAttach(_game.IconName, capturedPath, out var started);
             _activeUpdate = update;
             RefreshGameStartButton();
             AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Install.Init", "初始化..."), async config =>
@@ -278,7 +310,9 @@ namespace XelLauncher.Forms
                     }
                     else
                     {
-                        if (IsServerPayloadAutoUpdateEnabled(update.IconName))
+                        if (!LinkedClientPolicy.ShouldSkipServerPayloadSwitch(
+                                update.IconName, capturedPath) &&
+                            IsServerPayloadAutoUpdateEnabled(update.IconName))
                         {
                             config.Text = AntdUI.Localization.Get(
                                 "App.PayloadUpdate.AutoUpdating",
@@ -328,6 +362,16 @@ namespace XelLauncher.Forms
             var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
             string path = entry?.RootPath ?? _game.RootPath;
 
+            try
+            {
+                LinkedClientPolicy.ThrowIfSharedClient(_game.IconName, path);
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             {
                 AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
@@ -349,6 +393,15 @@ namespace XelLauncher.Forms
             if (_preloadCompleted && _gameState == GameState.HasPreload)
             {
                 AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Preload.Success", "预下载已完成"));
+                return;
+            }
+
+            if (!LinkedClientOperationCoordinator.TryAcquire(
+                    _game.IconName, path, out var operationLease))
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
+                    "App.LinkedClient.Error.GroupBusy",
+                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
                 return;
             }
 
@@ -406,6 +459,7 @@ namespace XelLauncher.Forms
                 }
                 finally
                 {
+                    operationLease.Dispose();
                     _preloadRunning = false;
                     if (IsHandleCreated && !IsDisposed)
                     {
@@ -506,15 +560,41 @@ namespace XelLauncher.Forms
                 return;
             }
 
+            try
+            {
+                LinkedClientPolicy.ThrowIfSharedClient(_game.IconName, path);
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+
             if (GameUpdateManager.Find(path) != null)
             {
                 AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.Repair.UpdateRunning", "游戏正在更新中，无法同时校验"));
                 return;
             }
 
-            if (_gameState == GameState.Repairing || IsSameInstallPath(_repairingPath, path) || !GameRepairManager.TryStart(path))
+            if (_gameState == GameState.Repairing || IsSameInstallPath(_repairingPath, path))
             {
                 AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Repair.AlreadyRunning", "游戏完整性校验正在进行中"));
+                return;
+            }
+
+            try
+            {
+                if (!GameRepairManager.TryStart(_game.IconName, path))
+                {
+                    AntdUI.Message.info(_overview, AntdUI.Localization.Get(
+                        "App.Game.Repair.AlreadyRunning",
+                        "游戏完整性校验正在进行中"));
+                    return;
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
                 return;
             }
 
@@ -636,7 +716,7 @@ namespace XelLauncher.Forms
                 if (entry != null)
                 {
                     if (!string.IsNullOrEmpty(installPath))
-                        entry.RootPath = installPath;
+                        LinkedClientPolicy.UpdatePath(cfg, entry, installPath);
                     if (!string.IsNullOrEmpty(cached?.RemoteVersion))
                         entry.LocalVersion = cached.RemoteVersion;
                 }
@@ -743,8 +823,6 @@ namespace XelLauncher.Forms
             string path = entry?.RootPath ?? _game.RootPath;
 
             bool isEndfield = _game.IconName == "Endfield" || _game.IconName == "BiliEndfield" || _game.IconName == "GlobalEndfield" || _game.IconName == "PlayEndfield";
-            string payloadDir = GameLauncher.GetPayloadDirPath(_game.IconName);
-            bool needSwitch = payloadDir != null && Directory.Exists(payloadDir);
 
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
@@ -761,88 +839,162 @@ namespace XelLauncher.Forms
                 }
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
-                if (e2 != null) { e2.RootPath = path; ConfigHelper.Save(cfg2); }
+                if (e2 != null)
+                {
+                    try
+                    {
+                        LinkedClientPolicy.UpdatePath(cfg2, e2, path);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        AntdUI.Message.warn(_overview, ex.Message);
+                        return;
+                    }
+                    ConfigHelper.Save(cfg2);
+                }
+            }
+            IDisposable launchOperationLease = null;
+            if (LinkedClientPolicy.IsArknightsChannel(_game.IconName) &&
+                !LinkedClientOperationCoordinator.TryAcquire(
+                    _game.IconName, path, out launchOperationLease))
+            {
+                AntdUI.Message.warn(
+                    _overview,
+                    AntdUI.Localization.Get(
+                        "App.LinkedClient.Error.GroupBusy",
+                        "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                return;
             }
 
-            await GameLauncher.KillArknightsProcesses(isEndfield);
+            if (LinkedClientPolicy.IsArknightsChannel(_game.IconName))
+            {
+                var launchConfig = ConfigHelper.Load();
+                var launchEntry = LinkedClientPolicy.FindEntry(
+                    launchConfig, _game.IconName, path);
+                var markerExists = ArknightsLinkedClientService
+                    .HasLinkedClientMarker(path);
+                var groupExists = !string.IsNullOrWhiteSpace(
+                    launchEntry?.LinkedClientGroupId);
+                if (ArknightsLinkedClientService.IsPendingClient(
+                        launchConfig, _game.IconName, path) ||
+                    ArknightsLinkedClientService.IsPendingDetachClient(
+                        launchConfig, _game.IconName, path) ||
+                    markerExists != groupExists)
+                {
+                    launchOperationLease?.Dispose();
+                    AntdUI.Message.warn(
+                        _overview,
+                        AntdUI.Localization.Get(
+                            "App.LinkedClient.Error.GroupBusy",
+                            "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                    return;
+                }
+            }
+
+            bool independentClient;
+            string payloadDir;
+            bool needSwitch;
+            try
+            {
+                independentClient = LinkedClientPolicy.ShouldSkipServerPayloadSwitch(
+                    _game.IconName, path);
+                payloadDir = independentClient
+                    ? null
+                    : GameLauncher.GetPayloadDirPath(_game.IconName);
+                needSwitch = payloadDir != null && Directory.Exists(payloadDir);
+                await GameLauncher.KillArknightsProcesses(isEndfield);
+            }
+            catch (Exception ex)
+            {
+                launchOperationLease?.Dispose();
+                Helpers.LogHelper.LogError(ex, "GameStartPreparation");
+                AntdUI.Message.error(_overview, ex.Message);
+                return;
+            }
 
             GameStart.LoadingWaveValue = 0;
             GameStart.Loading = true;
-            AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Loading", "加载中..."), async (config) =>
+            var callbackOperationLease = launchOperationLease;
+            launchOperationLease = null;
+            try
             {
-                try
+                AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Loading", "加载中..."), async (config) =>
                 {
-                    if (_game.IconName == "Arknights")
+                    try
                     {
-                        string selectedAccountId = accountSelect.SelectedValue as string;
-                        if (!string.IsNullOrEmpty(selectedAccountId))
+                        if (_game.IconName == "Arknights")
                         {
-                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
-                            config.Refresh();
-                            await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
+                            string selectedAccountId = accountSelect.SelectedValue as string;
+                            if (!string.IsNullOrEmpty(selectedAccountId))
+                            {
+                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
+                                config.Refresh();
+                                await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
+                            }
                         }
-                    }
-                    else if (_game.IconName == "Endfield")
-                    {
-                        string selectedAccountId = accountSelect.SelectedValue as string;
-                        if (!string.IsNullOrEmpty(selectedAccountId))
+                        else if (_game.IconName == "Endfield")
                         {
-                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
-                            config.Refresh();
-                            await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
+                            string selectedAccountId = accountSelect.SelectedValue as string;
+                            if (!string.IsNullOrEmpty(selectedAccountId))
+                            {
+                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
+                                config.Refresh();
+                                await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
+                            }
                         }
-                    }
-                    else if (_game.IconName == "GlobalEndfield")
-                    {
-                        string selectedAccountId = accountSelect.SelectedValue as string;
-                        if (!string.IsNullOrEmpty(selectedAccountId))
+                        else if (_game.IconName == "GlobalEndfield")
                         {
-                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
-                            config.Refresh();
-                            await Helpers.GameLauncher.RestoreGlobalEndfieldAccount(selectedAccountId);
+                            string selectedAccountId = accountSelect.SelectedValue as string;
+                            if (!string.IsNullOrEmpty(selectedAccountId))
+                            {
+                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
+                                config.Refresh();
+                                await Helpers.GameLauncher.RestoreGlobalEndfieldAccount(selectedAccountId);
+                            }
                         }
-                    }
-                    if (needSwitch)
-                    {
-                        bool usedHardLink = false;
-                        await GameLauncher.SwitchServerWithResult(path, _game.IconName, msg =>
+                        if (needSwitch)
                         {
-                            config.Text = msg;
-                            config.Refresh();
-                        }, isEndfield, result => usedHardLink = result);
+                            bool usedHardLink = false;
+                            await GameLauncher.SwitchServerWithResult(path, _game.IconName, msg =>
+                            {
+                                config.Text = msg;
+                                config.Refresh();
+                            }, isEndfield, result => usedHardLink = result,
+                                operationAlreadyCoordinated:
+                                    callbackOperationLease != null);
 
-                        if (!usedHardLink && cfg.UseHardLink)
-                        {
-                            _overview.BeginInvoke(new Action(() =>
-                                AntdUI.Message.info(_overview,
-                                    AntdUI.Localization.Get("App.Game.HardLinkTip",
-                                        "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"))
-                            ));
+                            if (!usedHardLink && cfg.UseHardLink)
+                            {
+                                _overview.BeginInvoke(new Action(() =>
+                                    AntdUI.Message.info(_overview,
+                                        AntdUI.Localization.Get("App.Game.HardLinkTip",
+                                            "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"))
+                                ));
+                            }
                         }
-                    }
-                    // Run the loading wave for a random 1-3 seconds.
-                    if (needSwitch && _game.IconName == "Arknights")
-                    {
-                        string selectedAccountId = accountSelect.SelectedValue as string;
-                        if (!string.IsNullOrEmpty(selectedAccountId))
+                        // Run the loading wave for a random 1-3 seconds.
+                        if (needSwitch && _game.IconName == "Arknights")
                         {
-                            config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "Switching account...");
-                            config.Refresh();
-                            await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
+                            string selectedAccountId = accountSelect.SelectedValue as string;
+                            if (!string.IsNullOrEmpty(selectedAccountId))
+                            {
+                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "Switching account...");
+                                config.Refresh();
+                                await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
+                            }
                         }
-                    }
 
-                    var rng = new Random();
-                    int totalMs = rng.Next(1000, 3001);
-                    int steps = 100;
-                    int stepMs = totalMs / steps;
-                    for (int i = 0; i <= steps; i++)
-                    {
-                        GameStart.LoadingWaveValue = i / (float)steps;
-                        await Task.Delay(stepMs);
-                    }
+                        var rng = new Random();
+                        int totalMs = rng.Next(1000, 3001);
+                        int steps = 100;
+                        int stepMs = totalMs / steps;
+                        for (int i = 0; i <= steps; i++)
+                        {
+                            GameStart.LoadingWaveValue = i / (float)steps;
+                            await Task.Delay(stepMs);
+                        }
 
-                    GameLauncher.StartArknights(path, _game.IconName);
+                        GameLauncher.StartArknights(path, _game.IconName);
 
                     // Show launch success only after the game process is detected.
                     string procName = (isEndfield) ? "Endfield" : "Arknights";
@@ -892,24 +1044,41 @@ namespace XelLauncher.Forms
                             }
                         });
                     }
-                }
-                catch (Exception ex)
-                {
-                    Helpers.LogHelper.LogError(ex, "GameStart");
-                    config.Error(ex.Message);
-                }
-                if (!GameStart.IsDisposed)
-                {
-                    try
-                    {
-                        _overview.Invoke(new Action(() => { if (!GameStart.IsDisposed) GameStart.Loading = false; }));
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        if (!GameStart.IsDisposed) GameStart.Loading = false;
+                        Helpers.LogHelper.LogError(ex, "GameStart");
+                        config.Error(ex.Message);
                     }
-                }
-            });
+                    finally
+                    {
+                        callbackOperationLease?.Dispose();
+                        if (!GameStart.IsDisposed)
+                        {
+                            try
+                            {
+                                _overview.Invoke(new Action(() =>
+                                {
+                                    if (!GameStart.IsDisposed)
+                                        GameStart.Loading = false;
+                                }));
+                            }
+                            catch
+                            {
+                                if (!GameStart.IsDisposed)
+                                    GameStart.Loading = false;
+                            }
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                callbackOperationLease?.Dispose();
+                if (!GameStart.IsDisposed) GameStart.Loading = false;
+                Helpers.LogHelper.LogError(ex, "GameStartLoadingDialog");
+                AntdUI.Message.error(_overview, ex.Message);
+            }
         }
     }
 }

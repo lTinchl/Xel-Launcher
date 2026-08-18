@@ -16,7 +16,13 @@ namespace XelLauncher.Forms
         private readonly Overview _overview;
         private readonly GamePage _gamePage;
         private AntdUI.Input _inputPath;
+        private AntdUI.Button _btnBrowse;
+        private AntdUI.Button _btnCreateLinked;
+        private AntdUI.Button _btnDetachLinked;
+        private AntdUI.Button _btnReplaceLegacy;
         private readonly Action _onPathChanged;
+        private Action _applyResponsiveLayout;
+        private bool _suppressPathAutoSave;
 
         private Size LogicalSize(int width, int height) => new Size(width, LogicalPixels(height));
 
@@ -36,6 +42,8 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             var latest = cfg.Games.Find(g => g.Name == game.Name && g.IconName == game.IconName);
             string currentPath = latest?.RootPath ?? game.RootPath;
+            bool linkedGroupActive = LinkedClientPolicy.IsSharedClient(
+                game.IconName, currentPath);
 
             Font = new Font("Microsoft YaHei UI", 9F);
             var surfaceBack = AntdUI.Config.IsDark ? AppTheme.DarkBackground : Color.White;
@@ -60,8 +68,13 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 124),
                 Size = new Size(320, 36),
                 PlaceholderText = AntdUI.Localization.Get("App.GameSetting.PathPlaceholder", "未设置路径"),
+                ReadOnly = linkedGroupActive,
             };
-            _inputPath.TextChanged += (s, e) => AutoSave(_inputPath.Text.Trim());
+            _inputPath.TextChanged += (s, e) =>
+            {
+                if (!_suppressPathAutoSave)
+                    AutoSave(_inputPath.Text.Trim());
+            };
             _inputPath.Leave += (s, e) =>
             {
                 _onPathChanged?.Invoke();
@@ -69,7 +82,7 @@ namespace XelLauncher.Forms
             };
 
             // ── 更改路径 ──
-            var btnBrowse = new AntdUI.Button
+            var btnBrowse = _btnBrowse = new AntdUI.Button
             {
                 Text = AntdUI.Localization.Get("App.GameSetting.ChangePath", "更改路径"),
                 IconSvg = "FolderOpenOutlined",
@@ -78,6 +91,7 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 172),
                 Size = new Size(320, 36),
                 Ghost = true,
+                Enabled = !linkedGroupActive,
             };
             btnBrowse.Click += (s, e) => BrowsePath();
 
@@ -106,7 +120,43 @@ namespace XelLauncher.Forms
 
             if (game.IconName == "BiliArknights")
             {
-                var btnReplaceOfficial = new AntdUI.Button
+                var btnCreateLinked = _btnCreateLinked = new AntdUI.Button
+                {
+                    Text = AntdUI.Localization.Get(
+                        "App.LinkedClient.CreateBili",
+                        "从官服创建 B 服硬链接客户端"),
+                    IconSvg = "LinkOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
+                    Location = new Point(20, 268),
+                    Size = new Size(320, 36),
+                    Type = AntdUI.TTypeMini.Primary,
+                    Enabled = !linkedGroupActive,
+                    Visible = !linkedGroupActive,
+                };
+                btnCreateLinked.Click += (s, e) =>
+                    CreateLinkedBilibiliClient();
+                Controls.Add(btnCreateLinked);
+
+                var btnDetachLinked = _btnDetachLinked = new AntdUI.Button
+                {
+                    Text = AntdUI.Localization.Get(
+                        "App.LinkedClient.Detach",
+                        "解除硬链接共享"),
+                    IconSvg = "DisconnectOutlined",
+                    IconRatio = .58F,
+                    IconGap = .18F,
+                    Location = new Point(20, 268),
+                    Size = new Size(320, 36),
+                    Ghost = true,
+                    Enabled = linkedGroupActive,
+                    Visible = linkedGroupActive,
+                };
+                btnDetachLinked.Click += (s, e) =>
+                    DetachLinkedBilibiliClient();
+                Controls.Add(btnDetachLinked);
+
+                var btnReplaceOfficial = _btnReplaceLegacy = new AntdUI.Button
                 {
                     Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
                     IconSvg = "CopyOutlined",
@@ -115,6 +165,7 @@ namespace XelLauncher.Forms
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
+                    Enabled = !linkedGroupActive,
                 };
                 btnReplaceOfficial.Click += async (s, e) =>
                 {
@@ -139,6 +190,8 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
+                            LinkedClientPolicy.ClearLegacyPairState(
+                                ConfigHelper.Load());
                             bool usedHardLink = false;
                             cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
                             cfg.Refresh();
@@ -150,6 +203,7 @@ namespace XelLauncher.Forms
                             }, false, r => usedHardLink = r);
                             var cfg2 = ConfigHelper.Load();
                             var BiliBili = cfg2.Games.Find(g => g.IconName == "Arknights");
+                            LinkedClientPolicy.ClearLegacyPairState(cfg2);
                             if (BiliBili != null) BiliBili.RootPath = path;
                             ConfigHelper.Save(cfg2);
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
@@ -192,7 +246,7 @@ namespace XelLauncher.Forms
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
-                    Location = new Point(20, 268),
+                    Location = new Point(20, 312),
                     Size = new Size(320, 36),
                     Ghost = true,
                 };
@@ -514,6 +568,7 @@ namespace XelLauncher.Forms
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
+                    Enabled = !linkedGroupActive,
                 };
                 btnSync.Click += (s, e) =>
                 {
@@ -523,11 +578,19 @@ namespace XelLauncher.Forms
                         AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetOfficialPath", "请先设置官服路径"));
                         return;
                     }
-                    var cfg = ConfigHelper.Load();
-                    var bili = cfg.Games.Find(g => g.IconName == "BiliArknights");
-                    if (bili != null) bili.RootPath = currentPath;
-                    ConfigHelper.Save(cfg);
-                    AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccess", "路径已同步到 BillBili服"));
+                    try
+                    {
+                        var cfg = ConfigHelper.Load();
+                        LinkedClientPolicy.ClearLegacyPairState(cfg);
+                        var bili = cfg.Games.Find(g => g.IconName == "BiliArknights");
+                        if (bili != null) bili.RootPath = currentPath;
+                        ConfigHelper.Save(cfg);
+                        AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccess", "路径已同步到 BillBili服"));
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        AntdUI.Message.warn(_overview, ex.Message);
+                    }
                 };
                 Controls.Add(btnSync);
                 Size = LogicalSize(360, 386);
@@ -742,6 +805,8 @@ namespace XelLauncher.Forms
             {
                 if (drawerHost != null)
                     drawerHost.Resize -= drawerHostResize;
+
+                _applyResponsiveLayout = null;
             };
             VisibleChanged += (s, e) =>
             {
@@ -750,6 +815,7 @@ namespace XelLauncher.Forms
                 FitToDrawerHost();
                 ApplyResponsiveLayout();
             };
+            _applyResponsiveLayout = ApplyResponsiveLayout;
             ApplyResponsiveLayout();
 
             void FitToDrawerHost()
@@ -925,11 +991,389 @@ namespace XelLauncher.Forms
             return new Size(width, height);
         }
 
+        private void CreateLinkedBilibiliClient()
+        {
+            var currentConfig = ConfigHelper.Load();
+            var official = currentConfig.Games.Find(g => g.IconName == "Arknights");
+            var bilibili = currentConfig.Games.Find(g => g.IconName == "BiliArknights");
+            var officialPath = official?.RootPath?.Trim();
+            if (string.IsNullOrWhiteSpace(officialPath) || !Directory.Exists(officialPath))
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
+                    "App.LinkedClient.Error.SourceMissing",
+                    "未找到完整的明日方舟官服客户端"));
+                return;
+            }
+
+            if (LinkedClientPolicy.IsSharedClient(
+                    "Arknights", official?.RootPath) ||
+                LinkedClientPolicy.IsSharedClient(
+                    "BiliArknights", bilibili?.RootPath))
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
+                    "App.LinkedClient.Error.MutationBlocked",
+                    "当前客户端仍在共享硬链接文件，请先解除共享。"));
+                return;
+            }
+
+            if (GameUpdateManager.Find(officialPath) != null ||
+                GameRepairManager.IsRepairing(officialPath))
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
+                    "App.LinkedClient.Error.GroupBusy",
+                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                return;
+            }
+
+            var owner = FindForm();
+            var targetPath = DialogHelper.BrowseFolder(
+                owner?.IsHandleCreated == true ? owner.Handle : IntPtr.Zero,
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.SelectTarget",
+                    "选择 B 服客户端目录"),
+                _inputPath.Text);
+            if (targetPath == null) return;
+
+            var confirm = AntdUI.Modal.open(new AntdUI.Modal.Config(
+                owner as AntdUI.BaseForm ?? null,
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.ConfirmTitle",
+                    "创建独立 B 服客户端"),
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.ConfirmMessage",
+                    "将在同一 NTFS 分区的空目录创建 B 服客户端。创建时请关闭游戏及两个渠道启动器；共享期间请勿更新或修复，更新前请先解除共享。是否继续？") +
+                Environment.NewLine + Environment.NewLine + targetPath,
+                AntdUI.TType.Warn)
+            {
+                OkText = AntdUI.Localization.Get("OK", "确定"),
+                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
+                Width = 580,
+            });
+            if (confirm != DialogResult.OK) return;
+
+            SetLinkedClientControlsBusy(true);
+            AntdUI.Message.loading(
+                _overview,
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.Creating",
+                    "正在创建硬链接客户端…"),
+                async loading =>
+                {
+                    ArknightsLinkedClientResult result;
+                    try
+                    {
+                        var progress = new Progress<ArknightsLinkedClientProgress>(value =>
+                        {
+                            loading.Text = FormatLinkedClientProgress(value, detaching: false);
+                            loading.Refresh();
+                        });
+                        result = await ArknightsLinkedClientService
+                            .CreateBilibiliClientAsync(
+                                officialPath, targetPath, progress);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Create linked Arknights Bilibili client");
+                        loading.Error(string.Format(
+                            AntdUI.Localization.Get(
+                                "App.LinkedClient.Failed",
+                                "创建硬链接客户端失败：{0}"),
+                            ex.Message));
+                        RefreshLinkedClientControls();
+                        return;
+                    }
+
+                    try
+                    {
+                        loading.OK(string.Format(
+                            AntdUI.Localization.Get(
+                                "App.LinkedClient.Success",
+                                "已通过硬链接共享 {0} 个文件，B 服客户端版本为 {1}。"),
+                            result.LinkedFileCount,
+                            result.TargetVersion));
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Report linked Arknights Bilibili client success");
+                    }
+
+                    _game.RootPath = result.TargetPath;
+                    _game.LocalVersion = result.TargetVersion;
+                    _game.IndependentChannelClient = true;
+                    _game.LinkedClientGroupId = result.LinkedClientGroupId;
+
+                    try
+                    {
+                        if (!IsDisposed && !Disposing)
+                        {
+                            _suppressPathAutoSave = true;
+                            try
+                            {
+                                _inputPath.Text = result.TargetPath;
+                                _inputPath.ReadOnly = true;
+                                _btnBrowse.Enabled = false;
+                                _btnCreateLinked.Enabled = false;
+                                _btnCreateLinked.Visible = false;
+                                _btnDetachLinked.Enabled = true;
+                                _btnDetachLinked.Visible = true;
+                                _btnReplaceLegacy.Enabled = false;
+                            }
+                            finally
+                            {
+                                _suppressPathAutoSave = false;
+                            }
+
+                            ReapplyResponsiveLayout();
+                            ResetPathDisplay();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _suppressPathAutoSave = false;
+                        LogHelper.LogError(ex, "Refresh linked Arknights Bilibili client controls");
+                    }
+
+                    try
+                    {
+                        _onPathChanged?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Refresh game page after linked client creation");
+                    }
+                });
+        }
+
+        private void DetachLinkedBilibiliClient()
+        {
+            var currentConfig = ConfigHelper.Load();
+            var bilibili = currentConfig.Games.Find(g =>
+                g.IconName == "BiliArknights");
+            var pendingDetach = currentConfig.PendingLinkedClientDetach;
+            var clientPath = !string.IsNullOrWhiteSpace(
+                    pendingDetach?.TargetPath)
+                ? pendingDetach.TargetPath
+                : bilibili?.RootPath;
+            var groupId = !string.IsNullOrWhiteSpace(
+                    pendingDetach?.GroupId)
+                ? pendingDetach.GroupId
+                : bilibili?.LinkedClientGroupId;
+            if (string.IsNullOrWhiteSpace(groupId) ||
+                string.IsNullOrWhiteSpace(clientPath) ||
+                !Directory.Exists(clientPath))
+            {
+                AntdUI.Message.info(_overview, AntdUI.Localization.Get(
+                    "App.LinkedClient.DetachSuccess",
+                    "当前客户端没有共享中的硬链接文件。"));
+                return;
+            }
+
+            if (GameUpdateManager.Find(clientPath) != null ||
+                GameRepairManager.IsRepairing(clientPath))
+            {
+                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
+                    "App.LinkedClient.Error.GroupBusy",
+                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                return;
+            }
+
+            var owner = FindForm();
+            var confirm = AntdUI.Modal.open(new AntdUI.Modal.Config(
+                owner as AntdUI.BaseForm ?? null,
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.DetachConfirmTitle",
+                    "解除客户端共享"),
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.DetachConfirmMessage",
+                    "将把共享硬链接转换为独立文件，并占用额外磁盘空间。是否继续？"),
+                AntdUI.TType.Warn)
+            {
+                OkText = AntdUI.Localization.Get("OK", "确定"),
+                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
+                Width = 580,
+            });
+            if (confirm != DialogResult.OK) return;
+
+            SetLinkedClientControlsBusy(true);
+            AntdUI.Message.loading(
+                _overview,
+                AntdUI.Localization.Get(
+                    "App.LinkedClient.Detaching",
+                    "正在解除硬链接共享…"),
+                async loading =>
+                {
+                    try
+                    {
+                        var progress = new Progress<ArknightsLinkedClientProgress>(value =>
+                        {
+                            loading.Text = FormatLinkedClientProgress(value, detaching: true);
+                            loading.Refresh();
+                        });
+                        await ArknightsLinkedClientService.DetachSharedFilesAsync(
+                            clientPath, progress);
+
+                        ConfigHelper.Update(
+                            latestConfig => LinkedClientPolicy.CompleteDetach(
+                                latestConfig, groupId),
+                            allowLinkedClientStateChange: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Detach linked Arknights client");
+                        loading.Error(string.Format(
+                            AntdUI.Localization.Get(
+                                "App.LinkedClient.DetachFailed",
+                                "解除硬链接共享失败：{0}"),
+                            ex.Message));
+                        RefreshLinkedClientControls();
+                        return;
+                    }
+
+                    try
+                    {
+                        loading.OK(AntdUI.Localization.Get(
+                            "App.LinkedClient.DetachSuccess",
+                            "已解除硬链接共享，当前客户端现在拥有独立文件。"));
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Report linked Arknights client detach success");
+                    }
+
+                    _game.LinkedClientGroupId = "";
+
+                    try
+                    {
+                        if (!IsDisposed && !Disposing)
+                        {
+                            _inputPath.ReadOnly = false;
+                            _btnBrowse.Enabled = true;
+                            _btnCreateLinked.Enabled = true;
+                            _btnCreateLinked.Visible = true;
+                            _btnDetachLinked.Enabled = false;
+                            _btnDetachLinked.Visible = false;
+                            _btnReplaceLegacy.Enabled = true;
+                            ReapplyResponsiveLayout();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Refresh detached Arknights client controls");
+                    }
+
+                    try
+                    {
+                        _onPathChanged?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogError(ex, "Refresh game page after linked client detach");
+                    }
+                });
+        }
+
+        private void SetLinkedClientControlsBusy(bool busy)
+        {
+            if (IsDisposed || Disposing) return;
+            if (!busy)
+            {
+                RefreshLinkedClientControls();
+                return;
+            }
+
+            _inputPath.ReadOnly = true;
+            if (_btnBrowse != null) _btnBrowse.Enabled = false;
+            if (_btnCreateLinked != null) _btnCreateLinked.Enabled = false;
+            if (_btnDetachLinked != null) _btnDetachLinked.Enabled = false;
+            if (_btnReplaceLegacy != null) _btnReplaceLegacy.Enabled = false;
+        }
+
+        private void RefreshLinkedClientControls()
+        {
+            if (IsDisposed || Disposing) return;
+            var config = ConfigHelper.Load();
+            var bilibili = config.Games.Find(g =>
+                string.Equals(g.IconName, "BiliArknights",
+                    StringComparison.OrdinalIgnoreCase));
+            var path = bilibili?.RootPath;
+            var linked = LinkedClientPolicy.IsSharedClient(
+                             "BiliArknights", path) ||
+                         ArknightsLinkedClientService.HasLinkedClientMarker(
+                             _inputPath.Text);
+            var detachableGroupId = !string.IsNullOrWhiteSpace(
+                    bilibili?.LinkedClientGroupId)
+                ? bilibili.LinkedClientGroupId
+                : config.PendingLinkedClientDetach?.GroupId;
+
+            _inputPath.ReadOnly = linked;
+            if (_btnBrowse != null) _btnBrowse.Enabled = !linked;
+            if (_btnCreateLinked != null)
+            {
+                _btnCreateLinked.Enabled = !linked;
+                _btnCreateLinked.Visible = !linked;
+            }
+            if (_btnDetachLinked != null)
+            {
+                _btnDetachLinked.Enabled = linked &&
+                    !string.IsNullOrWhiteSpace(detachableGroupId);
+                _btnDetachLinked.Visible = linked;
+            }
+            if (_btnReplaceLegacy != null)
+                _btnReplaceLegacy.Enabled = !linked;
+
+            ReapplyResponsiveLayout();
+        }
+
+        private void ReapplyResponsiveLayout()
+        {
+            if (IsDisposed || Disposing) return;
+            _applyResponsiveLayout?.Invoke();
+        }
+
+        private static string FormatLinkedClientProgress(
+            ArknightsLinkedClientProgress progress,
+            bool detaching)
+        {
+            var text = detaching
+                ? AntdUI.Localization.Get(
+                    "App.LinkedClient.Detaching",
+                    "正在解除硬链接共享…")
+                : progress.Stage switch
+                {
+                    ArknightsLinkedClientStage.Validating => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.Validating", "正在检查目录与磁盘…"),
+                    ArknightsLinkedClientStage.FetchingManifests => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.FetchingManifests", "正在获取文件清单…"),
+                    ArknightsLinkedClientStage.VerifyingSource => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.VerifyingSource", "正在校验官服客户端…"),
+                    ArknightsLinkedClientStage.LinkingFiles => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.LinkingFiles", "正在创建共享硬链接…"),
+                    ArknightsLinkedClientStage.RepairingTarget => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.RepairingTarget", "正在补全 B 服专用文件…"),
+                    ArknightsLinkedClientStage.VerifyingTarget => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.VerifyingTarget", "正在校验 B 服客户端…"),
+                    ArknightsLinkedClientStage.Finalizing => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.Finalizing", "正在写入客户端目录…"),
+                    _ => AntdUI.Localization.Get(
+                        "App.LinkedClient.Stage.Completed", "创建完成"),
+                };
+
+            if (progress.FileCount > 0)
+                text += $" ({progress.FileIndex}/{progress.FileCount})";
+            if (!string.IsNullOrWhiteSpace(progress.CurrentFile))
+                text += Environment.NewLine + progress.CurrentFile;
+            return text;
+        }
+
         private void AutoSave(string path)
         {
             var cfg = ConfigHelper.Load();
             var entry = cfg.Games.Find(g => g.Name == _game.Name && g.IconName == _game.IconName);
-            if (entry != null) { entry.RootPath = path; ConfigHelper.Save(cfg); }
+            if (entry != null)
+            {
+                LinkedClientPolicy.UpdatePath(cfg, entry, path);
+                ConfigHelper.Save(cfg);
+            }
         }
 
         private void ResetPathDisplay()

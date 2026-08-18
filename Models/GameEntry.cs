@@ -12,6 +12,8 @@ public class GameEntry
     public bool CustomLaunchArgsEnabled { get; set; } = false;    // 自定义启动参数开关
     public string CustomLaunchArgs { get; set; } = "";             // 自定义启动参数
     public string LocalVersion { get; set; } = "";                 // 缓存的本地游戏版本号
+    public bool IndependentChannelClient { get; set; } = false;    // 独立渠道目录，启动时不再部署切服文件
+    public string LinkedClientGroupId { get; set; } = "";          // 共享硬链接资源的客户端组
 
     /// <summary>Returns the localized display name based on current language.</summary>
     public string GetLocalizedName()

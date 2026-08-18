@@ -23,12 +23,20 @@ namespace XelLauncher.Forms
             if (_serverPayloadStartupRunning || IsDisposed || Disposing)
                 return;
 
-            var enabledProfiles = ConfigHelper.Load()
-                .ServerPayloadAutoUpdateProfiles;
+            var appConfig = ConfigHelper.Load();
+            var enabledProfiles = appConfig.ServerPayloadAutoUpdateProfiles;
             var profiles = ServerPayloadUpdater.Profiles
                 .Where(profile => enabledProfiles.Contains(
                     profile.IconName,
                     StringComparer.OrdinalIgnoreCase))
+                .Where(profile =>
+                {
+                    var entry = appConfig.Games.FirstOrDefault(game =>
+                        string.Equals(game.IconName, profile.IconName,
+                            StringComparison.OrdinalIgnoreCase));
+                    return !LinkedClientPolicy.ShouldSkipServerPayloadSwitch(
+                        appConfig, entry);
+                })
                 .ToList();
             if (profiles.Count == 0)
                 return;

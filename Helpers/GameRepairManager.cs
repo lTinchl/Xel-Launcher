@@ -7,17 +7,28 @@ namespace XelLauncher.Helpers
     public static class GameRepairManager
     {
         private static readonly object SyncRoot = new();
-        private static readonly HashSet<string> RepairingPaths = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, IDisposable> RepairingPaths =
+            new(StringComparer.OrdinalIgnoreCase);
 
-        public static bool TryStart(string installPath)
+        public static bool TryStart(string iconName, string installPath)
         {
+            LinkedClientPolicy.ThrowIfSharedClient(iconName, installPath);
+            if (!LinkedClientOperationCoordinator.TryAcquire(
+                    iconName, installPath, out var operationLease))
+            {
+                return false;
+            }
+
             var key = GetKey(installPath);
             lock (SyncRoot)
             {
-                if (RepairingPaths.Contains(key))
+                if (RepairingPaths.ContainsKey(key))
+                {
+                    operationLease.Dispose();
                     return false;
+                }
 
-                RepairingPaths.Add(key);
+                RepairingPaths[key] = operationLease;
                 return true;
             }
         }
@@ -30,7 +41,7 @@ namespace XelLauncher.Helpers
             var key = GetKey(installPath);
             lock (SyncRoot)
             {
-                return RepairingPaths.Contains(key);
+                return RepairingPaths.ContainsKey(key);
             }
         }
 
@@ -42,7 +53,8 @@ namespace XelLauncher.Helpers
             var key = GetKey(installPath);
             lock (SyncRoot)
             {
-                RepairingPaths.Remove(key);
+                if (RepairingPaths.Remove(key, out var operationLease))
+                    operationLease?.Dispose();
             }
         }
 

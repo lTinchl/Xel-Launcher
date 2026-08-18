@@ -2634,4 +2634,133 @@
   <data name="App.Setting.HideToolSidebar" xml:space="preserve">
     <value>Hide game toolbar</value>
   </data>
+  <data name="App.LinkedClient.CreateBili" xml:space="preserve">
+    <value>Create a linked Bilibili client from the official client</value>
+  </data>
+  <data name="App.LinkedClient.SelectTarget" xml:space="preserve">
+    <value>Select the Bilibili client folder</value>
+  </data>
+  <data name="App.LinkedClient.ConfirmTitle" xml:space="preserve">
+    <value>Create an independent Bilibili client</value>
+  </data>
+  <data name="App.LinkedClient.ConfirmMessage" xml:space="preserve">
+    <value>An independent Bilibili client will be created in the selected empty folder and will share matching game resources with the official client. Both folders must be on the same NTFS volume, and the target folder must be empty. Close the game and both vendor launchers while this runs. Do not update or repair either client while sharing is active. Detach sharing in Xel Launcher before using any updater. Continue?</value>
+  </data>
+  <data name="App.LinkedClient.Creating" xml:space="preserve">
+    <value>Creating the linked client…</value>
+  </data>
+  <data name="App.LinkedClient.Success" xml:space="preserve">
+    <value>Shared {0} files through hard links. The Bilibili client is now version {1}.</value>
+  </data>
+  <data name="App.LinkedClient.Failed" xml:space="preserve">
+    <value>Failed to create the linked client: {0}</value>
+  </data>
+  <data name="App.LinkedClient.Detach" xml:space="preserve">
+    <value>Detach shared hard links</value>
+  </data>
+  <data name="App.LinkedClient.DetachConfirmTitle" xml:space="preserve">
+    <value>Detach client sharing</value>
+  </data>
+  <data name="App.LinkedClient.DetachConfirmMessage" xml:space="preserve">
+    <value>Shared hard links in the current client will be replaced with independent files. This requires additional disk space, and the game must remain closed. When complete, each client can be updated separately with its official launcher. Continue?</value>
+  </data>
+  <data name="App.LinkedClient.Detaching" xml:space="preserve">
+    <value>Detaching shared hard links…</value>
+  </data>
+  <data name="App.LinkedClient.DetachSuccess" xml:space="preserve">
+    <value>Hard-link sharing has been detached. This client now has independent files.</value>
+  </data>
+  <data name="App.LinkedClient.DetachFailed" xml:space="preserve">
+    <value>Failed to detach shared hard links: {0}</value>
+  </data>
+  <data name="App.LinkedClient.Stage.Validating" xml:space="preserve">
+    <value>Checking folders and volumes…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.FetchingManifests" xml:space="preserve">
+    <value>Fetching official and Bilibili file manifests…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.VerifyingSource" xml:space="preserve">
+    <value>Verifying the official client…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.LinkingFiles" xml:space="preserve">
+    <value>Creating shared hard links…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.RepairingTarget" xml:space="preserve">
+    <value>Downloading Bilibili-specific files…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.VerifyingTarget" xml:space="preserve">
+    <value>Verifying the Bilibili client…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.Finalizing" xml:space="preserve">
+    <value>Finalizing the client folder…</value>
+  </data>
+  <data name="App.LinkedClient.Stage.Completed" xml:space="preserve">
+    <value>Creation complete</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetRoot" xml:space="preserve">
+    <value>A volume root cannot be used as the linked client folder</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceMissing" xml:space="preserve">
+    <value>A complete official Arknights client could not be found</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceLink" xml:space="preserve">
+    <value>The official client folder cannot be a symbolic link, directory junction, or other reparse point</value>
+  </data>
+  <data name="App.LinkedClient.Error.PathOverlap" xml:space="preserve">
+    <value>The official and Bilibili folders must be separate and cannot contain one another</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetLink" xml:space="preserve">
+    <value>The Bilibili target folder cannot be a symbolic link, directory junction, or other reparse point</value>
+  </data>
+  <data name="App.LinkedClient.Error.Ntfs" xml:space="preserve">
+    <value>The official and Bilibili folders must both be on NTFS volumes</value>
+  </data>
+  <data name="App.LinkedClient.Error.Volume" xml:space="preserve">
+    <value>The official and Bilibili folders must be on the same volume</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceVersion" xml:space="preserve">
+    <value>The official client is not up to date (version {0} is required). Update and repair it first</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceHash" xml:space="preserve">
+    <value>Official client file verification failed: {0}. Repair the official client first</value>
+  </data>
+  <data name="App.LinkedClient.Error.SourceFile" xml:space="preserve">
+    <value>An official client file is missing or has the wrong size: {0}. Repair the official client first</value>
+  </data>
+  <data name="App.LinkedClient.Error.Config" xml:space="preserve">
+    <value>Unable to read the official client's config.ini</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetVerify" xml:space="preserve">
+    <value>Final verification of the Bilibili client failed, so game settings were not updated</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetFileVerify" xml:space="preserve">
+    <value>Final verification of the Bilibili client failed: {0}</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetNotEmpty" xml:space="preserve">
+    <value>The Bilibili target folder must be empty to prevent existing files from being overwritten</value>
+  </data>
+  <data name="App.LinkedClient.Error.TargetParent" xml:space="preserve">
+    <value>The parent folder of the Bilibili target does not exist</value>
+  </data>
+  <data name="App.LinkedClient.Error.PathMissing" xml:space="preserve">
+    <value>A path is required</value>
+  </data>
+  <data name="App.LinkedClient.Error.GroupBusy" xml:space="preserve">
+    <value>A linked client is currently being updated, repaired, or changed. Try again later</value>
+  </data>
+  <data name="App.LinkedClient.Error.MutationBlocked" xml:space="preserve">
+    <value>This client still shares hard-linked files with another channel. Detach sharing in the Bilibili client settings before updating, preloading, or repairing.</value>
+  </data>
+  <data name="App.LinkedClient.Error.NoSharedFiles" xml:space="preserve">
+    <value>The official and Bilibili manifests have no identical resource files that can be shared safely</value>
+  </data>
+  <data name="App.LinkedClient.Error.LinkIntegrity" xml:space="preserve">
+    <value>Shared hard-link verification failed: {0}</value>
+  </data>
+  <data name="App.LinkedClient.Error.FreeSpace" xml:space="preserve">
+    <value>There is not enough disk space. At least {0:N0} bytes are required; {1:N0} bytes are available</value>
+  </data>
+  <data name="App.LinkedClient.Error.ConfigChanged" xml:space="preserve">
+    <value>Game settings changed while the linked client was being created. Start again</value>
+  </data>
 </root>

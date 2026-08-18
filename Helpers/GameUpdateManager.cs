@@ -17,12 +17,17 @@ namespace XelLauncher.Helpers
     public sealed class ActiveGameUpdate
     {
         private readonly CancellationTokenSource _cts = new();
+        private IDisposable _operationLease;
         private volatile GameUpdateProgress _lastProgress;
 
-        internal ActiveGameUpdate(string iconName, string installPath)
+        internal ActiveGameUpdate(
+            string iconName,
+            string installPath,
+            IDisposable operationLease)
         {
             IconName = iconName;
             InstallPath = installPath;
+            _operationLease = operationLease;
         }
 
         public string IconName { get; }
@@ -48,6 +53,9 @@ namespace XelLauncher.Helpers
         }
 
         internal CancellationToken Token => _cts.Token;
+
+        internal void ReleaseOperationLease() =>
+            System.Threading.Interlocked.Exchange(ref _operationLease, null)?.Dispose();
 
         internal void Report(InstallProgressState state, long downloaded, long total)
         {
@@ -80,7 +88,17 @@ namespace XelLauncher.Helpers
                     return existing;
                 }
 
-                var update = new ActiveGameUpdate(iconName, installPath);
+                LinkedClientPolicy.ThrowIfSharedClient(iconName, installPath);
+                if (!LinkedClientOperationCoordinator.TryAcquire(
+                        iconName, installPath, out var operationLease))
+                {
+                    throw new InvalidOperationException(AntdUI.Localization.Get(
+                        "App.LinkedClient.Error.GroupBusy",
+                        "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                }
+
+                var update = new ActiveGameUpdate(
+                    iconName, installPath, operationLease);
                 PausedUpdatePaths.Remove(key);
                 update.CancelRequested += MarkPaused;
                 ActiveUpdates[key] = update;
@@ -178,6 +196,7 @@ namespace XelLauncher.Helpers
             finally
             {
                 update.CancelRequested -= MarkPaused;
+                update.ReleaseOperationLease();
                 lock (SyncRoot)
                 {
                     if (ActiveUpdates.TryGetValue(key, out var current) && ReferenceEquals(current, update))
@@ -199,7 +218,7 @@ namespace XelLauncher.Helpers
                 var entry = cfg.Games.Find(g => string.Equals(g.IconName, iconName, StringComparison.OrdinalIgnoreCase));
                 if (entry != null)
                 {
-                    entry.RootPath = installPath;
+                    LinkedClientPolicy.UpdatePath(cfg, entry, installPath);
                     if (!string.IsNullOrEmpty(localVersion))
                         entry.LocalVersion = localVersion;
                 }

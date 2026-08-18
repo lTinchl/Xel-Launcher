@@ -86,8 +86,11 @@ namespace XelLauncher.Forms
                 LoadingWaveColor = Color.FromArgb(60, 255, 255, 255),
                 Type = AntdUI.TTypeMini.Primary,
                 Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
+                TabStop = false,
             };
             GameStart.Click += GameStart_Click;
+            GameStart.GotFocus += (s, e) => _overview.Focus();
+            GameStart.MouseUp += (s, e) => _overview.Focus();
 
             floatMenu = new AntdUI.Dropdown
             {

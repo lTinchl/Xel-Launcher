@@ -40,6 +40,26 @@ namespace XelLauncher.Models
         public string IconPath { get; set; } = "";
     }
 
+    public class LinkedClientPendingOperation
+    {
+        public string GroupId { get; set; } = "";
+        public string SourcePath { get; set; } = "";
+        public string TargetPath { get; set; } = "";
+        public string StagingPath { get; set; } = "";
+        public string TargetVersion { get; set; } = "";
+        public string ExpectedBilibiliPath { get; set; } = "";
+        public string Phase { get; set; } = "Building";
+    }
+
+    public class LinkedClientPendingDetachOperation
+    {
+        public string GroupId { get; set; } = "";
+        public string SourcePath { get; set; } = "";
+        public string TargetPath { get; set; } = "";
+        public List<string> LinkedFiles { get; set; } = new();
+        public string Phase { get; set; } = "Detaching";
+    }
+
     public class AppConfig
     {
         public string UpdateDownloadSource { get; set; } = "github";
@@ -118,6 +138,8 @@ namespace XelLauncher.Models
         public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
         public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();
         public AppUpdateState UpdateState { get; set; } = new();
+        public LinkedClientPendingOperation PendingLinkedClient { get; set; }
+        public LinkedClientPendingDetachOperation PendingLinkedClientDetach { get; set; }
 
     }
 }
