@@ -9,7 +9,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyName>XelLauncher</AssemblyName>
 		<RootNamespace>XelLauncher</RootNamespace>
-		<Version>0.2.6</Version>
+		<Version>0.2.7</Version>
 		<Company>XelLauncher</Company>
 		<Product>XelLauncher</Product>
 		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
@@ -29,6 +29,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="Tests\**\*.cs" />
 		<Content Remove="Resources\**\*" />
 		<Content Include="Resources\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
