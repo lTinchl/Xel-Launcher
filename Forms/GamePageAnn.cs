@@ -487,7 +487,7 @@ public class NoticeItem
                     g.FillPath(activeBg, activePath);
                 }
 
-                TextRenderer.DrawText(g, $"[{item.Tag}] {item.Title}", font, titleRect, fore,
+                TextRenderer.DrawText(g, item.Title, font, titleRect, fore,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
                 TextRenderer.DrawText(g, item.Date, rowFontMuted, dateRect, Color.FromArgb(130, 255, 255, 255),
                     TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
