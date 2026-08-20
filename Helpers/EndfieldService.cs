@@ -82,13 +82,50 @@ namespace XelLauncher.Helpers
             manager.IsGameHasUpdate(out bool hasUpdate);
             manager.GetCurrentGameVersion(out GameVersion localVer);
             manager.GetApiGameVersion(out GameVersion remoteVer);
+            var localVersion = localVer.ToString();
+            var remoteVersion = remoteVer.ToString();
+
+            // Endfield's API can occasionally leave a stale update action behind
+            // after the client has already reached the advertised version. Do
+            // not enter the installer in that state: the API response may not
+            // contain any download packs, which would otherwise surface as a
+            // misleading installation failure.
+            if (IsEndfieldChannel(_iconName) &&
+                hasUpdate &&
+                IsVersionAtLeast(localVersion, remoteVersion))
+            {
+                LogHelper.Log(
+                    $"Ignored stale Endfield update state: {_iconName} | local={localVersion} | api={remoteVersion}");
+                hasUpdate = false;
+            }
 
             manager.IsGameHasPreload(out bool hasPreload);
             manager.GetApiPreloadGameVersion(out GameVersion preloadVer);
             var preloadVersion = preloadVer.ToString();
 
-            return new GameStatus(isInstalled, hasUpdate, localVer.ToString(), remoteVer.ToString(),
+            return new GameStatus(isInstalled, hasUpdate, localVersion, remoteVersion,
                 hasPreload, preloadVersion);
+        }
+
+        private static bool IsEndfieldChannel(string iconName) =>
+            iconName is "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield";
+
+        private static bool IsVersionAtLeast(string localVersion, string remoteVersion)
+        {
+            static Version Parse(string value)
+            {
+                if (string.IsNullOrWhiteSpace(value)) return null;
+
+                var core = value.Trim().TrimStart('v', 'V');
+                var qualifier = core.IndexOfAny(new[] { '-', '+' });
+                if (qualifier >= 0) core = core[..qualifier];
+
+                return Version.TryParse(core, out var parsed) ? parsed : null;
+            }
+
+            var local = Parse(localVersion);
+            var remote = Parse(remoteVersion);
+            return local != null && remote != null && local >= remote;
         }
 
         public async Task<string> GetClientCoverImageUrlAsync(CancellationToken ct = default)
