@@ -218,6 +218,8 @@ namespace XelLauncher.Forms
             panelLaunch.Controls.Add(GameStart);
             panelLaunch.Controls.Add(floatMenu);
 
+            DpiChangedAfterParent += (s, e) => ApplyLaunchPanelLayout();
+
         }
 
         private void RefreshPreloadButton()
@@ -242,29 +244,37 @@ namespace XelLauncher.Forms
             var hasAccounts = btnAccountManage?.Visible == true && accountSelect?.Visible == true;
             var hasPreload = btnPreload?.Visible == true;
             var x = 0;
+            var compactGap = ScaleLaunchPanelValue(4);
+            var regularGap = ScaleLaunchPanelValue(8);
 
             if (hasAccounts)
             {
-                btnAccountManage.Location = new Point(4, 4);
-                accountSelect.Location = new Point(56, 0);
-                x = 224;
+                btnAccountManage.Location = new Point(compactGap, compactGap);
+                accountSelect.Location = new Point(btnAccountManage.Right + regularGap, 0);
+                x = accountSelect.Right + compactGap;
             }
 
             if (hasPreload)
             {
                 btnPreload.Location = new Point(x, 0);
-                x += 56;
+                x = btnPreload.Right + compactGap;
             }
 
             GameStart.Location = new Point(x, 0);
-            x += 176;
+            x = GameStart.Right + regularGap;
 
-            floatMenu.Location = new Point(x, 2);
-            x += 48;
+            floatMenu.Location = new Point(x, ScaleLaunchPanelValue(2));
+            x = floatMenu.Right;
 
             panelLaunch.Width = x;
             PositionLaunchPanel();
             PositionNoticePanel();
+        }
+
+        private int ScaleLaunchPanelValue(int value)
+        {
+            var dpi = DeviceDpi > 0 ? DeviceDpi : 96;
+            return Math.Max(1, (int)Math.Round(value * dpi / 96F));
         }
 
         private void ResetInstallStateAfterDownloadCacheClear(string path)
