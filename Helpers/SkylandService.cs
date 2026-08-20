@@ -42,9 +42,12 @@ namespace XelLauncher.Helpers
 
         public async Task<SkylandScanLogin> CreateScanLoginAsync(CancellationToken cancellationToken = default)
         {
-            using var request = CreateRequest(HttpMethod.Post, ScanLoginUrl);
-            request.Content = JsonContent("{}");
-            var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
+            var root = await SendDeviceJsonAsync(deviceId =>
+            {
+                var request = CreateRequest(HttpMethod.Post, ScanLoginUrl, deviceId);
+                request.Content = JsonContent("{}");
+                return request;
+            }, cancellationToken).ConfigureAwait(false);
             EnsureAuthOk(root, AntdUI.Localization.Get("App.Skyland.Action.CreateScanLogin", "创建扫码登录"));
 
             var data = root["data"];
@@ -59,8 +62,9 @@ namespace XelLauncher.Helpers
         public async Task<SkylandScanStatus> GetScanStatusAsync(string scanId, CancellationToken cancellationToken = default)
         {
             var url = $"{ScanStatusUrl}?scanId={Uri.EscapeDataString(scanId)}";
-            using var request = CreateRequest(HttpMethod.Get, url);
-            var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
+            var root = await SendDeviceJsonAsync(
+                deviceId => CreateRequest(HttpMethod.Get, url, deviceId),
+                cancellationToken).ConfigureAwait(false);
 
             var status = root["status"]?.GetValue<int?>() ?? root["code"]?.GetValue<int?>() ?? -1;
             var message = root["msg"]?.GetValue<string>() ?? root["message"]?.GetValue<string>() ?? "";
@@ -92,13 +96,16 @@ namespace XelLauncher.Helpers
 
         public async Task<string> LoginByScanCodeAsync(string scanCode, CancellationToken cancellationToken = default)
         {
-            using var request = CreateRequest(HttpMethod.Post, TokenByScanCodeUrl);
-            request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, string>
+            var root = await SendDeviceJsonAsync(deviceId =>
             {
-                ["scanCode"] = scanCode
-            }));
+                var request = CreateRequest(HttpMethod.Post, TokenByScanCodeUrl, deviceId);
+                request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, string>
+                {
+                    ["scanCode"] = scanCode
+                }));
+                return request;
+            }, cancellationToken).ConfigureAwait(false);
 
-            var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
             EnsureAuthOk(root, AntdUI.Localization.Get("App.Skyland.Action.ScanLogin", "扫码登录"));
 
             var data = root["data"];
@@ -114,14 +121,17 @@ namespace XelLauncher.Helpers
             if (string.IsNullOrWhiteSpace(phone))
                 throw new ArgumentException(AntdUI.Localization.Get("App.Skyland.Error.PhoneRequired", "请输入手机号"), nameof(phone));
 
-            using var request = CreateRequest(HttpMethod.Post, SendPhoneCodeUrl);
-            request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
+            var root = await SendDeviceJsonAsync(deviceId =>
             {
-                ["phone"] = phone.Trim(),
-                ["type"] = 2
-            }));
+                var request = CreateRequest(HttpMethod.Post, SendPhoneCodeUrl, deviceId);
+                request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
+                {
+                    ["phone"] = phone.Trim(),
+                    ["type"] = 2
+                }));
+                return request;
+            }, cancellationToken).ConfigureAwait(false);
 
-            var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
             EnsureAuthOk(root, AntdUI.Localization.Get("App.Skyland.Action.SendCode", "发送验证码"));
         }
 
@@ -132,14 +142,17 @@ namespace XelLauncher.Helpers
             if (string.IsNullOrWhiteSpace(code))
                 throw new ArgumentException(AntdUI.Localization.Get("App.Skyland.Error.CodeRequired", "请输入短信验证码。"), nameof(code));
 
-            using var request = CreateRequest(HttpMethod.Post, TokenByPhoneCodeUrl);
-            request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, string>
+            var root = await SendDeviceJsonAsync(deviceId =>
             {
-                ["phone"] = phone.Trim(),
-                ["code"] = code.Trim()
-            }));
+                var request = CreateRequest(HttpMethod.Post, TokenByPhoneCodeUrl, deviceId);
+                request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, string>
+                {
+                    ["phone"] = phone.Trim(),
+                    ["code"] = code.Trim()
+                }));
+                return request;
+            }, cancellationToken).ConfigureAwait(false);
 
-            var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
             return ExtractLoginToken(root, AntdUI.Localization.Get("App.Skyland.Action.SmsLogin", "手机号验证码登录"));
         }
 
@@ -150,14 +163,17 @@ namespace XelLauncher.Helpers
             if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentException(AntdUI.Localization.Get("App.Skyland.Error.PasswordRequired", "请输入密码"), nameof(password));
 
-            using var request = CreateRequest(HttpMethod.Post, TokenByPasswordUrl);
-            request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, string>
+            var root = await SendDeviceJsonAsync(deviceId =>
             {
-                ["phone"] = phone.Trim(),
-                ["password"] = password
-            }));
+                var request = CreateRequest(HttpMethod.Post, TokenByPasswordUrl, deviceId);
+                request.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, string>
+                {
+                    ["phone"] = phone.Trim(),
+                    ["password"] = password
+                }));
+                return request;
+            }, cancellationToken).ConfigureAwait(false);
 
-            var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
             return ExtractLoginToken(root, AntdUI.Localization.Get("App.Skyland.Action.PasswordLogin", "账号密码登录"));
         }
 
@@ -235,35 +251,55 @@ namespace XelLauncher.Helpers
 
         private async Task<SkylandSession> LoginByTokenAsync(string token, CancellationToken cancellationToken)
         {
-            using var grantRequest = CreateRequest(HttpMethod.Post, GrantCodeUrl);
-            grantRequest.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
+            for (var attempt = 0; attempt < 2; attempt++)
             {
-                ["appCode"] = AppCode,
-                ["token"] = token,
-                ["type"] = 0
-            }));
-            var grantRoot = await SendJsonAsync(grantRequest, cancellationToken).ConfigureAwait(false);
-            EnsureAuthOk(grantRoot, AntdUI.Localization.Get("App.Skyland.Action.GetGrantCode", "使用 token 获取授权码"));
-            var grantCode = grantRoot["data"]?["code"]?.GetValue<string>() ?? "";
-            if (string.IsNullOrWhiteSpace(grantCode))
-                throw new InvalidOperationException(AntdUI.Localization.Get("App.Skyland.Error.GrantCodeMissing", "使用 token 获取授权码失败：返回结果缺少 code。"));
+                var deviceId = await SkylandDeviceIdProvider.GetDeviceIdAsync(cancellationToken).ConfigureAwait(false);
+                using var grantRequest = CreateRequest(HttpMethod.Post, GrantCodeUrl, deviceId);
+                grantRequest.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
+                {
+                    ["appCode"] = AppCode,
+                    ["token"] = token,
+                    ["type"] = 0
+                }));
+                var grantRoot = await SendJsonAsync(grantRequest, cancellationToken).ConfigureAwait(false);
+                if (attempt == 0 && IsInvalidDeviceResponse(grantRoot))
+                {
+                    SkylandDeviceIdProvider.Invalidate(deviceId);
+                    continue;
+                }
 
-            using var credRequest = CreateRequest(HttpMethod.Post, CredCodeUrl);
-            credRequest.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
-            {
-                ["code"] = grantCode,
-                ["kind"] = 1
-            }));
-            var credRoot = await SendJsonAsync(credRequest, cancellationToken).ConfigureAwait(false);
-            EnsureApiOk(credRoot, AntdUI.Localization.Get("App.Skyland.Action.GetCred", "获取 cred"));
+                EnsureAuthOk(grantRoot, AntdUI.Localization.Get("App.Skyland.Action.GetGrantCode", "使用 token 获取授权码"));
+                var grantCode = grantRoot["data"]?["code"]?.GetValue<string>() ?? "";
+                if (string.IsNullOrWhiteSpace(grantCode))
+                    throw new InvalidOperationException(AntdUI.Localization.Get("App.Skyland.Error.GrantCodeMissing", "使用 token 获取授权码失败：返回结果缺少 code。"));
 
-            var data = credRoot["data"];
-            var cred = data?["cred"]?.GetValue<string>() ?? "";
-            var signToken = data?["token"]?.GetValue<string>() ?? "";
-            if (string.IsNullOrWhiteSpace(cred) || string.IsNullOrWhiteSpace(signToken))
-                throw new InvalidOperationException(AntdUI.Localization.Get("App.Skyland.Error.CredMissing", "获取 cred 失败：返回结果缺少 cred 或 token。"));
+                using var credRequest = CreateRequest(HttpMethod.Post, CredCodeUrl, deviceId);
+                credRequest.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
+                {
+                    ["code"] = grantCode,
+                    ["kind"] = 1
+                }));
+                var credRoot = await SendJsonAsync(credRequest, cancellationToken).ConfigureAwait(false);
+                if (attempt == 0 && IsInvalidDeviceResponse(credRoot))
+                {
+                    SkylandDeviceIdProvider.Invalidate(deviceId);
+                    continue;
+                }
 
-            return new SkylandSession(cred, signToken);
+                EnsureApiOk(credRoot, AntdUI.Localization.Get("App.Skyland.Action.GetCred", "获取 cred"));
+
+                var data = credRoot["data"];
+                var cred = data?["cred"]?.GetValue<string>() ?? "";
+                var signToken = data?["token"]?.GetValue<string>() ?? "";
+                if (string.IsNullOrWhiteSpace(cred) || string.IsNullOrWhiteSpace(signToken))
+                    throw new InvalidOperationException(AntdUI.Localization.Get("App.Skyland.Error.CredMissing", "获取 cred 失败：返回结果缺少 cred 或 token。"));
+
+                return new SkylandSession(cred, signToken, deviceId);
+            }
+
+            throw new InvalidOperationException(AntdUI.Localization.Get(
+                "App.Skyland.Error.DeviceRefreshFailed",
+                "设备信息更新后认证仍然失败。"));
         }
 
         private async Task<List<SkylandBinding>> GetBindingListAsync(SkylandSession session, CancellationToken cancellationToken)
@@ -361,7 +397,7 @@ namespace XelLauncher.Helpers
 
             var uri = new Uri(url);
             var bodyOrQuery = method == HttpMethod.Get ? uri.Query.TrimStart('?') : body ?? "";
-            var (sign, headers) = GenerateSignature(session.SignToken, uri.AbsolutePath, bodyOrQuery);
+            var (sign, headers) = GenerateSignature(session.SignToken, uri.AbsolutePath, bodyOrQuery, session.DeviceId);
             request.Headers.TryAddWithoutValidation("sign", sign);
             foreach (var header in headers)
                 request.Headers.TryAddWithoutValidation(header.Key, header.Value);
@@ -369,18 +405,22 @@ namespace XelLauncher.Helpers
             return request;
         }
 
-        private static (string Sign, Dictionary<string, string> Headers) GenerateSignature(string token, string path, string bodyOrQuery)
+        private static (string Sign, Dictionary<string, string> Headers) GenerateSignature(
+            string token,
+            string path,
+            string bodyOrQuery,
+            string deviceId)
         {
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 2;
             var headers = new Dictionary<string, string>
             {
                 ["platform"] = "3",
                 ["timestamp"] = timestamp.ToString(CultureInfo.InvariantCulture),
-                ["dId"] = "",
+                ["dId"] = deviceId,
                 ["vName"] = "1.0.0"
             };
 
-            var headerJson = $"{{\"platform\":\"3\",\"timestamp\":\"{headers["timestamp"]}\",\"dId\":\"\",\"vName\":\"1.0.0\"}}";
+            var headerJson = $"{{\"platform\":\"3\",\"timestamp\":\"{headers["timestamp"]}\",\"dId\":\"{deviceId}\",\"vName\":\"1.0.0\"}}";
             var source = path + (bodyOrQuery ?? "") + headers["timestamp"] + headerJson;
             using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(token));
             var hmacHex = Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(source))).ToLowerInvariant();
@@ -388,29 +428,66 @@ namespace XelLauncher.Helpers
             return (md5Hex, headers);
         }
 
-        private static HttpRequestMessage CreateRequest(HttpMethod method, string url)
+        private static HttpRequestMessage CreateRequest(HttpMethod method, string url, string deviceId = null)
         {
             var request = new HttpRequestMessage(method, url);
             request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
             request.Headers.TryAddWithoutValidation("Accept-Encoding", "gzip");
             request.Headers.TryAddWithoutValidation("Connection", "close");
             request.Headers.TryAddWithoutValidation("X-Requested-With", "com.hypergryph.skland");
+            if (!string.IsNullOrWhiteSpace(deviceId))
+                request.Headers.TryAddWithoutValidation("dId", deviceId);
             return request;
         }
 
-        private static StringContent JsonContent(string json)
+        private static HttpContent JsonContent(string json)
         {
-            return new StringContent(json, Encoding.UTF8, "application/json");
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            return content;
+        }
+
+        private static async Task<JsonNode> SendDeviceJsonAsync(
+            Func<string, HttpRequestMessage> requestFactory,
+            CancellationToken cancellationToken)
+        {
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                var deviceId = await SkylandDeviceIdProvider.GetDeviceIdAsync(cancellationToken).ConfigureAwait(false);
+                using var request = requestFactory(deviceId);
+                var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
+                if (!IsInvalidDeviceResponse(root) || attempt > 0)
+                    return root;
+
+                SkylandDeviceIdProvider.Invalidate(deviceId);
+            }
+
+            throw new InvalidOperationException(AntdUI.Localization.Get(
+                "App.Skyland.Error.DeviceRefreshFailed",
+                "设备信息更新后请求仍然失败。"));
         }
 
         private static async Task<JsonNode> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            using var response = await Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            var text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-                throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {text}");
+            var endpoint = request.RequestUri?.AbsolutePath ?? "unknown endpoint";
+            HttpResponseMessage response;
+            try
+            {
+                response = await Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new HttpRequestException($"{request.Method} {endpoint}: {ex.Message}", ex);
+            }
 
-            return JsonNode.Parse(text) ?? new JsonObject();
+            using (response)
+            {
+                var text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"{request.Method} {endpoint}: HTTP {(int)response.StatusCode}: {text}");
+
+                return JsonNode.Parse(text) ?? new JsonObject();
+            }
         }
 
         private static void EnsureAuthOk(JsonNode root, string action)
@@ -438,6 +515,13 @@ namespace XelLauncher.Helpers
         private static bool IsApiOk(JsonNode root)
         {
             return (root["code"]?.GetValue<int?>() ?? -1) == 0;
+        }
+
+        private static bool IsInvalidDeviceResponse(JsonNode root)
+        {
+            var message = GetErrorMessage(root);
+            return message.Contains("设备信息无效", StringComparison.Ordinal)
+                || message.Contains("invalid device", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetErrorMessage(JsonNode root)
@@ -490,7 +574,7 @@ namespace XelLauncher.Helpers
 
     public sealed record SkylandScanLogin(string ScanId, string ScanUrl);
     public sealed record SkylandScanStatus(int Status, string Message, string ScanCode);
-    public sealed record SkylandSession(string Cred, string SignToken);
+    public sealed record SkylandSession(string Cred, string SignToken, string DeviceId);
     public sealed record SkylandBinding(string AppCode, string GameName, string ChannelName, string Nickname, string Uid, string ChannelMasterId, List<SkylandRole> Roles);
     public sealed record SkylandRole(string RoleId, string ServerId, string Nickname);
 }
