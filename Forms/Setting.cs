@@ -856,6 +856,7 @@ namespace XelLauncher
                     Placement = AntdUI.TAlignFrom.TR,
                     Font = new Font("Microsoft YaHei UI", 9.5F),
                     AllowClear = false,
+                    List = true,
                     ClickSwitchDropdown = true,
                     EnterDropDown = true,
                     Cursor = Cursors.Hand,
