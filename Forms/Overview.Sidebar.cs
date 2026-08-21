@@ -176,8 +176,6 @@ namespace XelLauncher.Forms
 
             if (invalidate)
                 panelSidebarItems.Invalidate();
-
-            PositionSidebarSelectionIndicator(false);
         }
 
         private System.Drawing.Rectangle GetSidebarButtonBounds(int index)
@@ -294,63 +292,6 @@ namespace XelLauncher.Forms
                 ?.SetValue(control, true, null);
         }
 
-        private void PositionSidebarSelectionIndicator(bool animate)
-        {
-            var active = _sidebarBtns.FirstOrDefault(x => x.Selected && !x.IsDisposed);
-            if (active == null ||
-                active.Parent == null ||
-                !active.Parent.IsHandleCreated ||
-                panelSidebar == null ||
-                panelSidebar.IsDisposed ||
-                !panelSidebar.IsHandleCreated ||
-                _sidebarSelectionIndicator == null ||
-                _sidebarSelectionIndicator.IsDisposed)
-            {
-                _sidebarSelectionInitialized = false;
-                _sidebarSelectionTimer?.Stop();
-                if (_sidebarSelectionIndicator != null) _sidebarSelectionIndicator.Visible = false;
-                return;
-            }
-
-            var point = panelSidebar.PointToClient(active.Parent.PointToScreen(new System.Drawing.Point(
-                active.Left + 6,
-                active.Top + (int)Math.Round((active.Height - SidebarIconSize) / 2F))));
-            _sidebarSelectionTarget = new System.Drawing.RectangleF(
-                point.X,
-                point.Y,
-                ScaleForDpi(4),
-                SidebarIconSize);
-            _sidebarSelectionIndicator.AccentColor = _sidebarSelectionColor;
-            _sidebarSelectionIndicator.Visible = true;
-            _sidebarSelectionIndicator.BringToFront();
-
-            if (!_sidebarSelectionInitialized || !animate)
-            {
-                _sidebarSelectionBounds = _sidebarSelectionTarget;
-                _sidebarSelectionInitialized = true;
-                _sidebarSelectionTimer?.Stop();
-                ApplySidebarSelectionIndicatorBounds();
-                return;
-            }
-
-            if (NearlySame(_sidebarSelectionBounds, _sidebarSelectionTarget, 0.5F))
-            {
-                _sidebarSelectionBounds = _sidebarSelectionTarget;
-                ApplySidebarSelectionIndicatorBounds();
-                return;
-            }
-
-            if (_sidebarSelectionTimer == null)
-            {
-                _sidebarSelectionTimer = new Timer { Interval = AnimationFrameHelper.GetFrameInterval(panelSidebar) };
-                _sidebarSelectionTimer.Tick += SidebarSelectionTimer_Tick;
-            }
-
-            AnimationFrameHelper.ApplyFrameInterval(_sidebarSelectionTimer, panelSidebar);
-            if (!_sidebarSelectionTimer.Enabled)
-                _sidebarSelectionTimer.Start();
-        }
-
         private void SidebarSelectionTimer_Tick(object sender, EventArgs e)
         {
             _sidebarSelectionBounds = new System.Drawing.RectangleF(
@@ -364,26 +305,9 @@ namespace XelLauncher.Forms
                 _sidebarSelectionBounds = _sidebarSelectionTarget;
                 _sidebarSelectionTimer?.Stop();
             }
-
-            ApplySidebarSelectionIndicatorBounds();
         }
 
-        private void ApplySidebarSelectionIndicatorBounds()
-        {
-            if (_sidebarSelectionIndicator == null ||
-                _sidebarSelectionIndicator.IsDisposed ||
-                _sidebarSelectionIndicator.Parent == null ||
-                panelSidebar == null ||
-                panelSidebar.IsDisposed)
-            {
-                _sidebarSelectionInitialized = false;
-                _sidebarSelectionTimer?.Stop();
-                return;
-            }
 
-            _sidebarSelectionIndicator.Bounds = System.Drawing.Rectangle.Round(_sidebarSelectionBounds);
-            _sidebarSelectionIndicator.Invalidate();
-        }
 
         private static float Ease(float current, float target, Timer timer) =>
             current + (target - current) * AnimationFrameHelper.ScaleEase(0.28F, timer);

@@ -137,13 +137,12 @@ namespace XelLauncher.Forms
         {
             var config = ConfigHelper.Load();
             var accent = _currentGamePage?.GetCoverAccentPalette().Primary ?? AntdUI.Style.Db.Primary;
+
             for (int i = 0; i < _sidebarBtns.Count && i < config.Games.Count; i++)
             {
                 _sidebarBtns[i].AccentColor = accent;
                 _sidebarBtns[i].Selected = config.Games[i].IconName == g.IconName;
             }
-            _sidebarSelectionColor = accent;
-            PositionSidebarSelectionIndicator(true);
         }
     }
 }
