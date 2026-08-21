@@ -150,7 +150,7 @@ namespace XelLauncher.Forms
         private int GetDropIndex(int y)
         {
             int count = panelSidebarItems.Controls.Count;
-            int virtualY = y - panelSidebarItems.AutoScrollPosition.Y;
+            int virtualY = y + panelSidebarItems.ScrollOffset;
             int step = SidebarButtonHeight + SidebarButtonGap;
 
             for (int i = 0; i < count; i++)
@@ -165,7 +165,7 @@ namespace XelLauncher.Forms
         {
             int count = panelSidebarItems.Controls.Count;
             int contentHeight = SidebarButtonTop + count * (SidebarButtonHeight + SidebarButtonGap) + SidebarButtonTop;
-            panelSidebarItems.AutoScrollMinSize = new System.Drawing.Size(0, contentHeight);
+            panelSidebarItems.ScrollContentHeight = contentHeight;
 
             for (int i = 0; i < count; i++)
             {
@@ -181,7 +181,7 @@ namespace XelLauncher.Forms
         private System.Drawing.Rectangle GetSidebarButtonBounds(int index)
         {
             int x = Math.Max(panelSidebarItems.Padding.Left, (panelSidebarItems.ClientSize.Width - SidebarButtonWidth) / 2);
-            int y = SidebarButtonTop + index * (SidebarButtonHeight + SidebarButtonGap) + panelSidebarItems.AutoScrollPosition.Y;
+            int y = SidebarButtonTop + index * (SidebarButtonHeight + SidebarButtonGap) - panelSidebarItems.ScrollOffset;
             return new System.Drawing.Rectangle(x, y, SidebarButtonWidth, SidebarButtonHeight);
         }
 

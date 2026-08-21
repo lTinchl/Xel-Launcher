@@ -20,10 +20,10 @@ namespace XelLauncher.Forms
         private GameEntry _pendingGame = null;
         private bool _pendingGameForceReload;
         private static readonly bool StartupAnnouncementEnabled = false;
-        private int SidebarButtonWidth => ScaleForDpi(108);
-        private int SidebarButtonHeight => ScaleForDpi(72);
+        private int SidebarButtonWidth => ScaleForDpi(88);
+        private int SidebarButtonHeight => ScaleForDpi(64);
         private int SidebarButtonGap => ScaleForDpi(4);
-        private int SidebarButtonTop => ScaleForDpi(4);
+        private int SidebarButtonTop => ScaleForDpi(6);
         private int SidebarIconSize => ScaleForDpi(44);
 
         private SidebarButton _dragBtn = null;
@@ -66,8 +66,10 @@ namespace XelLauncher.Forms
             EnableDoubleBuffer(panelSidebarItems);
             EnableDoubleBuffer(sidebarBottomPad);
             EnableDoubleBuffer(panelMain);
+            panelSidebarItems.AutoScroll = false;
+            panelSidebarItems.OverlayScrollEnabled = true;
             panelSidebarItems.SizeChanged += (s, e) => LayoutSidebarButtons(false);
-            panelSidebarItems.Scroll += (s, e) => LayoutSidebarButtons(false);
+            panelSidebarItems.ScrollPositionChanged += (s, e) => LayoutSidebarButtons(false);
             var globals = new AntdUI.SelectItem[] {
                 new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.Chinese", "中文"),"zh-CN"),
                 new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.English", "English"),"en-US")

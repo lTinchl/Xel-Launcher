@@ -135,11 +135,11 @@ namespace XelLauncher.Forms
             // panelSidebar
             //
             panelSidebar.Dock = DockStyle.Left;
-            panelSidebar.Width = 120;
+            panelSidebar.Width = 110;
             panelSidebar.Name = "panelSidebar";
             panelSidebar.Controls.Add(panelSidebarItems);
-            panelSidebar.Controls.Add(btnSidebarManage);
             panelSidebar.Controls.Add(dividerSidebar);
+            panelSidebar.Controls.Add(btnSidebarManage);
             panelSidebar.Controls.Add(sidebarBottomPad);
             //
             // panelSidebarItems
@@ -147,12 +147,12 @@ namespace XelLauncher.Forms
             panelSidebarItems.Dock = DockStyle.Fill;
             panelSidebarItems.AutoScroll = true;
             panelSidebarItems.Name = "panelSidebarItems";
-            panelSidebarItems.Padding = new Padding(4, 4, 4, 4);
+            panelSidebarItems.Padding = new Padding(2, 4, 2, 4);
             //
             // btnSidebarManage
             //
             btnSidebarManage.Dock = DockStyle.Bottom;
-            btnSidebarManage.Height = 40;
+            btnSidebarManage.Height = 55;
             btnSidebarManage.IconSvg = "AppstoreOutlined";
             btnSidebarManage.Ghost = true;
             btnSidebarManage.BorderWidth = 0F;
@@ -164,14 +164,14 @@ namespace XelLauncher.Forms
             //
             dividerSidebar.Dock = DockStyle.Bottom;
             dividerSidebar.Name = "dividerSidebar";
-            dividerSidebar.Size = new Size(120, 1);
+            dividerSidebar.Size = new Size(100, 1);
             dividerSidebar.Thickness = 1F;
             dividerSidebar.Margin = new Padding(6, 0, 6, 0);
             //
             // sidebarBottomPad
             //
             sidebarBottomPad.Dock = DockStyle.Bottom;
-            sidebarBottomPad.Height = 24;
+            sidebarBottomPad.Height = 0;
             sidebarBottomPad.Name = "sidebarBottomPad";
             //
             // panelMain
