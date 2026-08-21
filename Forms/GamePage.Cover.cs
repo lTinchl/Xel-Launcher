@@ -88,6 +88,10 @@ namespace XelLauncher.Forms
             {
                 StretchCoverPictureBox();
                 PositionGameInfoBadge();
+
+                if (_switchAnimationActive)
+                    return;
+
                 PositionLaunchPanel();
                 PositionNoticePanel();
                 PositionToolSidebar();
@@ -262,10 +266,13 @@ namespace XelLauncher.Forms
 
         private void PositionLaunchPanel()
         {
-            if (panelLaunch == null || _coverPictureBox == null) return;
+            if (panelLaunch == null || _coverPictureBox == null)
+                return;
+
+            if (_switchAnimationActive)
+                return;
 
             _launchPanelHome = GetLaunchPanelHome();
-            if (_switchAnimationActive) return;
 
             panelLaunch.Location = _launchPanelHome;
             panelLaunch.BringToFront();
@@ -274,15 +281,20 @@ namespace XelLauncher.Forms
 
         private void PositionNoticePanel()
         {
-            if (_noticePanel == null || panelLaunch == null) return;
+            if (_noticePanel == null || panelLaunch == null)
+                return;
+
+            if (_switchAnimationActive)
+                return;
 
             _noticePanelHome = GetNoticePanelHome(GetLaunchPanelHome());
-            if (_switchAnimationActive) return;
 
             _noticePanel.Visible = !_noticePanelHome.IsEmpty;
-            if (!_noticePanel.Visible) return;
+            if (!_noticePanel.Visible)
+                return;
 
             StopNoticeAnimation(false);
+
             _noticePanel.Bounds = _noticePanelHome;
             _noticePanel.BringToFront();
         }

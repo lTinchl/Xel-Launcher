@@ -571,6 +571,7 @@ namespace XelLauncher.Forms
         public void PrepareSwitchInStart()
         {
             if (IsDisposed) return;
+            _switchAnimationVersion++;
 
             CaptureSwitchAnimationHome();
             _switchAnimationActive = true;
@@ -583,9 +584,15 @@ namespace XelLauncher.Forms
         {
             if (IsDisposed || !IsHandleCreated) return;
 
+            int version = ++_switchAnimationVersion;
+
             CaptureSwitchAnimationHome();
             _switchAnimationActive = true;
-            await AnimateSwitchAsync(1F);
+
+            await AnimateSwitchAsync(1F, version);
+
+            if (version != _switchAnimationVersion)
+                return;
         }
 
         public async Task PlaySwitchInAsync()
@@ -598,12 +605,15 @@ namespace XelLauncher.Forms
                     _gameInfoBadge.SetTransitionProgress(0F);
                 return;
             }
+            int version = ++_switchAnimationVersion;
 
             CaptureSwitchAnimationHome();
             _switchAnimationActive = true;
             _switchAnimationProgress = 1F;
             ApplySwitchAnimationOffset(_switchAnimationProgress);
-            await AnimateSwitchAsync(0F);
+            await AnimateSwitchAsync(0F, version);
+            if (version != _switchAnimationVersion)
+                return;
             _switchAnimationActive = false;
             _switchAnimationProgress = 0F;
             if (!_coverFadeActive)
@@ -765,57 +775,107 @@ namespace XelLauncher.Forms
             _toolSidebarHome = GetToolSidebarHome();
         }
 
-        private Task AnimateSwitchAsync(float target)
+        private Task AnimateSwitchAsync(float target, int version)
         {
             var tcs = new TaskCompletionSource<object>();
+
             if (IsDisposed || !IsHandleCreated)
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
                 return tcs.Task;
             }
 
+            // 记录动画开始瞬间的进度
             float start = _switchAnimationProgress;
+
             var stopwatch = Stopwatch.StartNew();
+
             var timer = new System.Windows.Forms.Timer
             {
                 Interval = Math.Max(
                     SwitchAnimationMinFrameIntervalMs,
                     AnimationFrameHelper.GetFrameInterval(this))
             };
+
             timer.Tick += (s, e) =>
             {
-                if (IsDisposed)
+                // 当前动画已经不是最新动画
+                if (version != _switchAnimationVersion)
                 {
+                    stopwatch.Stop();
+
                     timer.Stop();
                     timer.Dispose();
+
                     tcs.TrySetResult(null);
                     return;
                 }
 
-                float elapsedProgress = Math.Min(1F, (float)stopwatch.Elapsed.TotalMilliseconds / SwitchAnimationDurationMs);
-                float easedProgress = elapsedProgress * elapsedProgress * (3F - 2F * elapsedProgress);
-                _switchAnimationProgress = start + (target - start) * easedProgress;
-                if (target < _switchAnimationProgress && !_coverFadeActive)
-                    _coverPictureBox?.SetFadeProgress(1F - _switchAnimationProgress);
+                // 不允许继续操作 UI
+                if (IsDisposed || !IsHandleCreated)
+                {
+                    stopwatch.Stop();
 
+                    timer.Stop();
+                    timer.Dispose();
+
+                    tcs.TrySetResult(null);
+                    return;
+                }
+
+                // 计算 0 ~ 1 的时间进度
+                float elapsedProgress = Math.Min(
+                    1F,
+                    (float)stopwatch.Elapsed.TotalMilliseconds /
+                    SwitchAnimationDurationMs);
+
+                // SmoothStep 缓动
+                float easedProgress =
+                    elapsedProgress *
+                    elapsedProgress *
+                    (3F - 2F * elapsedProgress);
+
+                // 从当前起点平滑移动到 target
+                _switchAnimationProgress =
+                    start +
+                    (target - start) * easedProgress;
+
+                // 处理封面淡入
+                if (target < _switchAnimationProgress &&
+                    !_coverFadeActive)
+                {
+                    _coverPictureBox?.SetFadeProgress(
+                        1F - _switchAnimationProgress);
+                }
+
+                // 最后一帧强制对准目标值
+                // 防止浮点计算最后停在 0.001 / 0.999
                 if (elapsedProgress >= 1F)
                 {
                     _switchAnimationProgress = target;
+
                     if (target <= 0F && !_coverFadeActive)
                         _coverPictureBox?.SetFadeProgress(1F);
                 }
 
-                ApplySwitchAnimationOffset(_switchAnimationProgress);
+                // 真正修改控件位置
+                ApplySwitchAnimationOffset(
+                    _switchAnimationProgress);
 
+                // 动画结束
                 if (elapsedProgress >= 1F)
                 {
                     stopwatch.Stop();
+
                     timer.Stop();
                     timer.Dispose();
+
                     tcs.TrySetResult(null);
                 }
             };
+
             timer.Start();
+
             return tcs.Task;
         }
 

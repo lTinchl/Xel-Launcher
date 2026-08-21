@@ -29,7 +29,6 @@ namespace XelLauncher.Forms
             }
 
             _isSwitchingGame = true;
-            _currentGame = g;
             UpdateSelectedGameButton(g);
             var oldPage = _currentGamePage;
             GamePage newPage = null;
@@ -80,9 +79,22 @@ namespace XelLauncher.Forms
                 if (oldPage != null && !oldPage.IsDisposed)
                     await oldPage.PlaySwitchOutAsync();
 
-                panelMain.SuspendLayout();
+                bool hasDifferentPendingGameAfterSwitchOut =
+                    _pendingGame != null &&
+                    (_pendingGame.IconName != g.IconName ||
+                     _pendingGame.RootPath != g.RootPath ||
+                     _pendingGame.Name != g.Name);
+
+                if (hasDifferentPendingGameAfterSwitchOut)
+                {
+                    if (oldPage != null && !oldPage.IsDisposed)
+                        await oldPage.PlaySwitchInAsync();
+                    return;
+                }
+
                 layoutSuspended = true;
 
+                _currentGame = g;
                 _currentGamePage = newPage;
                 newPage.Visible = true;
                 newPage.BringToFront();

@@ -51,6 +51,7 @@ namespace XelLauncher.Forms
         private bool _coverFadeActive;
         private bool _switchAnimationActive = false;
         private float _switchAnimationProgress = 0F;
+        private int _switchAnimationVersion = 0;
         private Point _launchPanelHome;
         private Rectangle _noticePanelHome;
         private Point _toolSidebarHome;
