@@ -79,13 +79,13 @@ namespace XelLauncher.Forms
                 IconSvg = "PoweroffOutlined",
                 Text = AntdUI.Localization.Get("App.Game.Start", "开始游戏"),
                 Location = new Point(224, 0),
-                Size = new Size(168, 52),
+                Size = new Size(164, 52),
                 BorderWidth = 0,
                 Radius = 24,
                 WaveSize = 4,
                 LoadingWaveColor = Color.FromArgb(60, 255, 255, 255),
                 Type = AntdUI.TTypeMini.Primary,
-                Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
+                Font = new Font("Microsoft YaHei UI", 12.5F, FontStyle.Bold),
                 TabStop = false,
             };
             GameStart.Click += GameStart_Click;
