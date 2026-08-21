@@ -9,7 +9,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyName>XelLauncher</AssemblyName>
 		<RootNamespace>XelLauncher</RootNamespace>
-		<Version>0.2.7</Version>
+		<Version>0.2.8</Version>
 		<Company>XelLauncher</Company>
 		<Product>XelLauncher</Product>
 		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
@@ -102,7 +102,6 @@
 	<ItemGroup>
 		<EmbeddedResource Remove="Forms\GamePage.Accent.resx" />
 		<EmbeddedResource Remove="Forms\GamePage.Launch.resx" />
-		<EmbeddedResource Remove="Forms\GamePage.LaunchPanel.resx" />
 		<EmbeddedResource Update="Properties\Resources.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
