@@ -74,7 +74,7 @@ namespace XelLauncher
             var command = string.Join(" ", args);
             AntdUI.Localization.DefaultLanguage = "zh-CN";
             var cfg = ConfigHelper.Load();
-            if (cfg.RunAsAdministrator && !IsRunningAsAdministrator())
+            if (!IsRunningAsAdministrator())
             {
                 try
                 {
