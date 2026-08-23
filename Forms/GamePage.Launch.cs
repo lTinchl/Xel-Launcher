@@ -832,11 +832,7 @@ namespace XelLauncher.Forms
                     AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName()));
                 if (path == null) return;
                 string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
-                if (!File.Exists(Path.Combine(path, exeName)))
-                {
-                    AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Game.ExeNotFound", "所选目录中未找到 {0}"), exeName));
-                    return;
-                }
+                var executableExists = File.Exists(Path.Combine(path, exeName));
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
                 if (e2 != null)
@@ -850,7 +846,35 @@ namespace XelLauncher.Forms
                         AntdUI.Message.warn(_overview, ex.Message);
                         return;
                     }
+
+                    if (!executableExists)
+                    {
+                        e2.LocalVersion = "";
+                        cfg2.GameStatusCache[_game.IconName] = new CachedGameStatus
+                        {
+                            IsInstalled = false,
+                            HasUpdate = false,
+                            HasPreload = false,
+                            PreloadCompleted = false,
+                            LocalVersion = "",
+                            RemoteVersion = "",
+                            PreloadVersion = "",
+                            InstallPath = path
+                        };
+                    }
+
                     ConfigHelper.Save(cfg2);
+                }
+
+                _game.RootPath = path;
+                if (!executableExists)
+                {
+                    _game.LocalVersion = "";
+                    _preloadCompleted = false;
+                    _gameState = GameState.NotInstalled;
+                    RefreshGameStartButton();
+                    RefreshGameInfoBadge();
+                    return;
                 }
             }
             IDisposable launchOperationLease = null;
