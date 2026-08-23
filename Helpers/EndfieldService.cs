@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
@@ -538,6 +539,7 @@ namespace XelLauncher.Helpers
                 throw new InvalidOperationException("未检测到已安装的游戏");
 
             var currentState = InstallProgressState.Preparing;
+            var verificationStarted = 0;
 
             InstallProgressDelegate progressDelegate = (in InstallProgress p) =>
                 onProgress(currentState, p.DownloadedBytes, p.TotalBytesToDownload);
@@ -545,11 +547,22 @@ namespace XelLauncher.Helpers
             InstallProgressStateDelegate stateDelegate = state =>
             {
                 currentState = state;
+                if (state.HasFlag(InstallProgressState.Verify))
+                    Interlocked.Exchange(ref verificationStarted, 1);
                 onProgress(state, 0, 0);
             };
 
             var repairer = new HgGameRepairer(RepairHttpClient, hgManager, installPath);
             await repairer.StartRepairAsync(progressDelegate, stateDelegate, ct).ConfigureAwait(false);
+            ct.ThrowIfCancellationRequested();
+
+            var manifestPath = Path.Combine(installPath, "game_files");
+            if (Volatile.Read(ref verificationStarted) == 0 ||
+                !File.Exists(manifestPath) ||
+                new FileInfo(manifestPath).Length == 0)
+            {
+                throw new InvalidOperationException("游戏文件校验未完整执行");
+            }
         }
 
         private static void TryCancelPluginToken(Guid cancelToken)

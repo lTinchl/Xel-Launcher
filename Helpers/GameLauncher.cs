@@ -65,22 +65,6 @@ namespace XelLauncher.Helpers
             File.Delete(path);
         }
 
-        private static void DeleteStalePayloadManifests(string targetDirectory)
-        {
-            if (!Directory.Exists(targetDirectory)) return;
-
-            foreach (var path in Directory.EnumerateFiles(
-                         targetDirectory, "*", SearchOption.TopDirectoryOnly))
-            {
-                var fileName = Path.GetFileName(path);
-                if (fileName.Equals("game_files", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.StartsWith("game_files_", StringComparison.OrdinalIgnoreCase))
-                {
-                    DeleteFileIfExists(path);
-                }
-            }
-        }
-
         // 尝试创建硬链接；失败则回退到文件复制
         private static bool HardLinkOrCopyFile(string sourceFile, string destFile, bool useHardLink)
         {
@@ -205,7 +189,6 @@ namespace XelLauncher.Helpers
                             : AntdUI.Localization.Get(
                                 "App.Switch.Copying", "切服中..."));
 
-                        DeleteStalePayloadManifests(rootPath);
                         return await HardLinkOrCopyDirectory(
                             payloadDir, rootPath, preferHardLink);
                     });

@@ -423,34 +423,11 @@ namespace XelLauncher.Helpers
             {
                 SetCurrentVersionState(profile.IconName, null);
 
-                var latestPackage = await GetLatestPackageAsync(
-                        profile, cancellationToken)
-                    .ConfigureAwait(false);
-                var state = GetState(profile.IconName);
-                if (IsLocalPayloadAtVersion(profile, state, latestPackage.Version))
-                {
-                    SetCurrentVersionState(
-                        profile.IconName,
-                        new CurrentVersionSnapshot(
-                            state.Version,
-                            state.ManifestSha256,
-                            state.FileCount,
-                            state.TotalBytes));
-                    return new ServerPayloadUpdateResult
-                    {
-                        Profile = profile,
-                        Version = latestPackage.Version,
-                        FileCount = state.FileCount,
-                        AlreadyCurrent = true
-                    };
-                }
-
                 var result = await UpdateCoreAsync(
                         profile,
                         force: false,
                         progress,
-                        cancellationToken,
-                        latestPackage)
+                        cancellationToken)
                     .ConfigureAwait(false);
                 RememberCurrentVersionState(profile, result);
                 return result;
@@ -508,56 +485,6 @@ namespace XelLauncher.Helpers
                         ex,
                         $"Server payload version state notification failed: {iconName}");
                 }
-            }
-        }
-
-        private static bool IsLocalPayloadAtVersion(
-            ServerPayloadProfile profile,
-            ServerPayloadState state,
-            string remoteVersion)
-        {
-            if (state == null ||
-                state.FileCount <= 0 ||
-                state.TotalBytes <= 0 ||
-                state.ManifestSha256?.Length != 64 ||
-                !state.ManifestSha256.All(Uri.IsHexDigit) ||
-                !string.Equals(
-                    state.IconName,
-                    profile.IconName,
-                    StringComparison.OrdinalIgnoreCase) ||
-                !string.Equals(
-                    state.Version,
-                    remoteVersion,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            var payloadDirectory = GetPayloadDirectory(profile);
-            try
-            {
-                var root = new DirectoryInfo(payloadDirectory);
-                if (!root.Exists ||
-                    root.Attributes.HasFlag(FileAttributes.ReparsePoint))
-                {
-                    return false;
-                }
-
-                foreach (var relativePath in GetRequiredPayloadFiles(profile))
-                {
-                    var file = new FileInfo(SafeCombine(payloadDirectory, relativePath));
-                    if (!file.Exists ||
-                        file.Length <= 0 ||
-                        file.Attributes.HasFlag(FileAttributes.ReparsePoint))
-                        return false;
-                }
-
-                return true;
-            }
-            catch (Exception ex) when (
-                ex is IOException or UnauthorizedAccessException)
-            {
-                return false;
             }
         }
 

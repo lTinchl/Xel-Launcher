@@ -362,6 +362,7 @@ namespace XelLauncher.Forms
                         succeeded++;
                     }
                     catch (OperationCanceledException)
+                        when (operation.IsCancellationRequested)
                     {
                         if (!IsDisposed && !Disposing)
                         {

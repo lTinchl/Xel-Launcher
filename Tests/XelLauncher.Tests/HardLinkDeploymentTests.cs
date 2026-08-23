@@ -20,6 +20,7 @@ public sealed class HardLinkDeploymentTests
         temp.WriteFile("source/config.ini", "must not deploy");
         temp.WriteFile("source/Arknights_Data/large.bin", "must not deploy");
         temp.WriteFile("source/game_files_official", "must not deploy");
+        var existingManifest = temp.WriteFile("target/game_files", "keep manifest");
 
         var result = await GameLauncher.HardLinkOrCopyDirectory(
             source, target, preferHardLink: true);
@@ -30,6 +31,7 @@ public sealed class HardLinkDeploymentTests
         Assert.False(File.Exists(Path.Combine(target, "config.ini")));
         Assert.False(File.Exists(Path.Combine(target, "Arknights_Data", "large.bin")));
         Assert.False(File.Exists(Path.Combine(target, "game_files_official")));
+        Assert.Equal("keep manifest", File.ReadAllText(existingManifest));
 
         File.WriteAllText(Path.Combine(target, "payload.dll"), "changed through link");
         Assert.Equal("changed through link", File.ReadAllText(sourceFile));
