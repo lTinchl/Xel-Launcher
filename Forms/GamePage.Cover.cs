@@ -25,11 +25,10 @@ namespace XelLauncher.Forms
 
         private void BuildCoverImage(Image initialCoverImage, string initialCoverPath)
         {
-            string imgFile = _game.IconName switch
-            {
-                "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield" => "End.jpg",
-                _ => "Arknights.jpg",
-            };
+            string imgFile = GameChannelCatalog.IsFamily(
+                _game.IconName, GameFamily.Endfield)
+                ? "End.jpg"
+                : "Arknights.jpg";
             string fallbackPath = FindIconResourceFile(imgFile);
 
             var img = initialCoverImage ?? GameCoverCache.TryLoadImage(fallbackPath);
@@ -131,6 +130,7 @@ namespace XelLauncher.Forms
                 return;
             }
 
+            var refreshSucceeded = false;
             try
             {
                 var service = _service;
@@ -151,9 +151,11 @@ namespace XelLauncher.Forms
                 var beforeWrite = !string.IsNullOrEmpty(beforePath) && File.Exists(beforePath)
                     ? File.GetLastWriteTimeUtc(beforePath)
                     : DateTime.MinValue;
-                var imagePath = await Task.Run(
+                var updateResult = await Task.Run(
                     () => GameCoverCache.UpdateAsync(_game.IconName, imageUrl, ct: token, forceRefresh: true),
                     token);
+                refreshSucceeded = updateResult.RefreshSucceeded;
+                var imagePath = updateResult.CachePath;
                 if (string.IsNullOrEmpty(imagePath) || _coverCts.IsCancellationRequested)
                 {
                     LogHelper.Log($"Client cover cache skipped: {_game.IconName}");
@@ -182,7 +184,7 @@ namespace XelLauncher.Forms
             }
             finally
             {
-                GameCoverCache.MarkDailyCoverRefreshAttempt(_game.IconName);
+                GameCoverCache.CompleteDailyCoverRefresh(_game.IconName, refreshSucceeded);
             }
         }
 
@@ -505,7 +507,8 @@ namespace XelLauncher.Forms
 
         private List<NoticeItem> CreateFallbackNotices()
         {
-            bool endfield = _game.IconName is "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield";
+            bool endfield = GameChannelCatalog.IsFamily(
+                _game.IconName, GameFamily.Endfield);
             if (endfield)
             {
                 return new List<NoticeItem>

@@ -22,12 +22,15 @@ using ImageSharpImage = SixLabors.ImageSharp.Image;
 
 namespace XelLauncher.Helpers
 {
+    internal readonly record struct ClientCoverUpdateResult(string CachePath, bool RefreshSucceeded);
+
     internal static class GameCoverCache
     {
         private const string ClientCoverPattern = "client-cover-*";
         private const string NoticeBannerPattern = "notice-banner-*";
         private const string NoticeContentFileName = "launcher-notice.json";
         private const string ClientCoverRefreshStampFileName = "client-cover-refresh.txt";
+        private const string SuccessfulCoverRefreshStampPrefix = "success:";
 
         private static readonly object CoverRefreshLock = new();
         private static readonly object LauncherArchiveLock = new();
@@ -208,7 +211,10 @@ namespace XelLauncher.Helpers
 
                 if (!archiveBackfillNeeded &&
                     !string.IsNullOrEmpty(cachedPath) &&
-                    string.Equals(ReadCoverRefreshStamp(dir), today, StringComparison.Ordinal))
+                    string.Equals(
+                        ReadCoverRefreshStamp(dir),
+                        GetSuccessfulCoverRefreshStamp(today),
+                        StringComparison.Ordinal))
                     return false;
 
                 CoverRefreshAttempts.Add(attemptKey);
@@ -216,23 +222,40 @@ namespace XelLauncher.Helpers
             }
         }
 
-        public static void MarkDailyCoverRefreshAttempt(string iconName)
+        public static void CompleteDailyCoverRefresh(string iconName, bool refreshSucceeded)
         {
+            var dir = GetGameCoverDir(iconName);
+            var today = DateTime.Now.ToString("yyyy-MM-dd");
+            var attemptKey = $"{dir}|{today}";
+
             try
             {
-                var dir = GetGameCoverDir(iconName);
-                Directory.CreateDirectory(dir);
-                File.WriteAllText(GetCoverRefreshStampPath(dir), DateTime.Now.ToString("yyyy-MM-dd"), Encoding.UTF8);
+                lock (CoverRefreshLock)
+                {
+                    if (refreshSucceeded)
+                    {
+                        Directory.CreateDirectory(dir);
+                        File.WriteAllText(
+                            GetCoverRefreshStampPath(dir),
+                            GetSuccessfulCoverRefreshStamp(today),
+                            Encoding.UTF8);
+                    }
+
+                    CoverRefreshAttempts.Remove(attemptKey);
+                }
             }
             catch (Exception ex)
             {
-                LogHelper.LogError(ex, $"GameCoverCache.MarkDailyCoverRefreshAttempt({iconName})");
+                lock (CoverRefreshLock)
+                    CoverRefreshAttempts.Remove(attemptKey);
+
+                LogHelper.LogError(ex, $"GameCoverCache.CompleteDailyCoverRefresh({iconName})");
             }
         }
 
-        public static async Task<string> UpdateAsync(string iconName, string imageUrl, TimeSpan? refreshAfter = null, CancellationToken ct = default, bool forceRefresh = false)
+        public static async Task<ClientCoverUpdateResult> UpdateAsync(string iconName, string imageUrl, TimeSpan? refreshAfter = null, CancellationToken ct = default, bool forceRefresh = false)
         {
-            if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+            if (string.IsNullOrWhiteSpace(imageUrl)) return new ClientCoverUpdateResult(null, false);
 
             var dir = GetGameCoverDir(iconName);
             Directory.CreateDirectory(dir);
@@ -243,7 +266,7 @@ namespace XelLauncher.Helpers
             if (cachedPath != null && !forceRefresh && !IsCacheExpired(cachedPath, refreshAfter))
             {
                 ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
-                return cachedPath;
+                return new ClientCoverUpdateResult(cachedPath, true);
             }
 
             var temp = baseTarget + ".download.tmp";
@@ -254,7 +277,7 @@ namespace XelLauncher.Helpers
                 {
                     ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
                     LogHelper.Log($"Game cover unchanged, skip download: {iconName} -> {cachedPath}");
-                    return cachedPath;
+                    return new ClientCoverUpdateResult(cachedPath, true);
                 }
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
@@ -265,7 +288,7 @@ namespace XelLauncher.Helpers
                 {
                     ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
                     LogHelper.Log($"Game cover not modified, skip download: {iconName} -> {cachedPath}");
-                    return cachedPath;
+                    return new ClientCoverUpdateResult(cachedPath, true);
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -289,7 +312,7 @@ namespace XelLauncher.Helpers
                     SaveClientCoverMetadata(baseTarget, response);
                     ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
                     LogHelper.Log($"Game cover content unchanged, keep cached image: {iconName} -> {cachedPath}");
-                    return cachedPath;
+                    return new ClientCoverUpdateResult(cachedPath, true);
                 }
 
                 if (IsWebpFile(extension, temp))
@@ -302,7 +325,7 @@ namespace XelLauncher.Helpers
                         CleanupOldCovers(dir, pngPath);
                         SaveClientCoverMetadata(baseTarget, response);
                         LogHelper.Log($"Game cover cached: {iconName} -> {pngPath}");
-                        return pngPath;
+                        return new ClientCoverUpdateResult(pngPath, true);
                     }
 
                     var webpPath = baseTarget + ".webp";
@@ -311,7 +334,7 @@ namespace XelLauncher.Helpers
                     CleanupOldCovers(dir, webpPath);
                     SaveClientCoverMetadata(baseTarget, response);
                     LogHelper.Log($"Game cover cached (WebP fallback): {iconName} -> {webpPath}");
-                    return webpPath;
+                    return new ClientCoverUpdateResult(webpPath, true);
                 }
 
                 var target = baseTarget + NormalizeImageExtension(extension);
@@ -325,11 +348,11 @@ namespace XelLauncher.Helpers
                         CleanupOldCovers(dir, pngPath);
                         SaveClientCoverMetadata(baseTarget, response);
                         LogHelper.Log($"Game cover cached: {iconName} -> {pngPath}");
-                        return pngPath;
+                        return new ClientCoverUpdateResult(pngPath, true);
                     }
 
                     TryDelete(temp);
-                    return cachedPath;
+                    return new ClientCoverUpdateResult(cachedPath, false);
                 }
 
                 MoveReplacing(temp, target);
@@ -337,17 +360,17 @@ namespace XelLauncher.Helpers
                 CleanupOldCovers(dir, target);
                 SaveClientCoverMetadata(baseTarget, response);
                 LogHelper.Log($"Game cover cached: {iconName} -> {target}");
-                return target;
+                return new ClientCoverUpdateResult(target, true);
             }
             catch (Exception ex)
             {
                 TryDelete(temp);
                 if (ex is OperationCanceledException)
-                    return cachedPath;
+                    return new ClientCoverUpdateResult(cachedPath, false);
 
                 LogHelper.LogError(ex, $"GameCoverCache.UpdateAsync({iconName})");
                 ArchiveLauncherImageIfEnabled(iconName, imageUrl, cachedPath, "client-cover");
-                return cachedPath;
+                return new ClientCoverUpdateResult(cachedPath, false);
             }
         }
 
@@ -878,6 +901,11 @@ namespace XelLauncher.Helpers
         private static string GetCoverRefreshStampPath(string dir)
         {
             return Path.Combine(dir, ClientCoverRefreshStampFileName);
+        }
+
+        private static string GetSuccessfulCoverRefreshStamp(string date)
+        {
+            return SuccessfulCoverRefreshStampPrefix + date;
         }
 
         private static string ReadCoverRefreshStamp(string dir)
