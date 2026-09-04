@@ -43,8 +43,7 @@ namespace XelLauncher.Forms
         {
             if (e.Value is not string lang) return;
 
-            if (lang.StartsWith("en")) AntdUI.Localization.Provider = new Localizer();
-            else AntdUI.Localization.Provider = null;
+            AntdUI.Localization.Provider ??= new Localizer();
             AntdUI.Localization.SetLanguage(lang);
 
             var cfg = ConfigHelper.Load();

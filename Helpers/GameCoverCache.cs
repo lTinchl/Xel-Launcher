@@ -557,14 +557,9 @@ namespace XelLauncher.Helpers
 
         private static string GetGameCoverDir(string iconName)
         {
-            var normalizedName = iconName switch
-            {
-                "BiliArknights" => "Arknights",
-                "BiliEndfield" => "Endfield",
-                "PlayEndfield" => "GlobalEndfield",
-                _ => iconName
-            };
-            return Path.Combine(ConfigHelper.ConfigDir, "GameCovers", SanitizeFileName(normalizedName));
+            // Covers, notices, and the daily refresh stamp are channel-specific.
+            // Sharing this directory lets one channel suppress another channel's refresh.
+            return Path.Combine(ConfigHelper.ConfigDir, "GameCovers", SanitizeFileName(iconName));
         }
 
         private static void ArchiveLauncherImageIfEnabled(string iconName, string imageUrl, string sourcePath, string kind)

@@ -1332,6 +1332,9 @@
   <data name="App.Update.OpenedFallback" xml:space="preserve">
     <value>Opened the download page</value>
   </data>
+  <data name="App.Update.OpenNetdiskPage" xml:space="preserve">
+    <value>Open Download Page</value>
+  </data>
   <data name="App.Update.DownloadNow" xml:space="preserve">
     <value>Update Now</value>
   </data>

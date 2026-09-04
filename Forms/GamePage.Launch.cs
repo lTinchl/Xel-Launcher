@@ -1056,9 +1056,12 @@ namespace XelLauncher.Forms
             bool independentClient;
             string payloadDir;
             bool needSwitch;
+            var useLinkedRuntime =
+                cfg.UseHardLink &&
+                sharedRootResolution.Mode == SharedRootMode.Shared;
             try
             {
-                if (sharedRootResolution.Mode == SharedRootMode.Shared)
+                if (useLinkedRuntime)
                 {
                     independentClient = false;
                     payloadDir = null;
@@ -1125,7 +1128,7 @@ namespace XelLauncher.Forms
                         }
                         var launchPath = path;
                         var traditionalSwitchPerformed = false;
-                        if (sharedRootResolution.Mode == SharedRootMode.Shared)
+                        if (useLinkedRuntime)
                         {
                             var targetIsBase = sharedRootResolution.Base != null &&
                                                string.Equals(

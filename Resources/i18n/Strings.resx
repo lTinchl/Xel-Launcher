@@ -694,34 +694,34 @@
     <value>选择要添加的游戏</value>
   </data>
   <data name="App.Setting.CloseAfterLaunch" xml:space="preserve">
-    <value>Close after launching game</value>
+    <value>启动游戏后关闭软件</value>
   </data>
   <data name="App.Setting.ArchiveLauncherImages" xml:space="preserve">
     <value>启动器背景图保存</value>
   </data>
   <data name="App.Setting.HideToTrayOnLaunch" xml:space="preserve">
-    <value>Hide to tray after launching game</value>
+    <value>启动游戏后隐藏至托盘</value>
   </data>
   <data name="App.Setting.Log" xml:space="preserve">
     <value>软件日志</value>
   </data>
   <data name="App.Setting.MinimizeToTray" xml:space="preserve">
-    <value>Minimize to Tray</value>
+    <value>最小化到托盘</value>
   </data>
   <data name="App.Setting.Software" xml:space="preserve">
     <value>常规</value>
   </data>
   <data name="App.Setting.StartWithWindows" xml:space="preserve">
-    <value>Boot Startup</value>
+    <value>开机自动运行</value>
   </data>
   <data name="App.Setting.Update" xml:space="preserve">
     <value>软件更新</value>
   </data>
   <data name="App.Setting.UseExternalBrowser" xml:space="preserve">
-    <value>Use external browser for links</value>
+    <value>使用外部浏览器</value>
   </data>
   <data name="App.Setting.UseHardLink" xml:space="preserve">
-    <value>Use hard links for server switching</value>
+    <value>使用硬链接切服</value>
   </data>
   <data name="App.Setting.UpdateDownloadSource" xml:space="preserve">
     <value>更新下载源</value>
@@ -1315,7 +1315,7 @@
     <value>直接关闭窗口，下次启动时仍会提醒</value>
   </data>
   <data name="App.Update.DownloadCanceled" xml:space="preserve">
-    <value>Canceled</value>
+    <value>已取消</value>
   </data>
   <data name="App.Update.DownloadDone" xml:space="preserve">
     <value>下载完成！</value>
@@ -1332,14 +1332,17 @@
   <data name="App.Update.OpenedFallback" xml:space="preserve">
     <value>已打开网盘下载页</value>
   </data>
+  <data name="App.Update.OpenNetdiskPage" xml:space="preserve">
+    <value>打开网盘下载页</value>
+  </data>
   <data name="App.Update.DownloadNow" xml:space="preserve">
     <value>立即更新</value>
   </data>
   <data name="App.Update.DownloadPortable" xml:space="preserve">
-    <value>⬇ Download Portable</value>
+    <value>⬇ 下载便携版</value>
   </data>
   <data name="App.Update.DownloadSetup" xml:space="preserve">
-    <value>⬇ Download Installer</value>
+    <value>⬇ 下载安装版</value>
   </data>
   <data name="App.Update.ErrorPrefix" xml:space="preserve">
     <value>发生意外错误：</value>

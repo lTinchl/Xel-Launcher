@@ -87,8 +87,8 @@ namespace XelLauncher
         private int UpdateCardCompactPixelHeight => D(UpdateCardCompactHeight);
         private int UpdateCardExpandedPixelHeight => D(UpdateCardExpandedHeight);
 
-        private static string L(string key, string fallback) =>
-            AntdUI.Localization.Get(key, fallback);
+        private static string L(string key) =>
+            AntdUI.Localization.Get(key, key);
 
         private int D(int value) =>
             Math.Max(1, (int)Math.Round(value * GetCurrentDpi() / 96D));
@@ -146,11 +146,6 @@ namespace XelLauncher
             switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
             switch10.Checked = UseExternalBrowser = cfg.UseExternalBrowser;
             switch11.Checked = UseHardLink = cfg.UseHardLink;
-            // Linked Runtime chooses safe sharing automatically. The legacy
-            // "hard-link server switch" option no longer applies because
-            // channel payload files are always independent copies.
-            label11.Visible = false;
-            switch11.Visible = false;
             switch12.Checked = HideToolSidebar = cfg.HideToolSidebar;
             CheckGameUpdates = cfg.CheckGameUpdates;
             UpdateDownloadSource = UpdateHelper.NormalizeDownloadSource(cfg.UpdateDownloadSource);
@@ -181,7 +176,7 @@ namespace XelLauncher
             {
                 Dock = DockStyle.Fill,
                 Name = "labelArchiveLauncherImages",
-                Text = L("App.Setting.ArchiveLauncherImages", string.Empty),
+                Text = L("App.Setting.ArchiveLauncherImages"),
                 LocalizationText = "App.Setting.ArchiveLauncherImages",
                 TabIndex = 0,
             };
@@ -406,14 +401,14 @@ namespace XelLauncher
 
             _updateHeaderTitle = new AntdUI.Label
             {
-                Text = L("App.Update.ModalTitle", "软件更新"),
+                Text = L("App.Update.ModalTitle"),
                 Size = DSize(240, 30),
                 Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
                 ForeColor = normalText,
             };
             _updateHeaderSubtitle = new AntdUI.Label
             {
-                Text = L("App.Update.CurrentVersion", "当前版本") + "：",
+                Text = L("App.Update.CurrentVersion") + "：",
                 Size = DSize(IsEnglishUi ? 112 : 76, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
@@ -437,7 +432,7 @@ namespace XelLauncher
             };
 
             lblLatestVersionTitle.LocalizationText = null;
-            lblLatestVersionTitle.Text = L("App.Update.LatestVersion", "最新版本") + "：";
+            lblLatestVersionTitle.Text = L("App.Update.LatestVersion") + "：";
             lblLatestVersionTitle.Size = DSize(IsEnglishUi ? 104 : 76, 24);
             lblLatestVersionTitle.Dock = DockStyle.None;
             lblLatestVersionTitle.Font = new Font("Microsoft YaHei UI", 9F);
@@ -447,7 +442,7 @@ namespace XelLauncher
             lblLatestVersion.ForeColor = LatestVersionStaticColor;
 
             btnCheckUpdate.LocalizationText = null;
-            btnCheckUpdate.Text = L("App.Update.CheckUpdate", "检查更新");
+            btnCheckUpdate.Text = L("App.Update.CheckUpdate");
             btnCheckUpdate.Dock = DockStyle.None;
             btnCheckUpdate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnCheckUpdate.Ghost = true;
@@ -469,7 +464,7 @@ namespace XelLauncher
             _updateMarkdownDividerColor = AntdUI.Config.IsDark
                 ? Color.FromArgb(54, 62, 74)
                 : Color.FromArgb(208, 215, 222);
-            txtChangelog.Text = L("App.Update.ChangelogHint", "点击检查更新后显示内容。");
+            txtChangelog.Text = L("App.Update.ChangelogHint");
             _updateChangelogScrollBar = new ThinScrollBar(
                 AntdUI.Config.IsDark ? Color.FromArgb(48, 52, 60) : Color.FromArgb(236, 240, 246),
                 AntdUI.Config.IsDark ? Color.FromArgb(118, 128, 146) : Color.FromArgb(156, 166, 182));
@@ -500,14 +495,14 @@ namespace XelLauncher
             };
             _updateAutoOption = new AntdUI.Label
             {
-                Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示"),
+                Text = L("App.Update.ReleaseDatePending"),
                 Size = DSize(IsEnglishUi ? 260 : 220, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
             };
             _updateNotifyOption = new AntdUI.Label
             {
-                Text = L("App.Update.UpdateSizePending", "更新大小：检查后显示"),
+                Text = L("App.Update.UpdateSizePending"),
                 Size = DSize(IsEnglishUi ? 260 : 220, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
                 ForeColor = subtleText,
@@ -721,7 +716,7 @@ namespace XelLauncher
                 if (showSourceSelect)
                 {
                     var sourceText = string.IsNullOrWhiteSpace(_updateDownloadSourceSelect.Text)
-                        ? L("App.Setting.UpdateDownloadSource", "更新下载源")
+                        ? L("App.Setting.UpdateDownloadSource")
                         : _updateDownloadSourceSelect.Text;
                     sourceWidth = Math.Max(
                         D(IsEnglishUi ? 156 : 132),
@@ -768,7 +763,7 @@ namespace XelLauncher
 
         private void ConfigureUpdateButtons(Color surface, Color border, Color normalText)
         {
-            btnDownloadSetup.Text = L("App.Update.DownloadNow", "立即更新");
+            btnDownloadSetup.Text = L("App.Update.DownloadNow");
             btnDownloadSetup.LocalizationText = null;
             btnDownloadSetup.Type = AntdUI.TTypeMini.Success;
             btnDownloadSetup.Radius = 6;
@@ -777,7 +772,7 @@ namespace XelLauncher
             var buttonHover = AntdUI.Config.IsDark ? Color.FromArgb(218, 226, 238) : Color.FromArgb(76, 86, 102);
             var buttonActive = AntdUI.Config.IsDark ? Color.FromArgb(238, 242, 248) : Color.FromArgb(48, 58, 72);
 
-            btnDownloadPortable.Text = L("App.Update.Portable", "便携版");
+            btnDownloadPortable.Text = L("App.Update.Portable");
             btnDownloadPortable.LocalizationText = null;
             btnDownloadPortable.Type = AntdUI.TTypeMini.Default;
             btnDownloadPortable.Ghost = true;
@@ -787,7 +782,7 @@ namespace XelLauncher
             btnDownloadPortable.BackActive = buttonActive;
             btnDownloadPortable.Radius = 6;
 
-            btnCancelDownload.Text = L("App.Update.CancelDownload", "取消下载");
+            btnCancelDownload.Text = L("App.Update.CancelDownload");
             btnCancelDownload.LocalizationText = null;
             btnCancelDownload.Type = AntdUI.TTypeMini.Error;
             btnCancelDownload.Radius = 6;
@@ -824,10 +819,10 @@ namespace XelLauncher
                     ClickSwitchDropdown = true,
                     EnterDropDown = true,
                     Cursor = Cursors.Hand,
-                    PlaceholderText = L("App.Setting.UpdateDownloadSource", "更新下载源"),
+                    PlaceholderText = L("App.Setting.UpdateDownloadSource"),
                 };
-                _updateDownloadSourceSelect.Items.Add(new AntdUI.SelectItem(L("App.Update.SourceGitHub", "GitHub"), UpdateHelper.DownloadSourceGitHub));
-                _updateDownloadSourceSelect.Items.Add(new AntdUI.SelectItem(L("App.Update.SourceNetdisk", "网盘下载"), UpdateHelper.DownloadSourceNetdisk));
+                _updateDownloadSourceSelect.Items.Add(new AntdUI.SelectItem(L("App.Update.SourceGitHub"), UpdateHelper.DownloadSourceGitHub));
+                _updateDownloadSourceSelect.Items.Add(new AntdUI.SelectItem(L("App.Update.SourceNetdisk"), UpdateHelper.DownloadSourceNetdisk));
                 _updateDownloadSourceSelect.SelectedValue = UpdateHelper.NormalizeDownloadSource(UpdateDownloadSource);
                 _updateDownloadSourceSelect.SelectedValueChanged += (s, e) =>
                 {
@@ -852,11 +847,11 @@ namespace XelLauncher
             if (_updateDownloadSourceMenu == null)
             {
                 _updateDownloadSourceMenu = new ContextMenuStrip();
-                _updateDownloadSourceMenu.Items.Add(L("App.Update.SourceGitHub", "GitHub"), null, (s, e) =>
+                _updateDownloadSourceMenu.Items.Add(L("App.Update.SourceGitHub"), null, (s, e) =>
                 {
                     SetUpdateDownloadSource(UpdateHelper.DownloadSourceGitHub, persist: true);
                 });
-                _updateDownloadSourceMenu.Items.Add(L("App.Update.SourceNetdisk", "网盘下载"), null, (s, e) =>
+                _updateDownloadSourceMenu.Items.Add(L("App.Update.SourceNetdisk"), null, (s, e) =>
                 {
                     SetUpdateDownloadSource(UpdateHelper.DownloadSourceNetdisk, persist: true);
                 });
@@ -923,8 +918,8 @@ namespace XelLauncher
             if (btnFallback != null)
             {
                 btnFallback.Text = _netdiskSourceMode
-                    ? L("App.Update.OpenNetdiskPage", "打开网盘下载页")
-                    : L("App.Update.Fallback", "网盘下载");
+                    ? L("App.Update.OpenNetdiskPage")
+                    : L("App.Update.Fallback");
                 btnFallback.Type = AntdUI.TTypeMini.Warn;
                 btnFallback.Ghost = false;
                 btnFallback.BorderWidth = 0F;
@@ -954,7 +949,7 @@ namespace XelLauncher
                 };
                 _settingTitle = new AntdUI.Label
                 {
-                    Text = "设置",
+                    Text = L("Setting"),
                     Size = DSize(120, 30),
                     Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold),
                     ForeColor = normalText,
@@ -994,9 +989,9 @@ namespace XelLauncher
             }
 
             _tabBar.BackColor = surface;
-            StyleTabButton(btnSoftware, L("App.Setting.Software", "常规"), normalText);
-            StyleTabButton(btnUpdate, L("App.Setting.Update", "软件更新"), normalText);
-            StyleTabButton(btnLog, L("App.Setting.Log", "软件日志"), normalText);
+            StyleTabButton(btnSoftware, L("App.Setting.Software"), normalText);
+            StyleTabButton(btnUpdate, L("App.Setting.Update"), normalText);
+            StyleTabButton(btnLog, L("App.Setting.Log"), normalText);
             _tabBar.BringToFront();
             LayoutTopTabs();
             UpdateTopTabState(0);
@@ -1170,17 +1165,19 @@ namespace XelLauncher
             _softwareCard.BorderColor = border;
             tableSoftware.BackColor = cardBack;
             tableSoftware.ColumnStyles[1].Width = D(72);
-            label6.Text = "最小化到托盘";
-            label7.Text = "开机自动运行";
-            label8.Text = "启动游戏后关闭软件";
-            label9.Text = "启动游戏后隐藏至托盘";
-            label10.Text = "使用外部浏览器";
-            label11.Text = "使用硬链接切服";
+            label6.Text = L("App.Setting.MinimizeToTray");
+            label7.Text = L("App.Setting.StartWithWindows");
+            label8.Text = L("App.Setting.CloseAfterLaunch");
+            label9.Text = L("App.Setting.HideToTrayOnLaunch");
+            label10.Text = L("App.Setting.UseExternalBrowser");
+            label11.Text = L("App.Setting.UseHardLink");
 
-            label12.Text = L("App.Setting.HideToolSidebar", "隐藏游戏工具栏");
+            label12.Text = L("App.Setting.HideToolSidebar");
 
             if (_archiveLauncherImagesLabel != null)
-                _archiveLauncherImagesLabel.Text = L("App.Setting.ArchiveLauncherImages", string.Empty);
+            {
+                _archiveLauncherImagesLabel.Text = L("App.Setting.ArchiveLauncherImages");
+            }
             const int firstVisibleRow = 5;
             var maxVisibleRow = firstVisibleRow - 1;
             foreach (Control control in tableSoftware.Controls)
@@ -1197,12 +1194,6 @@ namespace XelLauncher
                 tableSoftware.RowStyles[i].SizeType = SizeType.Absolute;
                 tableSoftware.RowStyles[i].Height = rowHeight;
             }
-            if (tableSoftware.RowStyles.Count > 10)
-            {
-                tableSoftware.RowStyles[10].SizeType = SizeType.Absolute;
-                tableSoftware.RowStyles[10].Height = 0;
-            }
-
             var visibleRows = Math.Max(0, maxVisibleRow - firstVisibleRow + 1);
             tableSoftware.Height = visibleRows * rowHeight;
             _softwareCard.Height = tableSoftware.Height + _softwareCard.Padding.Top + _softwareCard.Padding.Bottom;
@@ -1226,7 +1217,7 @@ namespace XelLauncher
             };
             _logTitle = new AntdUI.Label
             {
-                Text = "软件日志",
+                Text = L("App.Setting.Log"),
                 Size = DSize(120, 24),
                 Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold),
                 ForeColor = normalText,
@@ -1651,22 +1642,22 @@ namespace XelLauncher
             btnCheckUpdate.Click += async (s, e) =>
             {
                 try { await CheckUpdateAsync(); }
-                catch (Exception ex) { ShowChangelog(AntdUI.Localization.Get("App.Update.ErrorPrefix", "发生意外错误：") + ex.Message); }
+                catch (Exception ex) { ShowChangelog(L("App.Update.ErrorPrefix") + ex.Message); }
             };
             btnDownloadSetup.Click += async (s, e) =>
             {
                 try { await DownloadAsync(isSetup: true); }
-                catch (Exception ex) { lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadErrorPrefix", "错误：") + ex.Message; }
+                catch (Exception ex) { lblDownloadStatus.Text = L("App.Update.DownloadErrorPrefix") + ex.Message; }
             };
             btnDownloadPortable.Click += async (s, e) =>
             {
                 try { await DownloadAsync(isSetup: false); }
-                catch (Exception ex) { lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadErrorPrefix", "错误：") + ex.Message; }
+                catch (Exception ex) { lblDownloadStatus.Text = L("App.Update.DownloadErrorPrefix") + ex.Message; }
             };
             btnCancelDownload.Click += (s, e) =>
             {
                 btnCancelDownload.Enabled = false;
-                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.Canceling", "正在取消...");
+                lblDownloadStatus.Text = L("App.Update.Canceling");
                 _downloadCts?.Cancel();
             };
             btnFallback.Click += (s, e) =>
@@ -1699,13 +1690,13 @@ namespace XelLauncher
             var state = UpdateHelper.GetCachedState();
             if (state == null || string.IsNullOrWhiteSpace(state.LatestVersion))
             {
-                SetUpdateHeaderTitle(L("App.Update.ModalTitle", "软件更新"));
+                SetUpdateHeaderTitle(L("App.Update.ModalTitle"));
                 _updateInfo = null;
                 _hasAvailableUpdate = false;
                 StopLatestVersionColorAnimation();
                 lblLatestVersion.Text = "—";
-                _updateAutoOption.Text = L("App.Update.ReleaseDatePending", "发布日期：检查后显示");
-                _updateNotifyOption.Text = L("App.Update.UpdateSizePending", "更新大小：检查后显示");
+                _updateAutoOption.Text = L("App.Update.ReleaseDatePending");
+                _updateNotifyOption.Text = L("App.Update.UpdateSizePending");
                 SetUpdateCardExpanded(false, false);
                 return;
             }
@@ -1715,7 +1706,7 @@ namespace XelLauncher
 
         private async Task CheckUpdateAsync()
         {
-            btnCheckUpdate.Text = AntdUI.Localization.Get("App.Update.Checking", "检查中...");
+            btnCheckUpdate.Text = L("App.Update.Checking");
 
             btnCheckUpdate.Enabled = false;
             try
@@ -1723,12 +1714,12 @@ namespace XelLauncher
                 var state = await UpdateHelper.CheckAndPersistAsync(System.Windows.Forms.Application.ProductVersion);
                 if (state == null)
                 {
-                    SetUpdateHeaderTitle(L("App.Update.CheckFailedTitle", "检查更新失败"));
-                    ShowChangelog(AntdUI.Localization.Get("App.Update.CheckFailed", "检查失败，请检查网络连接。"));
+                    SetUpdateHeaderTitle(L("App.Update.CheckFailedTitle"));
+                    ShowChangelog(L("App.Update.CheckFailed"));
                     _hasAvailableUpdate = false;
                     lblLatestVersion.Text = "—";
-                    _updateAutoOption.Text = L("App.Update.ReleaseDateFailed", "发布日期：检查失败");
-                    _updateNotifyOption.Text = L("App.Update.UpdateSizeFailed", "更新大小：检查失败");
+                    _updateAutoOption.Text = L("App.Update.ReleaseDateFailed");
+                    _updateNotifyOption.Text = L("App.Update.UpdateSizeFailed");
                     SetUpdateCardExpanded(false, true);
                     return;
                 }
@@ -1737,7 +1728,7 @@ namespace XelLauncher
             }
             finally
             {
-                btnCheckUpdate.Text    = AntdUI.Localization.Get("App.Update.CheckUpdate", "检查更新");
+                btnCheckUpdate.Text    = L("App.Update.CheckUpdate");
                 btnCheckUpdate.Enabled = true;
             }
         }
@@ -1749,15 +1740,15 @@ namespace XelLauncher
 
             _updateInfo = info;
             lblLatestVersion.Text = "v" + info.LatestVersion;
-            _updateAutoOption.Text = string.Format(L("App.Update.ReleaseDate", "发布日期：{0}"), FormatReleaseDate(info.PublishedAt));
-            _updateNotifyOption.Text = string.Format(L("App.Update.UpdateSize", "更新大小：{0}"), FormatReleaseSize(info));
+            _updateAutoOption.Text = string.Format(L("App.Update.ReleaseDate"), FormatReleaseDate(info.PublishedAt));
+            _updateNotifyOption.Text = string.Format(L("App.Update.UpdateSize"), FormatReleaseSize(info));
 
             var currentVer = System.Windows.Forms.Application.ProductVersion;
             var hasUpdate = state.HasUpdate && UpdateHelper.IsNewer(currentVer, info.LatestVersion);
             if (hasUpdate)
             {
                 _hasAvailableUpdate = true;
-                SetUpdateHeaderTitle(L("App.Update.NewVersionTitle", "发现新版本"));
+                SetUpdateHeaderTitle(L("App.Update.NewVersionTitle"));
                 StartLatestVersionColorAnimation();
                 ShowChangelog(info.Changelog);
                 btnDownloadSetup.Visible = true;
@@ -1777,8 +1768,8 @@ namespace XelLauncher
 
             StopLatestVersionColorAnimation();
             _hasAvailableUpdate = false;
-            SetUpdateHeaderTitle(L("App.Update.NoUpdateTitle", "已是最新版本"));
-            RenderUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
+            SetUpdateHeaderTitle(L("App.Update.NoUpdateTitle"));
+            RenderUpdateChangelog(L("App.Update.AlreadyLatest"));
             btnDownloadSetup.Visible = false;
             btnDownloadPortable.Visible = false;
             _showFallbackButton = false;
@@ -1850,9 +1841,7 @@ namespace XelLauncher
             if (downloadSource == UpdateHelper.DownloadSourceNetdisk)
             {
                 OpenFallbackPage();
-                lblDownloadStatus.Text = AntdUI.Localization.Get(
-                    "App.Update.OpenedFallback",
-                    "已打开网盘下载页");
+                lblDownloadStatus.Text = L("App.Update.OpenedFallback");
                 RefreshUpdateDownloadSourceUi();
                 return;
             }
@@ -1869,9 +1858,9 @@ namespace XelLauncher
             {
                 var sfd = new System.Windows.Forms.SaveFileDialog
                 {
-                    Title            = AntdUI.Localization.Get("App.Update.SavePortableTitle", "保存便携版"),
+                    Title            = L("App.Update.SavePortableTitle"),
                     FileName         = $"XelLauncher.v{_updateInfo.LatestVersion}-Portable.zip",
-                    Filter           = AntdUI.Localization.Get("App.Update.SavePortableFilter", "ZIP 压缩包|*.zip"),
+                    Filter           = L("App.Update.SavePortableFilter"),
                     DefaultExt       = "zip",
                     RestoreDirectory = true
                 };
@@ -1896,7 +1885,7 @@ namespace XelLauncher
             progressDownload.Visible    = true;
             progressDownload.Value      = 0F;
             progressDownload.Loading    = true;
-            lblDownloadStatus.Text      = AntdUI.Localization.Get("App.Update.Preparing", "准备下载...");
+            lblDownloadStatus.Text      = L("App.Update.Preparing");
             _isDownloadingUpdate        = true;
             LayoutUpdateHeader();
 
@@ -1921,7 +1910,7 @@ namespace XelLauncher
                             else
                             {
                                 var dlMB = downloaded / 1048576.0;
-                                lblDownloadStatus.Text = string.Format(AntdUI.Localization.Get("App.Update.DownloadedMB", "{0:F1} MB 已下载"), dlMB);
+                                lblDownloadStatus.Text = string.Format(L("App.Update.DownloadedMB"), dlMB);
                             }
                         });
                     },
@@ -1948,7 +1937,7 @@ namespace XelLauncher
                 }
                 else
                 {
-                    lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadDone", "下载完成！");
+                    lblDownloadStatus.Text = L("App.Update.DownloadDone");
                     System.Diagnostics.Process.Start("explorer.exe",
                         $"/select,\"{destPath}\"");
                 }
@@ -1962,7 +1951,7 @@ namespace XelLauncher
             }
             catch (Exception)
             {
-                lblDownloadStatus.Text = AntdUI.Localization.Get("App.Update.DownloadFailed", "下载失败");
+                lblDownloadStatus.Text = L("App.Update.DownloadFailed");
                 ShowFallback();
             }
             finally
@@ -2003,13 +1992,13 @@ namespace XelLauncher
 
         private void HideChangelog()
         {
-            RenderUpdateChangelog(L("App.Update.AlreadyLatest", "当前已是最新版本。"));
+            RenderUpdateChangelog(L("App.Update.AlreadyLatest"));
         }
         private static string FormatReleaseDate(DateTimeOffset? publishedAt)
         {
             return publishedAt.HasValue
                 ? publishedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-                : L("App.Update.Unknown", "未知");
+                : L("App.Update.Unknown");
         }
 
         private static string FormatReleaseSize(UpdateInfo info)
@@ -2017,9 +2006,9 @@ namespace XelLauncher
             var setup = FormatBytes(info.SetupSizeBytes);
             var portable = FormatBytes(info.PortableSizeBytes);
 
-            var unknown = L("App.Update.Unknown", "未知");
+            var unknown = L("App.Update.Unknown");
             if (setup != unknown && portable != unknown)
-                return string.Format(L("App.Update.SizeBoth", "安装包 {0} / 便携包 {1}"), setup, portable);
+                return string.Format(L("App.Update.SizeBoth"), setup, portable);
             if (setup != unknown)
                 return setup;
             if (portable != unknown)
@@ -2029,7 +2018,7 @@ namespace XelLauncher
 
         private static string FormatBytes(long? bytes)
         {
-            if (!bytes.HasValue || bytes.Value <= 0) return L("App.Update.Unknown", "未知");
+            if (!bytes.HasValue || bytes.Value <= 0) return L("App.Update.Unknown");
 
             var value = bytes.Value;
             if (value >= 1024L * 1024L * 1024L)
@@ -2091,7 +2080,7 @@ namespace XelLauncher
         private void RenderUpdateChangelog(string markdown)
         {
             var content = string.IsNullOrWhiteSpace(markdown)
-                ? L("App.Update.NoChangelog", "暂无更新内容。")
+                ? L("App.Update.NoChangelog")
                 : markdown;
             content = ReleaseNotesHelper.SelectLocalizedMarkdown(content, IsEnglishUi);
 
