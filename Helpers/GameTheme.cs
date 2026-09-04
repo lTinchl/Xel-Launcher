@@ -7,12 +7,9 @@ namespace XelLauncher.Helpers
     {
         public static Color GetAccent(string iconName)
         {
-            return iconName switch
-            {
-                "Arknights" or "BiliArknights" => Color.FromArgb(190, 160, 126),
-                "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield" => Color.FromArgb(176, 164, 114),
-                _ => Color.FromArgb(190, 160, 126),
-            };
+            return GameChannelCatalog.IsFamily(iconName, GameFamily.Endfield)
+                ? Color.FromArgb(176, 164, 114)
+                : Color.FromArgb(190, 160, 126);
         }
 
         public static Color GetAccentHover(string iconName) => ShiftLightness(GetAccent(iconName), 0.08F);

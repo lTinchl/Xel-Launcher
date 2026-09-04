@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using XelLauncher.Helpers;
 
 public class GameEntry
 {
@@ -12,6 +13,7 @@ public class GameEntry
     public bool CustomLaunchArgsEnabled { get; set; } = false;    // 自定义启动参数开关
     public string CustomLaunchArgs { get; set; } = "";             // 自定义启动参数
     public string LocalVersion { get; set; } = "";                 // 缓存的本地游戏版本号
+    public bool AddedManually { get; set; } = false;                // 由用户从游戏选择器主动添加
     public bool IndependentChannelClient { get; set; } = false;    // 独立渠道目录，启动时不再部署切服文件
     public string LinkedClientGroupId { get; set; } = "";          // 共享硬链接资源的客户端组
 
@@ -19,16 +21,8 @@ public class GameEntry
     public string GetLocalizedName()
     {
         bool isEnglish = AntdUI.Localization.CurrentLanguage.StartsWith("en");
-        return IconName switch
-        {
-            "Arknights"      => isEnglish ? "Arknights (Official)" : "明日方舟（官服）",
-            "BiliArknights"  => isEnglish ? "Arknights (Bilibili)" : "明日方舟（B服）",
-            "Endfield"       => isEnglish ? "Endfield (Official)"  : "明日方舟：终末地（官服）",
-            "BiliEndfield"   => isEnglish ? "Endfield (Bilibili)"  : "明日方舟：终末地（B服）",
-            "GlobalEndfield" => isEnglish ? "Endfield (Global)"    : "明日方舟：终末地（国际服）",
-            "PlayEndfield"   => isEnglish ? "Endfield (GooglePlay)" : "明日方舟：终末地（GooglePlay）",
-            _                => Name,
-        };
+        return GameChannelCatalog.Get(IconName)?.GetDisplayName(isEnglish)
+               ?? Name;
     }
 }
 

@@ -39,6 +39,9 @@ namespace XelLauncher.Forms
                 var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
                 string path = entry?.RootPath ?? _game.RootPath;
                 if (string.IsNullOrEmpty(path)) return false;
+                var operationTarget = SharedRootManager.ResolveMaintenanceTarget(
+                    _game.IconName, path, allowUninstalledTarget: true);
+                var effectiveIconName = operationTarget.EffectiveIconName;
 
                 var activeUpdate = GameUpdateManager.Find(path);
                 if (activeUpdate != null)
@@ -58,7 +61,7 @@ namespace XelLauncher.Forms
                     return true;
                 }
 
-                if (GameUpdateManager.IsRecentlyCompleted(_game.IconName, path))
+                if (GameUpdateManager.IsRecentlyCompleted(effectiveIconName, path))
                 {
                     _gameState = GameState.Ready;
                     var completedCfg = ConfigHelper.Load();
@@ -79,7 +82,8 @@ namespace XelLauncher.Forms
                     return true;
                 }
 
-                var status = await _service.CheckStatusAsync(path);
+                using var statusService = new EndfieldService(effectiveIconName);
+                var status = await statusService.CheckStatusAsync(path);
                 if (status == null) return false;
 
                 activeUpdate = GameUpdateManager.Find(path);
@@ -361,10 +365,24 @@ namespace XelLauncher.Forms
             var cfg = ConfigHelper.Load();
             var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
             string path = entry?.RootPath ?? _game.RootPath;
+            GameOperationTarget operationTarget;
 
             try
             {
-                LinkedClientPolicy.ThrowIfSharedClient(_game.IconName, path);
+                operationTarget = SharedRootManager.ResolveMaintenanceTarget(
+                    _game.IconName, path, allowUninstalledTarget: false);
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+            var effectiveIconName = operationTarget.EffectiveIconName;
+            path = operationTarget.RootPath;
+
+            try
+            {
+                LinkedClientPolicy.ThrowIfSharedClient(effectiveIconName, path);
             }
             catch (InvalidOperationException ex)
             {
@@ -397,11 +415,29 @@ namespace XelLauncher.Forms
             }
 
             if (!LinkedClientOperationCoordinator.TryAcquire(
-                    _game.IconName, path, out var operationLease))
+                    effectiveIconName, path, out var operationLease))
             {
                 AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
                     "App.LinkedClient.Error.GroupBusy",
                     "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                return;
+            }
+
+            try
+            {
+                // BaseChannel may have changed while this page was waiting for
+                // the path lease. Re-resolve under the lease before choosing the
+                // preload manifest.
+                operationTarget = SharedRootManager.ResolveMaintenanceTarget(
+                    _game.IconName, path, allowUninstalledTarget: false);
+                effectiveIconName = operationTarget.EffectiveIconName;
+                path = operationTarget.RootPath;
+                LinkedClientPolicy.ThrowIfSharedClient(effectiveIconName, path);
+            }
+            catch (InvalidOperationException ex)
+            {
+                operationLease.Dispose();
+                AntdUI.Message.warn(_overview, ex.Message);
                 return;
             }
 
@@ -416,8 +452,14 @@ namespace XelLauncher.Forms
 
                 try
                 {
-                    using var service = new EndfieldService(_game.IconName);
-                    LogHelper.Log($"Game preload started: {_game.IconName} | {path}");
+                    await LinkedRuntimeService.PrepareSharedRootForMutationAsync(
+                        effectiveIconName,
+                        path,
+                        SharedRootMutationKind.Preload);
+                    using var service = new EndfieldService(effectiveIconName);
+                    LogHelper.Log(
+                        $"Game preload started: requested={_game.IconName} | " +
+                        $"effective={effectiveIconName} | {path}");
                     await service.PreloadAsync(path, (state, downloaded, total) =>
                     {
                         if (lastLoggedState != state)
@@ -436,7 +478,9 @@ namespace XelLauncher.Forms
                         config.Refresh();
                     });
 
-                    LogHelper.Log($"Game preload completed: {_game.IconName} | {path}");
+                    LogHelper.Log(
+                        $"Game preload completed: requested={_game.IconName} | " +
+                        $"effective={effectiveIconName} | {path}");
                     _preloadCompleted = true;
                     MarkPreloadCompleted(path);
                     config.OK(AntdUI.Localization.Get("App.Game.Preload.Success", "预下载已完成"));
@@ -560,9 +604,23 @@ namespace XelLauncher.Forms
                 return;
             }
 
+            GameOperationTarget operationTarget;
             try
             {
-                LinkedClientPolicy.ThrowIfSharedClient(_game.IconName, path);
+                operationTarget = SharedRootManager.ResolveMaintenanceTarget(
+                    _game.IconName, path, allowUninstalledTarget: false);
+            }
+            catch (InvalidOperationException ex)
+            {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+            var effectiveIconName = operationTarget.EffectiveIconName;
+            path = operationTarget.RootPath;
+
+            try
+            {
+                LinkedClientPolicy.ThrowIfSharedClient(effectiveIconName, path);
             }
             catch (InvalidOperationException ex)
             {
@@ -584,7 +642,7 @@ namespace XelLauncher.Forms
 
             try
             {
-                if (!GameRepairManager.TryStart(_game.IconName, path))
+                if (!GameRepairManager.TryStart(effectiveIconName, path))
                 {
                     AntdUI.Message.info(_overview, AntdUI.Localization.Get(
                         "App.Game.Repair.AlreadyRunning",
@@ -594,6 +652,24 @@ namespace XelLauncher.Forms
             }
             catch (InvalidOperationException ex)
             {
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+
+            try
+            {
+                // GameRepairManager now owns the physical-root lease. Resolve
+                // once more so verification cannot use a channel that was base
+                // before a just-completed server switch.
+                operationTarget = SharedRootManager.ResolveMaintenanceTarget(
+                    _game.IconName, path, allowUninstalledTarget: false);
+                effectiveIconName = operationTarget.EffectiveIconName;
+                path = operationTarget.RootPath;
+                LinkedClientPolicy.ThrowIfSharedClient(effectiveIconName, path);
+            }
+            catch (InvalidOperationException ex)
+            {
+                GameRepairManager.Complete(path);
                 AntdUI.Message.warn(_overview, ex.Message);
                 return;
             }
@@ -610,8 +686,14 @@ namespace XelLauncher.Forms
 
                 try
                 {
-                    using var service = new EndfieldService(_game.IconName);
-                    LogHelper.Log($"Game repair started: {_game.IconName} | {path}");
+                    await LinkedRuntimeService.PrepareSharedRootForMutationAsync(
+                        effectiveIconName,
+                        path,
+                        SharedRootMutationKind.Repair);
+                    using var service = new EndfieldService(effectiveIconName);
+                    LogHelper.Log(
+                        $"Game repair started: requested={_game.IconName} | " +
+                        $"effective={effectiveIconName} | {path}");
                     await service.RepairAsync(path, (state, downloaded, total) =>
                     {
                         if (lastLoggedState != state)
@@ -630,7 +712,13 @@ namespace XelLauncher.Forms
                         config.Refresh();
                     });
 
-                    LogHelper.Log($"Game repair completed: {_game.IconName} | {path}");
+                    SharedRootManager.RecordBaseChannel(
+                        effectiveIconName,
+                        path,
+                        "integrity-repair-completed");
+                    LogHelper.Log(
+                        $"Game repair completed: requested={_game.IconName} | " +
+                        $"effective={effectiveIconName} | {path}");
                     config.OK(AntdUI.Localization.Get("App.Game.Repair.Success", "游戏完整性校验完成"));
                     _ = CheckGameStatusAsync();
                 }
@@ -822,7 +910,9 @@ namespace XelLauncher.Forms
             var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
             string path = entry?.RootPath ?? _game.RootPath;
 
-            bool isEndfield = _game.IconName == "Endfield" || _game.IconName == "BiliEndfield" || _game.IconName == "GlobalEndfield" || _game.IconName == "PlayEndfield";
+            bool isEndfield = GameChannelCatalog.IsFamily(
+                _game.IconName, GameFamily.Endfield);
+            var targetChannel = GameChannelCatalog.Get(_game.IconName);
 
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
@@ -877,8 +967,29 @@ namespace XelLauncher.Forms
                     return;
                 }
             }
+
+            SharedRootResolution sharedRootResolution;
+            try
+            {
+                sharedRootResolution = SharedRootManager.ResolveAndPersist(
+                    _game.IconName, path, detectBaseChannel: true);
+                if (sharedRootResolution.Mode == SharedRootMode.Conflict)
+                {
+                    AntdUI.Message.warn(
+                        _overview,
+                        "同一游戏目录配置了不兼容的渠道。请为这些渠道设置不同目录后再启动。");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "Resolve shared root for launch");
+                AntdUI.Message.warn(_overview, ex.Message);
+                return;
+            }
+
             IDisposable launchOperationLease = null;
-            if (LinkedClientPolicy.IsArknightsChannel(_game.IconName) &&
+            if (targetChannel?.PayloadProfile != null &&
                 !LinkedClientOperationCoordinator.TryAcquire(
                     _game.IconName, path, out launchOperationLease))
             {
@@ -888,6 +999,33 @@ namespace XelLauncher.Forms
                         "App.LinkedClient.Error.GroupBusy",
                         "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
                 return;
+            }
+
+            if (launchOperationLease != null)
+            {
+                try
+                {
+                    // Resolve from disk again after acquiring the Shared Root
+                    // lease. This prevents a queued launch from acting on an old
+                    // BaseChannel recorded before another channel switch.
+                    sharedRootResolution = SharedRootManager.ResolveAndPersist(
+                        _game.IconName, path, detectBaseChannel: true);
+                    if (sharedRootResolution.Mode == SharedRootMode.Conflict)
+                    {
+                        launchOperationLease.Dispose();
+                        AntdUI.Message.warn(
+                            _overview,
+                            "同一游戏目录配置了不兼容的渠道。请为这些渠道设置不同目录后再启动。");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    launchOperationLease.Dispose();
+                    LogHelper.LogError(ex, "Re-resolve shared root for launch");
+                    AntdUI.Message.warn(_overview, ex.Message);
+                    return;
+                }
             }
 
             if (LinkedClientPolicy.IsArknightsChannel(_game.IconName))
@@ -920,12 +1058,21 @@ namespace XelLauncher.Forms
             bool needSwitch;
             try
             {
-                independentClient = LinkedClientPolicy.ShouldSkipServerPayloadSwitch(
-                    _game.IconName, path);
-                payloadDir = independentClient
-                    ? null
-                    : GameLauncher.GetPayloadDirPath(_game.IconName);
-                needSwitch = payloadDir != null && Directory.Exists(payloadDir);
+                if (sharedRootResolution.Mode == SharedRootMode.Shared)
+                {
+                    independentClient = false;
+                    payloadDir = null;
+                    needSwitch = false;
+                }
+                else
+                {
+                    independentClient = LinkedClientPolicy.ShouldSkipServerPayloadSwitch(
+                        _game.IconName, path);
+                    payloadDir = independentClient
+                        ? null
+                        : GameLauncher.GetPayloadDirPath(_game.IconName);
+                    needSwitch = payloadDir != null && Directory.Exists(payloadDir);
+                }
                 await GameLauncher.KillArknightsProcesses(isEndfield);
             }
             catch (Exception ex)
@@ -976,28 +1123,86 @@ namespace XelLauncher.Forms
                                 await Helpers.GameLauncher.RestoreGlobalEndfieldAccount(selectedAccountId);
                             }
                         }
-                        if (needSwitch)
+                        var launchPath = path;
+                        var traditionalSwitchPerformed = false;
+                        if (sharedRootResolution.Mode == SharedRootMode.Shared)
                         {
-                            bool usedHardLink = false;
+                            var targetIsBase = sharedRootResolution.Base != null &&
+                                               string.Equals(
+                                                   sharedRootResolution.Base.Channel,
+                                                   sharedRootResolution.Target.Channel,
+                                                   StringComparison.OrdinalIgnoreCase);
+                            if (targetIsBase)
+                            {
+                                LogHelper.Log(
+                                    $"Shared Root direct launch: GameId={sharedRootResolution.GameId} | " +
+                                    $"SharedRoot={path} | BaseChannel={sharedRootResolution.Base.Channel} | " +
+                                    $"TargetChannel={sharedRootResolution.Target.Channel}");
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    if (sharedRootResolution.Base == null)
+                                        throw new InvalidDataException(
+                                            "无法识别 Shared Root 当前 BaseChannel。");
+
+                                    var runtime = await LinkedRuntimeService
+                                        .EnsureLinkedRuntimeAsync(
+                                            sharedRootResolution,
+                                            message =>
+                                            {
+                                                config.Text = message;
+                                                config.Refresh();
+                                            },
+                                            operationAlreadyCoordinated:
+                                                callbackOperationLease != null);
+                                    launchPath = runtime.RuntimePath;
+                                }
+                                catch (Exception runtimeError)
+                                {
+                                    LogHelper.LogError(
+                                        runtimeError,
+                                        $"Linked Runtime fallback | " +
+                                        $"GameId={sharedRootResolution.GameId} | " +
+                                        $"SharedRoot={path} | " +
+                                        $"BaseChannel={sharedRootResolution.Base?.Channel ?? "Unknown"} | " +
+                                        $"TargetChannel={sharedRootResolution.Target.Channel}");
+                                    config.Text = AntdUI.Localization.Get(
+                                        "App.LinkedRuntime.Fallback",
+                                        "共享运行环境不可用，正在使用传统切服...");
+                                    config.Refresh();
+
+                                    await GameLauncher.SwitchServerWithResult(
+                                        path,
+                                        _game.IconName,
+                                        message =>
+                                        {
+                                            config.Text = message;
+                                            config.Refresh();
+                                        },
+                                        isEndfield,
+                                        _ => { },
+                                        operationAlreadyCoordinated:
+                                            callbackOperationLease != null);
+                                    traditionalSwitchPerformed = true;
+                                    launchPath = path;
+                                }
+                            }
+                        }
+                        else if (needSwitch)
+                        {
                             await GameLauncher.SwitchServerWithResult(path, _game.IconName, msg =>
                             {
                                 config.Text = msg;
                                 config.Refresh();
-                            }, isEndfield, result => usedHardLink = result,
+                            }, isEndfield, _ => { },
                                 operationAlreadyCoordinated:
                                     callbackOperationLease != null);
-
-                            if (!usedHardLink && cfg.UseHardLink)
-                            {
-                                _overview.BeginInvoke(new Action(() =>
-                                    AntdUI.Message.info(_overview,
-                                        AntdUI.Localization.Get("App.Game.HardLinkTip",
-                                            "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"))
-                                ));
-                            }
+                            traditionalSwitchPerformed = true;
                         }
                         // Run the loading wave for a random 1-3 seconds.
-                        if (needSwitch && _game.IconName == "Arknights")
+                        if (traditionalSwitchPerformed && _game.IconName == "Arknights")
                         {
                             string selectedAccountId = accountSelect.SelectedValue as string;
                             if (!string.IsNullOrEmpty(selectedAccountId))
@@ -1018,7 +1223,7 @@ namespace XelLauncher.Forms
                             await Task.Delay(stepMs);
                         }
 
-                        GameLauncher.StartArknights(path, _game.IconName);
+                        GameLauncher.StartArknights(launchPath, _game.IconName);
 
                     // Show launch success only after the game process is detected.
                     string procName = (isEndfield) ? "Endfield" : "Arknights";
@@ -1042,7 +1247,7 @@ namespace XelLauncher.Forms
                         _overview.Invoke(new Action(() => _overview.HideToTray()));
                         var overviewRef = _overview;
                         var capturedProc = gameProc;
-                        System.Threading.Tasks.Task.Run(() =>
+                        _ = System.Threading.Tasks.Task.Run(() =>
                         {
                             try
                             {

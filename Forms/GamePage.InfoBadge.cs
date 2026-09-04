@@ -61,13 +61,8 @@ namespace XelLauncher.Forms
 
         private string GetChannelLabel()
         {
-            return _game.IconName switch
-            {
-                "BiliArknights" or "BiliEndfield" => "Bilibili",
-                "GlobalEndfield" => "Global",
-                "PlayEndfield" => "Google Play",
-                _ => "Official",
-            };
+            return GameChannelCatalog.Get(_game.IconName)?.ChannelLabel
+                   ?? "Official";
         }
     }
 }

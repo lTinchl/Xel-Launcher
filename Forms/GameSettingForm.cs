@@ -131,8 +131,12 @@ namespace XelLauncher.Forms
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Type = AntdUI.TTypeMini.Primary,
-                    Enabled = !linkedGroupActive,
-                    Visible = !linkedGroupActive,
+                    // Linked Runtime is created transparently from the normal
+                    // Start Game flow. Keep this legacy control unavailable for
+                    // old builds/config compatibility; existing linked pairs can
+                    // still be detached with the adjacent recovery action.
+                    Enabled = false,
+                    Visible = false,
                 };
                 btnCreateLinked.Click += (s, e) =>
                     CreateLinkedBilibiliClient();
@@ -192,7 +196,6 @@ namespace XelLauncher.Forms
                         {
                             LinkedClientPolicy.ClearLegacyPairState(
                                 ConfigHelper.Load());
-                            bool usedHardLink = false;
                             cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
                             cfg.Refresh();
                             await GameLauncher.KillArknightsProcesses(false);
@@ -200,7 +203,7 @@ namespace XelLauncher.Forms
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            }, false, r => usedHardLink = r);
+                            }, false, _ => { });
                             var cfg2 = ConfigHelper.Load();
                             var BiliBili = cfg2.Games.Find(g => g.IconName == "Arknights");
                             LinkedClientPolicy.ClearLegacyPairState(cfg2);
@@ -208,8 +211,6 @@ namespace XelLauncher.Forms
                             ConfigHelper.Save(cfg2);
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
-                            if (!usedHardLink)
-                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -305,7 +306,6 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            bool usedHardLink = false;
                             cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
                             cfg.Refresh();
                             await GameLauncher.KillArknightsProcesses(true);
@@ -313,11 +313,9 @@ namespace XelLauncher.Forms
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            }, true, r => usedHardLink = r);
+                            }, true, _ => { });
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
-                            if (!usedHardLink)
-                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -362,7 +360,6 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            bool usedHardLink = false;
                             cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
                             cfg.Refresh();
                             await GameLauncher.KillArknightsProcesses(true);
@@ -370,11 +367,9 @@ namespace XelLauncher.Forms
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            }, true, r => usedHardLink = r);
+                            }, true, _ => { });
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，国际服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
-                            if (!usedHardLink)
-                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -419,7 +414,6 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            bool usedHardLink = false;
                             cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
                             cfg.Refresh();
                             await GameLauncher.KillArknightsProcesses(true);
@@ -427,11 +421,9 @@ namespace XelLauncher.Forms
                             {
                                 cfg.Text = msg;
                                 cfg.Refresh();
-                            }, true, r => usedHardLink = r);
+                            }, true, _ => { });
                             cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，GooglePlay服资源包已覆盖至当前目录"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
-                            if (!usedHardLink)
-                                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.HardLinkTip", "提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快"));
                         }
                         catch (Exception ex)
                         {
@@ -653,7 +645,8 @@ namespace XelLauncher.Forms
             Size = LogicalSize(380, syncEnabled ? 560 : 520);
 
             // ── 启用账号切换 ──
-            bool showAccountSwitch = game.IconName != "BiliArknights" && game.IconName != "BiliEndfield";
+            bool showAccountSwitch =
+                GameChannelCatalog.Get(game.IconName)?.SupportsAccountSwitch == true;
             AntdUI.Divider divider3 = null;
             AntdUI.Switch swacmg = null;
             if (showAccountSwitch)
@@ -1248,8 +1241,8 @@ namespace XelLauncher.Forms
                         {
                             _inputPath.ReadOnly = false;
                             _btnBrowse.Enabled = true;
-                            _btnCreateLinked.Enabled = true;
-                            _btnCreateLinked.Visible = true;
+                            _btnCreateLinked.Enabled = false;
+                            _btnCreateLinked.Visible = false;
                             _btnDetachLinked.Enabled = false;
                             _btnDetachLinked.Visible = false;
                             _btnReplaceLegacy.Enabled = true;
@@ -1309,8 +1302,8 @@ namespace XelLauncher.Forms
             if (_btnBrowse != null) _btnBrowse.Enabled = !linked;
             if (_btnCreateLinked != null)
             {
-                _btnCreateLinked.Enabled = !linked;
-                _btnCreateLinked.Visible = !linked;
+                _btnCreateLinked.Enabled = false;
+                _btnCreateLinked.Visible = false;
             }
             if (_btnDetachLinked != null)
             {

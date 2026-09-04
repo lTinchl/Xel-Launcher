@@ -15,7 +15,8 @@ namespace XelLauncher.Forms
 {
     public partial class GamePage : UserControl
     {
-        private bool IsAccountGame => _game?.IconName is "Arknights" or "Endfield" or "GlobalEndfield";
+        private bool IsAccountGame =>
+            GameChannelCatalog.Get(_game?.IconName)?.SupportsAccountSwitch == true;
 
         private void UpdateAccountControlsVisibility()
         {

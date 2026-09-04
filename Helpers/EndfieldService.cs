@@ -9,13 +9,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Hi3Helper.Plugin.Arknights.Management;
-using Hi3Helper.Plugin.Arknights.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Hi3Helper.Hypergryph.Core.Management;
 using Hi3Helper.Plugin.Endfield.Management;
-using Hi3Helper.Plugin.Endfield.Management.PresetConfig;
 
 namespace XelLauncher.Helpers
 {
@@ -50,16 +48,7 @@ namespace XelLauncher.Helpers
         public EndfieldService(string iconName)
         {
             _iconName = iconName;
-            _preset = iconName switch
-            {
-                "Arknights"      => new ArknightsCnPresetConfig(),
-                "BiliArknights"  => new ArknightsBiliPresetConfig(),
-                "Endfield"       => new EndfieldCnPresetConfig(),
-                "BiliEndfield"   => new EndfieldBiliPresetConfig(),
-                "GlobalEndfield" => new EndfieldGlobalPresetConfig(),
-                "PlayEndfield"   => new EndfieldGooglePlayPresetConfig(),
-                _ => throw new ArgumentException($"Unknown game type: {iconName}", nameof(iconName))
-            };
+            _preset = GameChannelCatalog.CreatePreset(iconName);
         }
 
         /// <summary>
@@ -109,7 +98,7 @@ namespace XelLauncher.Helpers
         }
 
         private static bool IsEndfieldChannel(string iconName) =>
-            iconName is "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield";
+            GameChannelCatalog.IsFamily(iconName, GameFamily.Endfield);
 
         private static bool IsVersionAtLeast(string localVersion, string remoteVersion)
         {

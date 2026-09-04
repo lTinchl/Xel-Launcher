@@ -8,8 +8,7 @@ namespace XelLauncher.Helpers
     public static class LinkedClientPolicy
     {
         public static bool IsArknightsChannel(string iconName) =>
-            string.Equals(iconName, "Arknights", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(iconName, "BiliArknights", StringComparison.OrdinalIgnoreCase);
+            GameChannelCatalog.Get(iconName)?.SupportsLegacyLinkedClient == true;
 
         public static bool IsSharedClient(string iconName, string installPath)
         {

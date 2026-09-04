@@ -82,13 +82,6 @@ namespace XelLauncher.Helpers
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CreateHardLink(
-            string newFileName,
-            string existingFileName,
-            IntPtr securityAttributes);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetVolumePathName(
             string fileName,
             StringBuilder volumePathName,
@@ -308,8 +301,9 @@ namespace XelLauncher.Helpers
                         if (hardLinkCandidates.Contains(manifestFile.RelativePath) &&
                             CanHardLinkSource(sourcePath, manifestFile, targetFiles))
                         {
-                            if (!CreateHardLink(stagedPath, sourceFile, IntPtr.Zero))
-                                throw new Win32Exception(Marshal.GetLastWin32Error());
+                            if (!WindowsHardLink.TryCreate(
+                                    stagedPath, sourceFile, out var errorCode))
+                                throw new Win32Exception(errorCode);
 
                             linkedFileCount++;
                             linkedRelativePaths.Add(manifestFile.RelativePath);

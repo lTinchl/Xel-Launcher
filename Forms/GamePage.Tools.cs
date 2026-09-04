@@ -115,23 +115,21 @@ namespace XelLauncher.Forms
                 btnSignHub_Click,
                 AntdUI.Localization.Get("App.Game.Sign", "森空岛签到")));
 
-            switch (_game.IconName)
+            var channel = GameChannelCatalog.Get(_game.IconName);
+            if (channel?.Family == GameFamily.Arknights)
             {
-                case "Arknights":
-                case "BiliArknights":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click, "Arkntools"));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click, "PRTS Wiki"));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click, "一图流"));
-                    break;
-                case "Endfield":
-                case "BiliEndfield":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click, "终末地一图流"));
-                    _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click, "Warfarin Wiki"));
-                    break;
-                case "GlobalEndfield":
-                case "PlayEndfield":
-                    _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click, "Endfield Tools"));
-                    break;
+                _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Toolbox, btnArkntools_Click, "Arkntools"));
+                _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click, "PRTS Wiki"));
+                _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click, "一图流"));
+            }
+            else if (_game.IconName is "GlobalEndfield" or "PlayEndfield")
+            {
+                _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click, "Endfield Tools"));
+            }
+            else if (channel?.Family == GameFamily.Endfield)
+            {
+                _subBtns.Add(CreateSubButton(Properties.Resources.End_Yituliu, btnEndYituliu_Click, "终末地一图流"));
+                _subBtns.Add(CreateSubButton(Properties.Resources.warfarin, btnWarfarin_Click, "Warfarin Wiki"));
             }
         }
 

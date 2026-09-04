@@ -30,6 +30,8 @@ namespace XelLauncher
                 e.SetObserved();
             };
 
+            PluginDnsResolver.Configure();
+
             if (args.Any(arg => string.Equals(arg, "--skyland-auto-sign", StringComparison.OrdinalIgnoreCase)))
             {
                 SkylandAutoSignCommandRunner.Run();
@@ -107,6 +109,7 @@ namespace XelLauncher
                 "light" => false,
                 _ => IsSystemDarkMode()
             };
+            AcrylicPopupHelper.SyncThemeBackgrounds();
             AntdUI.Config.TextRenderingHighQuality = true;
             AntdUI.Config.ShowInWindow = true;
             AntdUI.Config.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;

@@ -146,6 +146,11 @@ namespace XelLauncher
             switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
             switch10.Checked = UseExternalBrowser = cfg.UseExternalBrowser;
             switch11.Checked = UseHardLink = cfg.UseHardLink;
+            // Linked Runtime chooses safe sharing automatically. The legacy
+            // "hard-link server switch" option no longer applies because
+            // channel payload files are always independent copies.
+            label11.Visible = false;
+            switch11.Visible = false;
             switch12.Checked = HideToolSidebar = cfg.HideToolSidebar;
             CheckGameUpdates = cfg.CheckGameUpdates;
             UpdateDownloadSource = UpdateHelper.NormalizeDownloadSource(cfg.UpdateDownloadSource);
@@ -1191,6 +1196,11 @@ namespace XelLauncher
             {
                 tableSoftware.RowStyles[i].SizeType = SizeType.Absolute;
                 tableSoftware.RowStyles[i].Height = rowHeight;
+            }
+            if (tableSoftware.RowStyles.Count > 10)
+            {
+                tableSoftware.RowStyles[10].SizeType = SizeType.Absolute;
+                tableSoftware.RowStyles[10].Height = 0;
             }
 
             var visibleRows = Math.Max(0, maxVisibleRow - firstVisibleRow + 1);

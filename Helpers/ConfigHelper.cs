@@ -65,6 +65,7 @@ namespace XelLauncher.Helpers
                 InitializeConfig(cfg);
                 if (!allowLinkedClientStateChange)
                     PreserveLinkedClientSafetyState(cfg);
+                PreserveSharedRootState(cfg);
                 SkylandTokenStorage.NormalizeBeforeSave(cfg);
                 SkportTokenStorage.NormalizeBeforeSave(cfg);
                 WriteConfigAtomic(cfg);
@@ -290,22 +291,54 @@ namespace XelLauncher.Helpers
 
         private static void InitializeConfig(AppConfig cfg)
         {
-            cfg.Games ??= new AppConfig().Games;
+            cfg.Games ??= GameChannelCatalog.CreateDefaultGameEntries();
+            foreach (var game in cfg.Games)
+            {
+                if (GameChannelCatalog.Get(game?.IconName)?.ShowByDefault == false &&
+                    !string.IsNullOrWhiteSpace(game.RootPath))
+                {
+                    game.AddedManually = true;
+                }
+            }
+            cfg.Games.RemoveAll(game =>
+            {
+                var channel = GameChannelCatalog.Get(game?.IconName);
+                return channel?.ShowByDefault == false &&
+                       game.AddedManually == false &&
+                       string.IsNullOrWhiteSpace(game.RootPath);
+            });
             cfg.UpdateState ??= new AppUpdateState();
             cfg.GameStatusCache ??= new();
+            cfg.SharedRoots ??= new();
+            cfg.SharedRoots.RemoveAll(sharedRoot => sharedRoot == null);
+            foreach (var sharedRoot in cfg.SharedRoots)
+            {
+                sharedRoot.GameId ??= "";
+                sharedRoot.RootPath ??= "";
+                sharedRoot.BaseChannel ??= "Unknown";
+                sharedRoot.BaseVersion ??= "";
+                sharedRoot.LinkedRuntimes ??= new();
+                sharedRoot.LinkedRuntimes.RemoveAll(runtime => runtime == null);
+                foreach (var runtime in sharedRoot.LinkedRuntimes)
+                {
+                    runtime.Channel ??= "";
+                    runtime.RuntimePath ??= "";
+                    runtime.CompatibilityGroup ??= "";
+                    runtime.BaseChannel ??= "";
+                    runtime.BaseManifestSha256 ??= "";
+                    runtime.TargetManifestSha256 ??= "";
+                    runtime.BaseVersion ??= "";
+                    runtime.TargetVersion ??= "";
+                    runtime.PayloadManifestSha256 ??= "";
+                    runtime.Health ??= "Invalid";
+                }
+            }
             cfg.CustomToolLinks ??= new();
             cfg.NoticePanelCollapsed ??= new();
             if (cfg.PendingLinkedClientDetach != null)
                 cfg.PendingLinkedClientDetach.LinkedFiles ??= new();
-            cfg.ServerPayloadAutoUpdateProfiles ??= new()
-            {
-                "Arknights",
-                "BiliArknights",
-                "Endfield",
-                "BiliEndfield",
-                "GlobalEndfield",
-                "PlayEndfield",
-            };
+            cfg.ServerPayloadAutoUpdateProfiles ??=
+                GameChannelCatalog.CreateDefaultServerPayloadProfileIds();
         }
 
         private static FileStream AcquireCrossProcessSaveLock()
@@ -400,6 +433,31 @@ namespace XelLauncher.Helpers
             catch (Exception ex)
             {
                 LogHelper.LogError(ex, "ConfigLinkedClientStateMerge");
+                throw;
+            }
+        }
+
+        private static void PreserveSharedRootState(AppConfig config)
+        {
+            if (!File.Exists(ConfigFile) && !File.Exists(ConfigBackupFile)) return;
+            try
+            {
+                var current = ReadConfigWithFallback(out _, out _);
+                InitializeConfig(current);
+                if (current.SharedRoots.Count == 0 &&
+                    (config.SharedRoots?.Count ?? 0) == 0)
+                {
+                    return;
+                }
+
+                // Shared-root facts and runtime metadata are changed through
+                // ConfigHelper.Update. A UI save based on an older snapshot must
+                // not resurrect an old BaseChannel or clear a Stale marker.
+                config.SharedRoots = current.SharedRoots;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError(ex, "ConfigSharedRootStateMerge");
                 throw;
             }
         }

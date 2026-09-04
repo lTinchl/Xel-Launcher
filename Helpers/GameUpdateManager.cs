@@ -21,15 +21,18 @@ namespace XelLauncher.Helpers
         private volatile GameUpdateProgress _lastProgress;
 
         internal ActiveGameUpdate(
+            string requestedIconName,
             string iconName,
             string installPath,
             IDisposable operationLease)
         {
+            RequestedIconName = requestedIconName;
             IconName = iconName;
             InstallPath = installPath;
             _operationLease = operationLease;
         }
 
+        public string RequestedIconName { get; }
         public string IconName { get; }
         public string InstallPath { get; }
         public Task Task { get; internal set; }
@@ -79,6 +82,7 @@ namespace XelLauncher.Helpers
 
         public static ActiveGameUpdate StartOrAttach(string iconName, string installPath, out bool started)
         {
+            var requestedIconName = iconName;
             var key = GetKey(installPath);
             lock (SyncRoot)
             {
@@ -88,24 +92,44 @@ namespace XelLauncher.Helpers
                     return existing;
                 }
 
-                LinkedClientPolicy.ThrowIfSharedClient(iconName, installPath);
                 if (!LinkedClientOperationCoordinator.TryAcquire(
-                        iconName, installPath, out var operationLease))
+                        requestedIconName, installPath, out var operationLease))
                 {
                     throw new InvalidOperationException(AntdUI.Localization.Get(
                         "App.LinkedClient.Error.GroupBusy",
                         "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
                 }
 
-                var update = new ActiveGameUpdate(
-                    iconName, installPath, operationLease);
-                PausedUpdatePaths.Remove(key);
-                update.CancelRequested += MarkPaused;
-                ActiveUpdates[key] = update;
-                update.Task = RunAsync(key, update);
-                LogHelper.Log($"Game update started: {iconName} | {installPath}");
-                started = true;
-                return update;
+                try
+                {
+                    // Resolve the maintenance channel only after the physical
+                    // root is locked. This closes the race where a concurrent
+                    // traditional switch changes BaseChannel between resolution
+                    // and the installer acquiring the path.
+                    var operationTarget = SharedRootManager.ResolveMaintenanceTarget(
+                        requestedIconName, installPath,
+                        allowUninstalledTarget: true);
+                    iconName = operationTarget.EffectiveIconName;
+                    installPath = operationTarget.RootPath;
+                    LinkedClientPolicy.ThrowIfSharedClient(iconName, installPath);
+
+                    var update = new ActiveGameUpdate(
+                        requestedIconName, iconName, installPath, operationLease);
+                    PausedUpdatePaths.Remove(key);
+                    update.CancelRequested += MarkPaused;
+                    ActiveUpdates[key] = update;
+                    update.Task = RunAsync(key, update);
+                    LogHelper.Log(
+                        $"Game update started: requested={requestedIconName} | " +
+                        $"effective={iconName} | {installPath}");
+                    started = true;
+                    return update;
+                }
+                catch
+                {
+                    operationLease.Dispose();
+                    throw;
+                }
             }
         }
 
@@ -168,6 +192,12 @@ namespace XelLauncher.Helpers
         {
             try
             {
+                await LinkedRuntimeService.PrepareSharedRootForMutationAsync(
+                        update.IconName,
+                        update.InstallPath,
+                        SharedRootMutationKind.InstallOrUpdate,
+                        update.Token)
+                    .ConfigureAwait(false);
                 using var service = new EndfieldService(update.IconName);
                 await service.InstallOrUpdateAsync(update.InstallPath, update.Report, update.Token)
                     .ConfigureAwait(false);
@@ -182,6 +212,10 @@ namespace XelLauncher.Helpers
                     CompletedUpdates[GetCompletedKey(update.IconName, update.InstallPath)] = DateTimeOffset.UtcNow;
                 }
                 await PersistCompletedStatusAsync(update.IconName, update.InstallPath).ConfigureAwait(false);
+                SharedRootManager.RecordBaseChannel(
+                    update.IconName,
+                    update.InstallPath,
+                    "install-or-update-completed");
                 LogHelper.Log($"Game update completed: {update.IconName} | {update.InstallPath}");
             }
             catch (OperationCanceledException ex)

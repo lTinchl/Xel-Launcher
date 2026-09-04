@@ -2,7 +2,6 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
-using System.Reflection;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
 using XelLauncher.Models;
@@ -11,16 +10,6 @@ namespace XelLauncher.Forms
 {
     public class GameIconPickerForm : UserControl
     {
-        private static readonly (string IconName, string StoreName, string LabelZh, string LabelEn)[] Icons =
-        {
-            ("Arknights",      "明日方舟",        "明日方舟",        "Arknights (Official)"),
-            ("BiliArknights",  "明日方舟(B服)",   "明日方舟(B服)",   "Arknights (Bilibili)"),
-            ("Endfield",       "终末地",           "终末地",          "Endfield (Official)"),
-            ("BiliEndfield",   "终末地(B服)",     "终末地(B服)",     "Endfield (Bilibili)"),
-            ("GlobalEndfield", "终末地(国际服)",  "终末地(国际服)",  "Endfield (Global)"),
-            ("PlayEndfield",   "终末地(GooglePlay)", "终末地(GooglePlay)", "Endfield (GooglePlay)"),
-        };
-
         private readonly System.Collections.Generic.List<CardPanel> _cards = new();
         private readonly Overview _overview;
 
@@ -49,12 +38,17 @@ namespace XelLauncher.Forms
                 Font = new Font("Microsoft YaHei UI", 12F),
             };
 
-            foreach (var (iconName, storeName, labelZh, labelEn) in Icons)
+            foreach (var channel in GameChannelCatalog.Channels)
             {
-                var key = iconName;
-                var store = storeName;
+                // First-phase UI only exposes the six supported channels.
+                // Hidden Yostar definitions remain readable for old configs and
+                // future compatibility-conflict detection, but cannot be added.
+                if (!channel.IsAvailable || !channel.ShowByDefault) continue;
+
+                var key = channel.IconName;
+                var store = channel.StoreName;
                 bool isEn = AntdUI.Localization.CurrentLanguage.StartsWith("en");
-                var lbl = isEn ? labelEn : labelZh;
+                var lbl = isEn ? channel.LabelEn : channel.StoreName;
                 var card = new CardPanel(key, lbl)
                 {
                     Width = 120,
@@ -65,12 +59,17 @@ namespace XelLauncher.Forms
                 card.Click += (s, e) =>
                 {
                     var cfg = ConfigHelper.Load();
-                    if (cfg.Games.Exists(x => x.IconName == key))
+                    if (cfg.Games.Exists(x => channel.Matches(x.IconName)))
                     {
                         AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Picker.AlreadyAdded", "「{0}」已在列表中，不能重复添加。"), lbl));
                         return;
                     }
-                    var entry = new GameEntry { Name = store, IconName = key };
+                    var entry = new GameEntry
+                    {
+                        Name = store,
+                        IconName = key,
+                        AddedManually = true
+                    };
                     cfg.Games.Add(entry);
                     ConfigHelper.Save(cfg);
                     _overview.RebuildSidebar();
@@ -182,16 +181,8 @@ namespace XelLauncher.Forms
                 try
                 {
                     string basePath = Path.Combine(AppContext.BaseDirectory, "Resources", "Icon");
-                    string file = key switch
-                    {
-                        "Arknights"      => "Arknights.ico",
-                        "BiliArknights"  => "BiliArknights.ico",
-                        "Endfield"       => "Endfield.ico",
-                        "BiliEndfield"   => "BiliEndfield.ico",
-                        "GlobalEndfield" => "GlobalEndfield.ico",
-                        "PlayEndfield"   => "PlayEndfield.ico",
-                        _ => null
-                    };
+                    var channel = GameChannelCatalog.Get(key);
+                    string file = channel?.IconFileName;
                     if (file == null) return null;
                     string full = Path.Combine(basePath, file);
                     if (!File.Exists(full))
@@ -203,7 +194,9 @@ namespace XelLauncher.Forms
                     using var g = Graphics.FromImage(dst);
                     g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     g.DrawImage(src, 0, 0, 56, 56);
-                    return (key == "GlobalEndfield" || key == "PlayEndfield") ? ApplyRoundedCorners(dst, 12) : dst;
+                    return channel?.RoundIconCorners == true
+                        ? ApplyRoundedCorners(dst, 12)
+                        : dst;
                 }
                 catch { return null; }
             }

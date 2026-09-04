@@ -62,6 +62,168 @@ public sealed class HardLinkDeploymentTests
         Assert.Equal("source content", File.ReadAllText(sourceFile));
     }
 
+    [Fact]
+    public async Task PreferredHardLinks_SupportDestinationPathsBeyondMaxPath()
+    {
+        Assert.True(OperatingSystem.IsWindows());
+        using var temp = new TemporaryDirectory();
+        var source = temp.CreateDirectory("source");
+        if (!IsNtfs(source)) return;
+
+        var sourceFile = temp.WriteFile("source/asset.bin", "shared payload");
+        var longTargetRelativePath = string.Join(
+            '/',
+            Enumerable.Repeat("runtime-segment-0123456789abcdef", 7));
+        var target = temp.GetPath(longTargetRelativePath);
+        var destinationFile = Path.Combine(target, "asset.bin");
+        Assert.True(destinationFile.Length >= 260);
+
+        var result = await GameLauncher.HardLinkOrCopyDirectory(
+            source, target, preferHardLink: true);
+
+        Assert.True(result);
+        Assert.True(File.Exists(destinationFile));
+        AssertSameFile(sourceFile, destinationFile);
+    }
+
+    [Fact]
+    public async Task ProfileDeployment_RemovesPreviousChannelFiles_AndKeepsGameFiles()
+    {
+        using var temp = new TemporaryDirectory();
+        var source = temp.CreateDirectory("source");
+        var target = temp.CreateDirectory("target");
+        var profile = Assert.IsType<ServerPayloadProfile>(
+            ServerPayloadUpdater.GetProfile("Arknights"));
+
+        foreach (var relativePath in profile.RequiredFiles)
+            temp.WriteFile($"source/{relativePath}", $"official:{relativePath}");
+
+        temp.WriteFile("target/PCGameSDK.dll", "stale bilibili sdk");
+        temp.WriteFile("target/BLPlatform64/PCGamePlatform.exe", "stale bilibili platform");
+        temp.WriteFile("target/sdkdata/obsolete.bin", "stale official data");
+        temp.WriteFile("target/U8Data/config/obsolete.bin", "stale config");
+        var gameManifest = temp.WriteFile("target/game_files", "keep manifest");
+        var executable = temp.WriteFile("target/Arknights.exe", "keep executable");
+        var unrelatedFamilyFile = temp.WriteFile(
+            "target/eld_Endfield.db", "keep unrelated family file");
+
+        var result = await ServerPayloadDeployment.DeployProfileAsync(
+            profile, source, target, preferHardLink: false);
+
+        Assert.False(result);
+        Assert.False(File.Exists(Path.Combine(target, "PCGameSDK.dll")));
+        Assert.False(Directory.Exists(Path.Combine(target, "BLPlatform64")));
+        Assert.False(File.Exists(Path.Combine(target, "sdkdata", "obsolete.bin")));
+        Assert.False(File.Exists(Path.Combine(
+            target, "U8Data", "config", "obsolete.bin")));
+        Assert.Equal("keep manifest", File.ReadAllText(gameManifest));
+        Assert.Equal("keep executable", File.ReadAllText(executable));
+        Assert.Equal("keep unrelated family file", File.ReadAllText(unrelatedFamilyFile));
+
+        foreach (var relativePath in profile.RequiredFiles)
+        {
+            Assert.Equal(
+                $"official:{relativePath}",
+                File.ReadAllText(Path.Combine(
+                    target,
+                    relativePath.Replace('/', Path.DirectorySeparatorChar))));
+        }
+
+        Assert.Empty(Directory.EnumerateFileSystemEntries(
+            target, ".xel-payload-*", SearchOption.TopDirectoryOnly));
+    }
+
+    [Fact]
+    public async Task ProfileDeployment_RejectsIncompletePayload_BeforeChangingTarget()
+    {
+        using var temp = new TemporaryDirectory();
+        var source = temp.CreateDirectory("source");
+        var target = temp.CreateDirectory("target");
+        var profile = Assert.IsType<ServerPayloadProfile>(
+            ServerPayloadUpdater.GetProfile("Arknights"));
+        temp.WriteFile("source/U8CoreUI.dll", "incomplete payload");
+        var oldSdk = temp.WriteFile("target/PCGameSDK.dll", "existing sdk");
+        var oldManifest = temp.WriteFile("target/game_files", "existing manifest");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            ServerPayloadDeployment.DeployProfileAsync(
+                profile, source, target, preferHardLink: false));
+
+        Assert.Equal("existing sdk", File.ReadAllText(oldSdk));
+        Assert.Equal("existing manifest", File.ReadAllText(oldManifest));
+        Assert.Empty(Directory.EnumerateFileSystemEntries(
+            target, ".xel-payload-*", SearchOption.TopDirectoryOnly));
+    }
+
+    [Fact]
+    public async Task ProfileDeployment_KeepsMutablePayloadIndependent_WhenHardLinksAreRequested()
+    {
+        using var temp = new TemporaryDirectory();
+        var source = temp.CreateDirectory("source");
+        var target = temp.CreateDirectory("target");
+        var profile = Assert.IsType<ServerPayloadProfile>(
+            ServerPayloadUpdater.GetProfile("Arknights"));
+
+        foreach (var relativePath in profile.RequiredFiles)
+            temp.WriteFile($"source/{relativePath}", $"official:{relativePath}");
+
+        var sourceSdk = Path.Combine(source, "U8CoreUI.dll");
+        var allHardLinked = await ServerPayloadDeployment.DeployProfileAsync(
+            profile, source, target, preferHardLink: true);
+        var deployedSdk = Path.Combine(target, "U8CoreUI.dll");
+
+        Assert.False(allHardLinked);
+        Assert.Equal(File.ReadAllText(sourceSdk), File.ReadAllText(deployedSdk));
+        AssertNotSameFile(sourceSdk, deployedSdk);
+
+        File.WriteAllText(deployedSdk, "runtime mutation");
+        Assert.NotEqual("runtime mutation", File.ReadAllText(sourceSdk));
+    }
+
+    [Fact]
+    public async Task EndfieldProfileDeployment_RemovesOtherEndfieldChannelPayloads()
+    {
+        using var temp = new TemporaryDirectory();
+        var source = temp.CreateDirectory("source");
+        var target = temp.CreateDirectory("target");
+        var profile = Assert.IsType<ServerPayloadProfile>(
+            ServerPayloadUpdater.GetProfile("BiliEndfield"));
+
+        foreach (var relativePath in profile.RequiredFiles)
+            temp.WriteFile($"source/{relativePath}", $"bilibili:{relativePath}");
+
+        foreach (var stalePath in new[]
+                 {
+                     "gfsdk.dll",
+                     "glextra.dll",
+                     "glfoundation.dll",
+                     "manifest.xml",
+                     "play_pc_sdk.dll",
+                     "hgsdk.dll",
+                     "sdkdata/stale.bin"
+                 })
+        {
+            temp.WriteFile($"target/{stalePath}", "stale channel payload");
+        }
+
+        var unrelatedFamilyFile = temp.WriteFile(
+            "target/PlatformProcess.dll", "keep Arknights payload");
+        var executable = temp.WriteFile("target/Endfield.exe", "keep executable");
+
+        await ServerPayloadDeployment.DeployProfileAsync(
+            profile, source, target, preferHardLink: false);
+
+        Assert.False(File.Exists(Path.Combine(target, "gfsdk.dll")));
+        Assert.False(File.Exists(Path.Combine(target, "glextra.dll")));
+        Assert.False(File.Exists(Path.Combine(target, "glfoundation.dll")));
+        Assert.False(File.Exists(Path.Combine(target, "manifest.xml")));
+        Assert.False(File.Exists(Path.Combine(target, "play_pc_sdk.dll")));
+        Assert.False(File.Exists(Path.Combine(target, "hgsdk.dll")));
+        Assert.False(Directory.Exists(Path.Combine(target, "sdkdata")));
+        Assert.Equal("keep Arknights payload", File.ReadAllText(unrelatedFamilyFile));
+        Assert.Equal("keep executable", File.ReadAllText(executable));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("config.ini")]
@@ -121,7 +283,7 @@ public sealed class HardLinkDeploymentTests
     private static ByHandleFileInformation GetFileIdentity(string path)
     {
         using var handle = CreateFile(
-            path,
+            ToExtendedLengthPath(path),
             0,
             FileShare.ReadWrite | FileShare.Delete,
             IntPtr.Zero,
@@ -131,6 +293,16 @@ public sealed class HardLinkDeploymentTests
         Assert.False(handle.IsInvalid);
         Assert.True(GetFileInformationByHandle(handle, out var info));
         return info;
+    }
+
+    private static string ToExtendedLengthPath(string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+        if (fullPath.StartsWith(@"\\?\", StringComparison.Ordinal))
+            return fullPath;
+        return fullPath.StartsWith(@"\\", StringComparison.Ordinal)
+            ? @"\\?\UNC\" + fullPath[2..]
+            : @"\\?\" + fullPath;
     }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

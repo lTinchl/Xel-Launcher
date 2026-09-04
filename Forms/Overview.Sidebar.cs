@@ -46,7 +46,9 @@ namespace XelLauncher.Forms
                         using var g2 = System.Drawing.Graphics.FromImage(dst);
                         g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                         g2.DrawImage(src, 0, 0, iconSize, iconSize);
-                        btn.GameIcon = (g.IconName == "GlobalEndfield" || g.IconName == "PlayEndfield") ? ApplyRoundedCorners(dst, ScaleForDpi(10)) : dst;
+                        btn.GameIcon = GameChannelCatalog.Get(g.IconName)?.RoundIconCorners == true
+                            ? ApplyRoundedCorners(dst, ScaleForDpi(10))
+                            : dst;
                     }
                 }
                 catch { }
@@ -342,17 +344,10 @@ namespace XelLauncher.Forms
             try
             {
                 string basePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Resources", "Icon");
-                string file = iconName switch
-                {
-                    "Arknights" => "Arknights.ico",
-                    "BiliArknights" => "BiliArknights.ico",
-                    "Endfield" => "Endfield.ico",
-                    "BiliEndfield" => "BiliEndfield.ico",
-                    "GlobalEndfield" => "GlobalEndfield.ico",
-                    "PlayEndfield" => "PlayEndfield.ico",
-                    "official" => "official.ico",
-                    _ => null
-                };
+                string file = string.Equals(
+                    iconName, "official", StringComparison.OrdinalIgnoreCase)
+                    ? "official.ico"
+                    : GameChannelCatalog.Get(iconName)?.IconFileName;
                 if (file == null) return null;
                 string fullPath = System.IO.Path.Combine(basePath, file);
                 if (!System.IO.File.Exists(fullPath))

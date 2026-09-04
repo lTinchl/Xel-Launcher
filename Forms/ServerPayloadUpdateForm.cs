@@ -661,16 +661,12 @@ namespace XelLauncher.Forms
 
         private static string GetProfileDisplayName(string iconName)
         {
-            return iconName switch
-            {
-                "Arknights" => L("App.PayloadUpdate.Region.Arknights", "明日方舟（官服）"),
-                "BiliArknights" => L("App.PayloadUpdate.Region.BiliArknights", "明日方舟（B服）"),
-                "Endfield" => L("App.PayloadUpdate.Region.Endfield", "终末地（官服）"),
-                "BiliEndfield" => L("App.PayloadUpdate.Region.BiliEndfield", "终末地（B服）"),
-                "GlobalEndfield" => L("App.PayloadUpdate.Region.GlobalEndfield", "终末地（国际服）"),
-                "PlayEndfield" => L("App.PayloadUpdate.Region.PlayEndfield", "终末地（Google Play）"),
-                _ => iconName
-            };
+            var channel = GameChannelCatalog.Get(iconName);
+            return channel == null
+                ? iconName
+                : L(
+                    $"App.PayloadUpdate.Region.{channel.IconName}",
+                    channel.LabelZh);
         }
 
         private static string L(string key, string fallback)

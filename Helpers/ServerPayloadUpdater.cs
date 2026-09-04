@@ -31,31 +31,52 @@ namespace XelLauncher.Helpers
         internal ServerPayloadProfile(
             string iconName,
             string payloadDirectoryName,
+            GameFamily gameFamily,
             string apiUrl,
             string appCode,
             string launcherAppCode,
             string channel,
             string subChannel,
-            string sequence)
+            string sequence,
+            IReadOnlyList<string> rootFiles,
+            IReadOnlyList<string> directoryPrefixes,
+            IReadOnlyList<string> requiredFiles,
+            int maxFileCount,
+            long maxTotalBytes,
+            long maxSingleFileBytes)
         {
             IconName = iconName;
             PayloadDirectoryName = payloadDirectoryName;
+            GameFamily = gameFamily;
             ApiUrl = apiUrl;
             AppCode = appCode;
             LauncherAppCode = launcherAppCode;
             Channel = channel;
             SubChannel = subChannel;
             Sequence = sequence;
+            RootFiles = rootFiles;
+            DirectoryPrefixes = directoryPrefixes;
+            RequiredFiles = requiredFiles;
+            MaxFileCount = maxFileCount;
+            MaxTotalBytes = maxTotalBytes;
+            MaxSingleFileBytes = maxSingleFileBytes;
         }
 
         public string IconName { get; }
         public string PayloadDirectoryName { get; }
+        public GameFamily GameFamily { get; }
         internal string ApiUrl { get; }
         internal string AppCode { get; }
         internal string LauncherAppCode { get; }
         internal string Channel { get; }
         internal string SubChannel { get; }
         internal string Sequence { get; }
+        public IReadOnlyList<string> RootFiles { get; }
+        public IReadOnlyList<string> DirectoryPrefixes { get; }
+        public IReadOnlyList<string> RequiredFiles { get; }
+        internal int MaxFileCount { get; }
+        internal long MaxTotalBytes { get; }
+        internal long MaxSingleFileBytes { get; }
     }
 
     public sealed class ServerPayloadState
@@ -115,75 +136,10 @@ namespace XelLauncher.Helpers
     /// </summary>
     public static class ServerPayloadUpdater
     {
-        private const string DomesticApiUrl = "https://launcher.hypergryph.com/api/proxy/batch_proxy";
-        private const string GlobalApiUrl = "https://launcher.gryphline.com/api/proxy/batch_proxy";
-        private const string DomesticLauncherAppCode = "abYeZZ16BPluCFyT";
-        private const string GlobalAppCode = "YDUTE5gscDZ229CW";
         private const long MiB = 1024L * 1024L;
 
-        private static readonly string[] CommonRootFiles =
-        {
-            "U8CoreUI.dll", "U8SDK.dll", "u8_channel.dll"
-        };
-
         private static readonly ServerPayloadProfile[] ProfileList =
-        {
-            new("Arknights", "ArkOfficial", DomesticApiUrl, "GzD1CpaWgmSq1wew",
-                DomesticLauncherAppCode, "1", "1", "5"),
-            new("BiliArknights", "ArkBilibili", DomesticApiUrl, "GzD1CpaWgmSq1wew",
-                DomesticLauncherAppCode, "2", "2", "5"),
-            new("Endfield", "EndOfficial", DomesticApiUrl, "6LL0KJuqHBVz33WK",
-                DomesticLauncherAppCode, "1", "1", "5"),
-            new("BiliEndfield", "EndBilibili", DomesticApiUrl, "6LL0KJuqHBVz33WK",
-                DomesticLauncherAppCode, "2", "2", "5"),
-            new("GlobalEndfield", "EndGlobal", GlobalApiUrl, GlobalAppCode,
-                GlobalAppCode, "6", "6", "3"),
-            new("PlayEndfield", "EndPlay", GlobalApiUrl, GlobalAppCode,
-                GlobalAppCode, "6", "802", "3")
-        };
-
-        private static readonly IReadOnlyDictionary<string, string[]> FallbackRootFiles =
-            new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Arknights"] =
-                [
-                    "hgsdk.dll", "PlatformProcess.dll", "PlatformProcess.exe",
-                    "webviewsdk.dll"
-                ],
-                ["BiliArknights"] =
-                [
-                    "PCGameSDK.dll", "PlatformProcess.dll", "PlatformProcess.exe",
-                    "webviewsdk.dll"
-                ],
-                ["Endfield"] =
-                [
-                    "eld_Endfield.db", "hgsdk.dll"
-                ],
-                ["BiliEndfield"] =
-                [
-                    "eld_Endfield.db", "PCGameSDK.dll"
-                ],
-                ["GlobalEndfield"] =
-                [
-                    "gfsdk.dll", "glfoundation.dll"
-                ],
-                ["PlayEndfield"] =
-                [
-                    "gfsdk.dll", "glextra.dll", "glfoundation.dll", "manifest.xml",
-                    "play_pc_sdk.dll"
-                ]
-            };
-
-        private static readonly IReadOnlyDictionary<string, string[]> FallbackDirectories =
-            new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Arknights"] = ["sdkdata", "U8Data/config"],
-                ["BiliArknights"] = ["BLPlatform64", "U8Data/config"],
-                ["Endfield"] = ["sdkdata", "U8Data/config"],
-                ["BiliEndfield"] = ["BLPlatform64", "U8Data/config"],
-                ["GlobalEndfield"] = ["sdkdata", "U8Data/config"],
-                ["PlayEndfield"] = ["sdkdata", "U8Data/config"]
-            };
+            GameChannelCatalog.ServerPayloadProfiles.ToArray();
 
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> UpdateLocks =
             new(StringComparer.OrdinalIgnoreCase);
@@ -216,8 +172,7 @@ namespace XelLauncher.Helpers
 
         public static ServerPayloadProfile GetProfile(string iconName)
         {
-            return ProfileList.FirstOrDefault(x =>
-                string.Equals(x.IconName, iconName, StringComparison.OrdinalIgnoreCase));
+            return GameChannelCatalog.Get(iconName)?.PayloadProfile;
         }
 
         public static async Task<ServerGameManifest> GetGameManifestAsync(
@@ -884,23 +839,13 @@ namespace XelLauncher.Helpers
 
         private static PayloadSeedRules BuildSeedRules(ServerPayloadProfile profile)
         {
-            var rootFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var directoryPrefixes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var file in CommonRootFiles)
-                rootFiles.Add(file);
-
-            if (FallbackRootFiles.TryGetValue(profile.IconName, out var fallbackFiles))
-            {
-                foreach (var file in fallbackFiles)
-                    rootFiles.Add(file);
-            }
-
-            if (FallbackDirectories.TryGetValue(profile.IconName, out var fallbackDirectories))
-            {
-                foreach (var directory in fallbackDirectories)
-                    directoryPrefixes.Add(directory.Replace('\\', '/').TrimEnd('/'));
-            }
+            var rootFiles = new HashSet<string>(
+                profile.RootFiles,
+                StringComparer.OrdinalIgnoreCase);
+            var directoryPrefixes = new HashSet<string>(
+                profile.DirectoryPrefixes.Select(directory =>
+                    directory.Replace('\\', '/').TrimEnd('/')),
+                StringComparer.OrdinalIgnoreCase);
 
             return new PayloadSeedRules(rootFiles, directoryPrefixes);
         }
@@ -924,85 +869,29 @@ namespace XelLauncher.Helpers
             ServerPayloadProfile profile,
             IReadOnlyList<RemotePayloadFile> files)
         {
-            var isBilibili = profile.IconName is "BiliArknights" or "BiliEndfield";
-            var maxFileCount = isBilibili ? 1000 : 128;
-            var maxTotalBytes = isBilibili ? 512 * MiB : 128 * MiB;
-            var maxSingleFileBytes = isBilibili ? 256 * MiB : 64 * MiB;
-
-            if (files.Count > maxFileCount)
+            if (files.Count > profile.MaxFileCount)
                 throw new InvalidDataException(
                     $"The {profile.IconName} payload contains too many files ({files.Count}).");
 
             var totalBytes = files.Sum(x => x.Size);
-            if (totalBytes > maxTotalBytes)
+            if (totalBytes > profile.MaxTotalBytes)
                 throw new InvalidDataException(
                     $"The {profile.IconName} payload is unexpectedly large ({totalBytes} bytes).");
 
-            var oversized = files.FirstOrDefault(x => x.Size > maxSingleFileBytes);
+            var oversized = files.FirstOrDefault(x => x.Size > profile.MaxSingleFileBytes);
             if (oversized != null)
                 throw new InvalidDataException(
                     $"The payload file {oversized.RelativePath} is unexpectedly large.");
 
-            var required = GetRequiredPayloadFiles(profile);
-
             var paths = new HashSet<string>(
                 files.Select(x => x.RelativePath.Replace('\\', '/')),
                 StringComparer.OrdinalIgnoreCase);
-            var missing = required.Where(x => !paths.Contains(x)).ToArray();
+            var missing = profile.RequiredFiles
+                .Where(x => !paths.Contains(x))
+                .ToArray();
             if (missing.Length > 0)
                 throw new InvalidDataException(
                     $"The {profile.IconName} payload is missing required files: {string.Join(", ", missing)}.");
-        }
-
-        private static IReadOnlyList<string> GetRequiredPayloadFiles(
-            ServerPayloadProfile profile)
-        {
-            var required = new List<string>
-            {
-                "U8CoreUI.dll",
-                "U8SDK.dll",
-                "u8_channel.dll",
-                "U8Data/config/config.bin",
-                "U8Data/config/config.gryph",
-                "U8Data/config/u8ExtraConfig.bin"
-            };
-
-            switch (profile.IconName)
-            {
-                case "Arknights":
-                    required.Add("hgsdk.dll");
-                    required.Add("PlatformProcess.dll");
-                    required.Add("PlatformProcess.exe");
-                    required.Add("webviewsdk.dll");
-                    break;
-                case "BiliArknights":
-                    required.Add("PCGameSDK.dll");
-                    required.Add("PlatformProcess.dll");
-                    required.Add("PlatformProcess.exe");
-                    required.Add("webviewsdk.dll");
-                    required.Add("BLPlatform64/PCGamePlatform.exe");
-                    break;
-                case "Endfield":
-                    required.Add("hgsdk.dll");
-                    break;
-                case "BiliEndfield":
-                    required.Add("PCGameSDK.dll");
-                    required.Add("BLPlatform64/PCGamePlatform.exe");
-                    break;
-                case "GlobalEndfield":
-                    required.Add("gfsdk.dll");
-                    required.Add("glfoundation.dll");
-                    break;
-                case "PlayEndfield":
-                    required.Add("gfsdk.dll");
-                    required.Add("glextra.dll");
-                    required.Add("glfoundation.dll");
-                    required.Add("play_pc_sdk.dll");
-                    required.Add("manifest.xml");
-                    break;
-            }
-
-            return required;
         }
 
         private static IEnumerable<string> GetSourceDirectories(ServerPayloadProfile profile)

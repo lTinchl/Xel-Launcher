@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using XelLauncher.Helpers;
 
 namespace XelLauncher.Models
 {
@@ -63,15 +64,8 @@ namespace XelLauncher.Models
     public class AppConfig
     {
         public string UpdateDownloadSource { get; set; } = "github";
-        public List<GameEntry> Games { get; set; } = new List<GameEntry>
-        {
-            new GameEntry { Name = "明日方舟",       IconName = "Arknights" },
-            new GameEntry { Name = "明日方舟(B服)",   IconName = "BiliArknights" },
-            new GameEntry { Name = "终末地",          IconName = "Endfield" },
-            new GameEntry { Name = "终末地(B服)",     IconName = "BiliEndfield" },
-            new GameEntry { Name = "终末地(国际服)",  IconName = "GlobalEndfield" },
-            new GameEntry { Name = "终末地(GooglePlay)", IconName = "PlayEndfield" },
-        };
+        public List<GameEntry> Games { get; set; } =
+            GameChannelCatalog.CreateDefaultGameEntries();
 
         public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();
         public List<string> AccountOrder { get; set; } = new List<string>();
@@ -108,8 +102,6 @@ namespace XelLauncher.Models
 
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
-        public bool AutoLaunchOfficial { get; set; } = false;               // 启动时自动打开官服
-        public bool AutoLaunchBilibili { get; set; } = false;               // 启动时自动打开B服
         public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色
         public string BackgroundColor { get; set; } = "#FFFFFF";              // 窗口背景色
         public bool CloseAfterLaunch { get; set; } = false;               // 启动游戏后关闭软件
@@ -124,16 +116,10 @@ namespace XelLauncher.Models
         /// </summary>
         public string ThemeMode { get; set; } = "system";
         public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
-        public List<string> ServerPayloadAutoUpdateProfiles { get; set; } = new()
-        {
-            "Arknights",
-            "BiliArknights",
-            "Endfield",
-            "BiliEndfield",
-            "GlobalEndfield",
-            "PlayEndfield",
-        };
+        public List<string> ServerPayloadAutoUpdateProfiles { get; set; } =
+            GameChannelCatalog.CreateDefaultServerPayloadProfileIds();
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
+        public List<SharedRootState> SharedRoots { get; set; } = new();
         public Dictionary<string, List<CustomToolLink>> CustomToolLinks { get; set; } = new();
         public Dictionary<string, bool> NoticePanelCollapsed { get; set; } = new();
         public AppUpdateState UpdateState { get; set; } = new();

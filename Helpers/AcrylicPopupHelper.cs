@@ -59,6 +59,12 @@ namespace XelLauncher.Helpers
             select.Disposed += (_, _) => session.Restore();
         }
 
+        public static void SyncThemeBackgrounds()
+        {
+            RestoreThemeBackground(DropdownStyleKey, AntdUI.TAMode.Auto);
+            RestoreThemeBackground(SelectStyleKey, AntdUI.TAMode.Auto);
+        }
+
         private static void QueuePopupConfiguration(
             Control owner,
             PopupSession session,
@@ -81,7 +87,6 @@ namespace XelLauncher.Helpers
         {
             private readonly Control _owner;
             private readonly string _styleKey;
-            private Color _originalBackground;
             private bool _styleApplied;
             private AntdUI.ILayeredForm _popup;
 
@@ -96,7 +101,6 @@ namespace XelLauncher.Helpers
                 if (_styleApplied || _owner.IsDisposed)
                     return;
 
-                _originalBackground = AntdUI.Style.Get(AntdUI.Colour.BgElevated, _styleKey);
                 AntdUI.Style.Set(AntdUI.Colour.BgElevated, GetAcrylicBackground(), _styleKey);
                 _styleApplied = true;
             }
@@ -125,7 +129,7 @@ namespace XelLauncher.Helpers
                 if (!_styleApplied)
                     return;
 
-                AntdUI.Style.Set(AntdUI.Colour.BgElevated, _originalBackground, _styleKey);
+                RestoreThemeBackground(_styleKey, AntdUI.TAMode.Auto);
                 _styleApplied = false;
                 _popup = null;
             }
@@ -141,6 +145,15 @@ namespace XelLauncher.Helpers
                 // Keep this in sync with NoticeCarouselPanel.DrawExpanded.
                 return Color.FromArgb(188, 34, 37, 43);
             }
+        }
+
+        private static void RestoreThemeBackground(string styleKey, AntdUI.TAMode colorScheme)
+        {
+            // Resolve without the temporary control-specific override. Restoring a
+            // previously resolved color would pin a light popup background after a
+            // light-to-dark theme switch (and vice versa).
+            var background = AntdUI.Style.Get(AntdUI.Colour.BgElevated, colorScheme);
+            AntdUI.Style.Set(AntdUI.Colour.BgElevated, background, styleKey);
         }
     }
 }

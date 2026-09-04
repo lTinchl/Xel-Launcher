@@ -153,6 +153,7 @@ namespace XelLauncher.Forms
             _themeSurfaceTimer.Stop();
             _themeSurfaceWatch.Stop();
             AntdUI.Config.IsDark = _themeSurfaceTargetDark;
+            AcrylicPopupHelper.SyncThemeBackgrounds();
             ApplyThemeSurfaceColors(_themeSurfaceToBackground, _themeSurfaceToHeader, _themeSurfaceToForeground);
             _currentGamePage?.UpdateLaunchPanelColor();
             updateBadge.Invalidate();
@@ -175,6 +176,7 @@ namespace XelLauncher.Forms
             _themeSurfaceTimer?.Stop();
             _themeSurfaceWatch?.Stop();
             AntdUI.Config.IsDark = targetDark;
+            AcrylicPopupHelper.SyncThemeBackgrounds();
             ApplyThemeSurfaces();
             _currentGamePage?.UpdateLaunchPanelColor();
             updateBadge.Invalidate();

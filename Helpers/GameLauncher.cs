@@ -2,8 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Microsoft.Win32.SafeHandles;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,138 +11,23 @@ namespace XelLauncher.Helpers
     {
         private const string ArknightsOfficialSdkDataDirName = "sdk_data_70613ebd03f0610da8808f16040ee1b3";
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern SafeFileHandle CreateFile(
-            string lpFileName,
-            uint dwDesiredAccess,
-            FileShare dwShareMode,
-            IntPtr lpSecurityAttributes,
-            FileMode dwCreationDisposition,
-            FileAttributes dwFlagsAndAttributes,
-            IntPtr hTemplateFile);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool GetFileInformationByHandle(SafeFileHandle hFile, out BY_HANDLE_FILE_INFORMATION lpFileInformation);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BY_HANDLE_FILE_INFORMATION
-        {
-            public uint FileAttributes;
-            public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime;
-            public System.Runtime.InteropServices.ComTypes.FILETIME LastAccessTime;
-            public System.Runtime.InteropServices.ComTypes.FILETIME LastWriteTime;
-            public uint VolumeSerialNumber;
-            public uint FileSizeHigh;
-            public uint FileSizeLow;
-            public uint NumberOfLinks;
-            public uint FileIndexHigh;
-            public uint FileIndexLow;
-        }
-
         public static string GetPayloadDirPath(string iconName)
         {
             return ServerPayloadUpdater.GetPayloadDirectory(iconName);
         }
 
-        // 判断两个路径是否在同一磁盘分区（根据盘符）
-        private static bool OnSameVolume(string pathA, string pathB)
-        {
-            string rootA = Path.GetPathRoot(Path.GetFullPath(pathA));
-            string rootB = Path.GetPathRoot(Path.GetFullPath(pathB));
-            return string.Equals(rootA, rootB, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static void DeleteFileIfExists(string path)
-        {
-            if (!File.Exists(path)) return;
-
-            File.SetAttributes(path, FileAttributes.Normal);
-            File.Delete(path);
-        }
-
-        // 尝试创建硬链接；失败则回退到文件复制
-        private static bool HardLinkOrCopyFile(string sourceFile, string destFile, bool useHardLink)
-        {
-            if (useHardLink && File.Exists(destFile) && IsSameFile(sourceFile, destFile))
-                return true;
-
-            DeleteFileIfExists(destFile);
-
-            if (useHardLink)
-            {
-                if (CreateHardLink(destFile, sourceFile, IntPtr.Zero))
-                    return true;
-                // 硬链接失败（例如 FAT32）则回退复制
-            }
-            File.Copy(sourceFile, destFile, true);
-            return false;
-        }
-
-        private static bool IsSameFile(string pathA, string pathB)
-        {
-            try
-            {
-                using var handleA = CreateFile(pathA, 0, FileShare.ReadWrite | FileShare.Delete, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-                using var handleB = CreateFile(pathB, 0, FileShare.ReadWrite | FileShare.Delete, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-                if (handleA.IsInvalid || handleB.IsInvalid) return false;
-                if (!GetFileInformationByHandle(handleA, out var infoA)) return false;
-                if (!GetFileInformationByHandle(handleB, out var infoB)) return false;
-
-                return infoA.VolumeSerialNumber == infoB.VolumeSerialNumber &&
-                       infoA.FileIndexHigh == infoB.FileIndexHigh &&
-                       infoA.FileIndexLow == infoB.FileIndexLow;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         // 用硬链接（或复制）将 sourceDir 的文件部署到 targetDir
         // 返回 true 表示使用了硬链接，false 表示使用了文件复制
-        public static async Task<bool> HardLinkOrCopyDirectory(string sourceDir, string targetDir, bool preferHardLink, int maxRetries = 5)
-        {
-            sourceDir = Path.GetFullPath(sourceDir).TrimEnd(Path.DirectorySeparatorChar);
-            targetDir = Path.GetFullPath(targetDir).TrimEnd(Path.DirectorySeparatorChar);
+        public static Task<bool> HardLinkOrCopyDirectory(
+            string sourceDir,
+            string targetDir,
+            bool preferHardLink,
+            int maxRetries = 5) =>
+            ServerPayloadDeployment.DeployDirectoryAsync(
+                sourceDir, targetDir, preferHardLink, maxRetries);
 
-            bool useHardLink = preferHardLink && OnSameVolume(sourceDir, targetDir);
-            bool allHardLinked = useHardLink;
-
-            await Task.Run(() =>
-            {
-                Directory.CreateDirectory(targetDir);
-                foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
-                {
-                    string relativePath = file.Substring(sourceDir.Length + 1);
-                    if (ServerPayloadUpdater.IsDeploymentExcluded(relativePath))
-                        continue;
-
-                    string destFile = Path.Combine(targetDir, relativePath);
-                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
-
-                    for (int i = 0; i < maxRetries; i++)
-                    {
-                        try
-                        {
-                            if (!HardLinkOrCopyFile(file, destFile, useHardLink))
-                                allHardLinked = false;
-                            break;
-                        }
-                        catch (IOException) when (i < maxRetries - 1)
-                        {
-                            System.Threading.Thread.Sleep(1000);
-                        }
-                    }
-                }
-            });
-
-            return allHardLinked;
-        }
-
-        // 带结果回调的切服入口，onResult(true) = 使用了硬链接，onResult(false) = 文件复制
+        // 带结果回调的切服入口。渠道 Payload 包含 SDK、登录配置等
+        // 可变文件，因此始终以独立文件部署；大资源复用由 Linked Runtime 负责。
         public static async Task SwitchServerWithResult(
             string rootPath,
             string iconName,
@@ -157,8 +40,9 @@ namespace XelLauncher.Helpers
             try
             {
                 LinkedClientPolicy.ThrowIfSharedClient(iconName, rootPath);
+                var targetChannel = GameChannelCatalog.Get(iconName);
                 if (!operationAlreadyCoordinated &&
-                    LinkedClientPolicy.IsArknightsChannel(iconName) &&
+                    targetChannel?.PayloadProfile != null &&
                     !LinkedClientOperationCoordinator.TryAcquire(
                         iconName, rootPath, out operationLease))
                 {
@@ -168,7 +52,29 @@ namespace XelLauncher.Helpers
                             "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
                 }
 
-                bool preferHardLink = ConfigHelper.Load().UseHardLink;
+                // Resolve the on-disk channel while holding the path lease. A
+                // switch that completed immediately before this operation must
+                // not leave us validating an obsolete source channel.
+                var sharedRoot = SharedRootManager.ResolveAndPersist(
+                    iconName, rootPath, detectBaseChannel: true);
+                if (sharedRoot.Mode == SharedRootMode.Conflict)
+                {
+                    throw new InvalidOperationException(
+                        "同一游戏目录配置了不兼容的渠道，不能执行传统切服。");
+                }
+                if (sharedRoot.Mode == SharedRootMode.Shared &&
+                    sharedRoot.Base != null &&
+                    !GameChannelCatalog.CanSwitchChannel(
+                        sharedRoot.Base.IconName, iconName))
+                {
+                    throw new NotSupportedException(
+                        $"不支持从 {sharedRoot.Base.Channel} 切换到 " +
+                        $"{targetChannel?.Channel ?? iconName}。");
+                }
+
+                var profile = ServerPayloadUpdater.GetProfile(iconName) ??
+                              throw new NotSupportedException(
+                                  $"No legacy server payload is defined for {iconName}.");
                 bool usedHardLink = await ServerPayloadUpdater.UsePayloadDirectoryAsync(
                     iconName,
                     async payloadDir =>
@@ -181,24 +87,22 @@ namespace XelLauncher.Helpers
                                     "未找到切服资源（文件夹或 ZIP 均不存在）"));
                         }
 
-                        var canUseHardLink =
-                            preferHardLink && OnSameVolume(payloadDir, rootPath);
-                        onProgress(canUseHardLink
-                            ? AntdUI.Localization.Get(
-                                "App.Switch.Linking", "切服中（硬链接）...")
-                            : AntdUI.Localization.Get(
-                                "App.Switch.Copying", "切服中..."));
+                        onProgress(AntdUI.Localization.Get(
+                            "App.Switch.Copying", "切服中..."));
 
-                        return await HardLinkOrCopyDirectory(
-                            payloadDir, rootPath, preferHardLink);
+                        return await ServerPayloadDeployment.DeployProfileAsync(
+                            profile, payloadDir, rootPath,
+                            preferHardLink: false);
                     });
                 onResult(usedHardLink);
+                if (sharedRoot.Mode == SharedRootMode.Shared)
+                {
+                    SharedRootManager.RecordBaseChannel(
+                        iconName, rootPath, "traditional-server-switch");
+                }
 
-                string doneMsg = usedHardLink
-                    ? AntdUI.Localization.Get(
-                        "App.Switch.DoneHardLink", "游戏启动中···")
-                    : AntdUI.Localization.Get(
-                        "App.Switch.DoneCopy", "游戏启动中···");
+                string doneMsg = AntdUI.Localization.Get(
+                    "App.Switch.DoneCopy", "游戏启动中···");
                 onProgress(doneMsg);
             }
             finally
@@ -239,7 +143,8 @@ namespace XelLauncher.Helpers
                 }
             }
 
-            bool isEndfield = iconName == "Endfield" || iconName == "BiliEndfield" || iconName == "GlobalEndfield" || iconName == "PlayEndfield";
+            bool isEndfield = GameChannelCatalog.IsFamily(
+                iconName, GameFamily.Endfield);
             string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
             string exePath = Path.Combine(rootPath, exeName);
             if (!File.Exists(exePath)) throw new Exception($"未找到 {exeName}");

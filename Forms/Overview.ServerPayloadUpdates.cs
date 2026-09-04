@@ -438,16 +438,11 @@ namespace XelLauncher.Forms
 
         private static string GetServerPayloadProfileDisplayName(string iconName)
         {
-            return iconName switch
-            {
-                "Arknights" => PayloadText("App.PayloadUpdate.Region.Arknights"),
-                "BiliArknights" => PayloadText("App.PayloadUpdate.Region.BiliArknights"),
-                "Endfield" => PayloadText("App.PayloadUpdate.Region.Endfield"),
-                "BiliEndfield" => PayloadText("App.PayloadUpdate.Region.BiliEndfield"),
-                "GlobalEndfield" => PayloadText("App.PayloadUpdate.Region.GlobalEndfield"),
-                "PlayEndfield" => PayloadText("App.PayloadUpdate.Region.PlayEndfield"),
-                _ => iconName,
-            };
+            var channel = GameChannelCatalog.Get(iconName);
+            return channel == null
+                ? iconName
+                : PayloadText(
+                    $"App.PayloadUpdate.Region.{channel.IconName}");
         }
 
         private static string PayloadText(string key) =>
