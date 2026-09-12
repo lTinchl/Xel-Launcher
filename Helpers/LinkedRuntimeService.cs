@@ -235,6 +235,17 @@ namespace XelLauncher.Helpers
                         $"GameId={resolution.GameId} | Runtime={runtimePath}");
                     marker = null;
                 }
+                if (marker == null && onProgress != null)
+                {
+                    var reportProgress = onProgress;
+                    var creationTip = AntdUI.Localization.Get(
+                        "App.LinkedRuntime.FirstCreationTip",
+                        "首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。");
+                    onProgress = message => reportProgress(
+                        message + Environment.NewLine + creationTip);
+                    onProgress("正在检查共享运行环境...");
+                }
+
                 var metadata = resolution.State.LinkedRuntimes.FirstOrDefault(item =>
                     string.Equals(item.Channel, resolution.Target.Channel,
                         StringComparison.OrdinalIgnoreCase));

@@ -1035,6 +1035,10 @@ namespace XelLauncher.Forms
                 AntdUI.Localization.Get(
                     "App.LinkedClient.ConfirmMessage",
                     "将在同一 NTFS 分区的空目录创建 B 服客户端。创建时请关闭游戏及两个渠道启动器；共享期间请勿更新或修复，更新前请先解除共享。是否继续？") +
+                Environment.NewLine + Environment.NewLine +
+                AntdUI.Localization.Get(
+                    "App.LinkedRuntime.FirstCreationTip",
+                    "首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。") +
                 Environment.NewLine + Environment.NewLine + targetPath,
                 AntdUI.TType.Warn)
             {

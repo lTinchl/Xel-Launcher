@@ -2760,4 +2760,7 @@
   <data name="App.LinkedClient.Error.ConfigChanged" xml:space="preserve">
     <value>创建期间游戏设置已发生变化，请重新开始</value>
   </data>
+  <data name="App.LinkedRuntime.FirstCreationTip" xml:space="preserve">
+    <value>首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。</value>
+  </data>
 </root>

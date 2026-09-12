@@ -2763,4 +2763,7 @@
   <data name="App.LinkedClient.Error.ConfigChanged" xml:space="preserve">
     <value>Game settings changed while the linked client was being created. Start again</value>
   </data>
+  <data name="App.LinkedRuntime.FirstCreationTip" xml:space="preserve">
+    <value>Creating the hard-linked runtime directory for the first time may take a while, depending on the number of files and disk read/write speed. Please wait.</value>
+  </data>
 </root>
