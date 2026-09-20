@@ -15,6 +15,88 @@ namespace XelLauncher.Forms
 {
     public partial class GamePage : UserControl
     {
+        private bool _isGameRunning;
+
+        private void InitializeGameRunningMonitor()
+        {
+            var timer = new System.Windows.Forms.Timer { Interval = 1000 };
+            timer.Tick += (s, e) => UpdateGameRunningState();
+            HandleCreated += (s, e) =>
+            {
+                UpdateGameRunningState();
+                timer.Start();
+            };
+            Disposed += (s, e) => timer.Dispose();
+        }
+
+        private void UpdateGameRunningState()
+        {
+            if (IsDisposed || GameStart.IsDisposed) return;
+            bool running;
+            try
+            {
+                var launchDirectory = GetExpectedGameLaunchDirectory();
+                using var process = GameLauncher.FindRunningGameProcess(
+                    launchDirectory,
+                    GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Endfield));
+                running = process != null;
+            }
+            catch { return; }
+
+            if (_isGameRunning == running) return;
+            _isGameRunning = running;
+            RefreshGameStartButton();
+        }
+
+        private string GetExpectedGameLaunchDirectory()
+        {
+            var rootPath = GetConfiguredGamePath();
+            if (string.IsNullOrWhiteSpace(rootPath)) return rootPath;
+
+            try
+            {
+                var cfg = ConfigHelper.Load();
+                if (!cfg.UseHardLink) return rootPath;
+
+                var resolution = SharedRootManager.Resolve(
+                    cfg,
+                    _game.IconName,
+                    rootPath,
+                    detectBaseChannel: false,
+                    out _);
+                if (resolution.Mode != SharedRootMode.Shared ||
+                    resolution.Base == null ||
+                    resolution.Target == null ||
+                    string.Equals(
+                        resolution.Base.Channel,
+                        resolution.Target.Channel,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return rootPath;
+                }
+
+                return LinkedRuntimeService.GetRuntimePath(
+                    resolution.GameId,
+                    resolution.RootPath,
+                    resolution.Target.Channel);
+            }
+            catch
+            {
+                return rootPath;
+            }
+        }
+
+        private static bool IsGameClientRunningAt(
+            string launchDirectory,
+            bool isEndfield) =>
+            GameLauncher.IsGameRunningFromDirectory(
+                launchDirectory, isEndfield);
+
+        private static string CloseGameClientMessage =>
+            AntdUI.Localization.Get(
+                "App.Game.CloseClientBeforeSwitch",
+                "渠道文件正在被占用，请关闭游戏客户端后重试。");
+
         private async Task<bool> CheckGameStatusAsync()
         {
             try { _service = new EndfieldService(_game.IconName); }
@@ -147,6 +229,17 @@ namespace XelLauncher.Forms
 
         private void RefreshGameStartButton()
         {
+            ((GameLaunchButton)GameStart).SetRunningAppearance(_isGameRunning);
+            if (_isGameRunning)
+            {
+                GameStart.Loading = false;
+                GameStart.Text = AntdUI.Localization.Get("App.Game.Running", "游戏中");
+                GameStart.IconSvg = "PlayCircleOutlined";
+                GameStart.Enabled = false;
+                RefreshPreloadButton();
+                return;
+            }
+
             GameStart.Enabled = true;
             if (GameRepairManager.IsRepairing(GetConfiguredGamePath()))
                 _gameState = GameState.Repairing;
@@ -883,6 +976,8 @@ namespace XelLauncher.Forms
 
         private async void GameStart_Click(object sender, EventArgs e)
         {
+            UpdateGameRunningState();
+            if (_isGameRunning) return;
             if (GameStart.Loading) return;
             if (_gameState == GameState.Repairing || GameRepairManager.IsRepairing(GetConfiguredGamePath()))
             {
@@ -1076,13 +1171,20 @@ namespace XelLauncher.Forms
                         : GameLauncher.GetPayloadDirPath(_game.IconName);
                     needSwitch = payloadDir != null && Directory.Exists(payloadDir);
                 }
-                await GameLauncher.KillArknightsProcesses(isEndfield);
             }
             catch (Exception ex)
             {
                 launchOperationLease?.Dispose();
                 Helpers.LogHelper.LogError(ex, "GameStartPreparation");
                 AntdUI.Message.error(_overview, ex.Message);
+                return;
+            }
+
+            if (!useLinkedRuntime && needSwitch &&
+                IsGameClientRunningAt(path, isEndfield))
+            {
+                launchOperationLease?.Dispose();
+                AntdUI.Message.warn(_overview, CloseGameClientMessage);
                 return;
             }
 
@@ -1176,6 +1278,9 @@ namespace XelLauncher.Forms
                                         "共享运行环境不可用，正在使用传统切服...");
                                     config.Refresh();
 
+                                    if (IsGameClientRunningAt(path, isEndfield))
+                                        throw new InvalidOperationException(
+                                            CloseGameClientMessage);
                                     await GameLauncher.SwitchServerWithResult(
                                         path,
                                         _game.IconName,
@@ -1195,6 +1300,9 @@ namespace XelLauncher.Forms
                         }
                         else if (needSwitch)
                         {
+                            if (IsGameClientRunningAt(path, isEndfield))
+                                throw new InvalidOperationException(
+                                    CloseGameClientMessage);
                             await GameLauncher.SwitchServerWithResult(path, _game.IconName, msg =>
                             {
                                 config.Text = msg;
@@ -1229,15 +1337,14 @@ namespace XelLauncher.Forms
                         GameLauncher.StartArknights(launchPath, _game.IconName);
 
                     // Show launch success only after the game process is detected.
-                    string procName = (isEndfield) ? "Endfield" : "Arknights";
                     config.Text = AntdUI.Localization.Get("App.Game.WaitingProcess", "等待游戏进程...");
                     config.Refresh();
-                    System.Diagnostics.Process gameProc = null;
+                    Process gameProc = null;
                     for (int i = 0; i < 30 && gameProc == null; i++)
                     {
-                        var procs = System.Diagnostics.Process.GetProcessesByName(procName);
-                        if (procs.Length > 0) gameProc = procs[0];
-                        else await Task.Delay(1000);
+                        gameProc = GameLauncher.FindRunningGameProcess(
+                            launchPath, isEndfield);
+                        if (gameProc == null) await Task.Delay(1000);
                     }
                     config.OK(AntdUI.Localization.Get("App.Game.LaunchSuccess", "游戏启动成功"));
                     var latestCfg = ConfigHelper.Load();

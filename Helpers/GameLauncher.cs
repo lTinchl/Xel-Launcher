@@ -105,6 +105,11 @@ namespace XelLauncher.Helpers
                     "App.Switch.DoneCopy", "游戏启动中···");
                 onProgress(doneMsg);
             }
+            catch (Exception ex) when (IsFileInUseException(ex))
+            {
+                throw new InvalidOperationException(
+                    GetCloseGameClientMessage(), ex);
+            }
             finally
             {
                 operationLease?.Dispose();
@@ -175,82 +180,90 @@ namespace XelLauncher.Helpers
             });
         }
 
-        // 判断 pid 的祖先链（向上追溯）中是否包含 ancestorPids 中的任意一个
-        private static bool IsDescendantOf(int pid, System.Collections.Generic.HashSet<int> ancestorPids)
+        public static Process FindRunningGameProcess(
+            string rootPath,
+            bool isEndfield)
         {
-            int current = pid;
-            // 最多向上追溯 10 层，防止进程树出现环路死循环
-            for (int depth = 0; depth < 10; depth++)
-            {
-                int parent = GetParentProcessId(current);
-                if (parent <= 0) return false;
-                if (ancestorPids.Contains(parent)) return true;
-                current = parent;
-            }
-            return false;
-        }
+            if (string.IsNullOrWhiteSpace(rootPath)) return null;
 
-        public static async Task KillArknightsProcesses(bool isEndfield = false)
-        {
-            string mainName = isEndfield ? "Endfield" : "Arknights";
-            var mainProcs = Process.GetProcessesByName(mainName);
-            var mainPids = new System.Collections.Generic.HashSet<int>(mainProcs.Select(p => p.Id));
-
-            // 先杀祖先链中包含主游戏进程的 PlatformProcess（兼容中间进程层级）
-            foreach (var proc in Process.GetProcessesByName("PlatformProcess"))
-            {
-                using (proc)
-                {
-                    try
-                    {
-                        if (IsDescendantOf(proc.Id, mainPids))
-                        {
-                            proc.Kill();
-                            proc.WaitForExit();
-                        }
-                    }
-                    catch (Exception ex) { LogHelper.LogError(ex, "KillProcess"); }
-                }
-            }
-
-            // 再杀主游戏进程
-            foreach (var proc in mainProcs)
-            {
-                using (proc)
-                {
-                    try { proc.Kill(); proc.WaitForExit(); } catch (Exception ex) { LogHelper.LogError(ex, "KillProcess"); }
-                }
-            }
-
-            // 等待 Windows 完全释放文件句柄
-            await Task.Delay(1500);
-        }
-
-        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-        private struct PROCESS_BASIC_INFORMATION
-        {
-            public IntPtr Reserved1;
-            public IntPtr PebBaseAddress;
-            public IntPtr Reserved2_0;
-            public IntPtr Reserved2_1;
-            public IntPtr UniqueProcessId;
-            public IntPtr InheritedFromUniqueProcessId;
-        }
-
-        [System.Runtime.InteropServices.DllImport("ntdll.dll")]
-        private static extern int NtQueryInformationProcess(IntPtr hProcess, int processInformationClass, ref PROCESS_BASIC_INFORMATION processInformation, int processInformationLength, out int returnLength);
-
-        private static int GetParentProcessId(int pid)
-        {
+            string expectedPath;
             try
             {
-                using var proc = Process.GetProcessById(pid);
-                var pbi = new PROCESS_BASIC_INFORMATION();
-                int status = NtQueryInformationProcess(proc.Handle, 0, ref pbi, System.Runtime.InteropServices.Marshal.SizeOf(pbi), out _);
-                if (status != 0) return -1;
-                return pbi.InheritedFromUniqueProcessId.ToInt32();
+                var executable = isEndfield ? "Endfield.exe" : "Arknights.exe";
+                expectedPath = Path.GetFullPath(Path.Combine(rootPath, executable));
             }
-            catch (Exception ex) { LogHelper.LogError(ex, "GetParentPid"); return -1; }
+            catch
+            {
+                return null;
+            }
+
+            var processName = isEndfield ? "Endfield" : "Arknights";
+            Process match = null;
+            foreach (var process in Process.GetProcessesByName(processName))
+            {
+                try
+                {
+                    var actualPath = process.MainModule?.FileName;
+                    if (!string.IsNullOrWhiteSpace(actualPath) &&
+                        string.Equals(
+                            Path.GetFullPath(actualPath),
+                            expectedPath,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (match == null)
+                        {
+                            match = process;
+                            continue;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Process information can become unavailable while it exits.
+                }
+                process.Dispose();
+            }
+
+            return match;
+        }
+
+        public static bool IsGameRunningFromDirectory(
+            string rootPath,
+            bool isEndfield)
+        {
+            using var process = FindRunningGameProcess(rootPath, isEndfield);
+            return process != null;
+        }
+
+        public static void EnsureGameClientClosed(
+            string rootPath,
+            bool isEndfield)
+        {
+            if (!IsGameRunningFromDirectory(rootPath, isEndfield)) return;
+
+            throw new InvalidOperationException(
+                GetCloseGameClientMessage());
+        }
+
+        private static string GetCloseGameClientMessage() =>
+            AntdUI.Localization.Get(
+                "App.Game.CloseClientBeforeSwitch",
+                "渠道文件正在被占用，请关闭游戏客户端后重试。");
+
+        private static bool IsFileInUseException(Exception exception)
+        {
+            if (exception is AggregateException aggregate)
+                return aggregate.Flatten().InnerExceptions.Any(
+                    IsFileInUseException);
+
+            if (exception is IOException ioException)
+            {
+                var errorCode = ioException.HResult & 0xFFFF;
+                if (errorCode is 32 or 33) return true;
+            }
+
+            return exception?.InnerException != null &&
+                   IsFileInUseException(exception.InnerException);
         }
 
         public static async Task BackupAccount(string accountId)

@@ -156,8 +156,12 @@ namespace XelLauncher.Helpers
                 {
                     EnsureNoManagedMutation(expectedBilibiliPath);
                 }
-                await GameLauncher.KillArknightsProcesses(false)
-                    .ConfigureAwait(false);
+                foreach (var operationPath in operationPaths
+                             .Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    GameLauncher.EnsureGameClientClosed(
+                        operationPath, isEndfield: false);
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
                 Report(progress, ArknightsLinkedClientStage.FetchingManifests);
@@ -535,8 +539,10 @@ namespace XelLauncher.Helpers
                 EnsureNoManagedMutation(rootPath);
                 var detachOperation = BeginOrResumeDetach(rootPath);
                 EnsureNoManagedMutation(detachOperation.SourcePath);
-                await GameLauncher.KillArknightsProcesses(false)
-                    .ConfigureAwait(false);
+                GameLauncher.EnsureGameClientClosed(
+                    rootPath, isEndfield: false);
+                GameLauncher.EnsureGameClientClosed(
+                    detachOperation.SourcePath, isEndfield: false);
                 var files = detachOperation.LinkedFiles
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .Select(relativePath =>

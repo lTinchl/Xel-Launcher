@@ -196,9 +196,8 @@ namespace XelLauncher.Forms
                         {
                             LinkedClientPolicy.ClearLegacyPairState(
                                 ConfigHelper.Load());
-                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
-                            cfg.Refresh();
-                            await GameLauncher.KillArknightsProcesses(false);
+                            GameLauncher.EnsureGameClientClosed(
+                                path, isEndfield: false);
                             await GameLauncher.SwitchServerWithResult(path, "BiliArknights", msg =>
                             {
                                 cfg.Text = msg;
@@ -306,9 +305,8 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
-                            cfg.Refresh();
-                            await GameLauncher.KillArknightsProcesses(true);
+                            GameLauncher.EnsureGameClientClosed(
+                                path, isEndfield: true);
                             await GameLauncher.SwitchServerWithResult(path, "BiliEndfield", msg =>
                             {
                                 cfg.Text = msg;
@@ -360,9 +358,8 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
-                            cfg.Refresh();
-                            await GameLauncher.KillArknightsProcesses(true);
+                            GameLauncher.EnsureGameClientClosed(
+                                path, isEndfield: true);
                             await GameLauncher.SwitchServerWithResult(path, "GlobalEndfield", msg =>
                             {
                                 cfg.Text = msg;
@@ -414,9 +411,8 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            cfg.Text = AntdUI.Localization.Get("App.Switch.KillingProcess", "结束游戏进程...");
-                            cfg.Refresh();
-                            await GameLauncher.KillArknightsProcesses(true);
+                            GameLauncher.EnsureGameClientClosed(
+                                path, isEndfield: true);
                             await GameLauncher.SwitchServerWithResult(path, game.IconName, msg =>
                             {
                                 cfg.Text = msg;

@@ -83,6 +83,7 @@ namespace XelLauncher.Forms
 
             BuildLaunchPanel();
             BuildCoverImage(initialCoverImage, initialCoverPath);
+            InitializeGameRunningMonitor();
 
             LoadAccountSelect();
             UpdateAccountControlsVisibility();

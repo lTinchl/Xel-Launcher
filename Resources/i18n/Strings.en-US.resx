@@ -241,7 +241,7 @@
     <value>Account Management</value>
   </data>
   <data name="App.Game.ClearCacheFailed" xml:space="preserve">
-    <value>Clear Cache Failed</value>
+    <value>Clear Cache Failed:{0}</value>
   </data>
   <data name="App.Game.ClearCacheSuccess" xml:space="preserve">
     <value>Clear Cache Success</value>
@@ -515,6 +515,12 @@
   </data>
   <data name="App.Game.SkportSign" xml:space="preserve">
     <value>SKPORT Sign</value>
+  </data>
+  <data name="App.Game.Running" xml:space="preserve">
+    <value>Running...</value>
+  </data>
+  <data name="App.Game.CloseClientBeforeSwitch" xml:space="preserve">
+    <value>Channel files are in use. Close the game client and try again.</value>
   </data>
   <data name="App.Game.Start" xml:space="preserve">
     <value>Game Start</value>
@@ -2592,9 +2598,6 @@
   <data name="Wed" xml:space="preserve">
     <value>Wed</value>
   </data>
-  <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
-    <value>Check for game updates</value>
-  </data>
   <data name="App.Game.CustomToolAdd" xml:space="preserve">
     <value>Add custom tool</value>
   </data>
@@ -2765,5 +2768,20 @@
   </data>
   <data name="App.LinkedRuntime.FirstCreationTip" xml:space="preserve">
     <value>Creating the hard-linked runtime directory for the first time may take a while, depending on the number of files and disk read/write speed. Please wait.</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Creating" xml:space="preserve">
+    <value>Creating the shared runtime: {0}/{1} ({2}%)</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Updating" xml:space="preserve">
+    <value>Updating the shared runtime: {0}/{1} ({2}%)</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Verifying" xml:space="preserve">
+    <value>Verifying the shared runtime: {0}/{1} ({2}%)</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Finalizing" xml:space="preserve">
+    <value>Finalizing the shared runtime…</value>
+  </data>
+  <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
+    <value>Check for game updates</value>
   </data>
 </root>

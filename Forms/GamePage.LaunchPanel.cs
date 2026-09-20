@@ -73,7 +73,7 @@ namespace XelLauncher.Forms
             TopTooltip().SetTip(btnPreload, AntdUI.Localization.Get("App.Game.Preload", "预下载"));
             btnPreload.Click += (s, e) => PreloadGame();
 
-            GameStart = new AntdUI.Button
+            GameStart = new GameLaunchButton
             {
                 BackExtend = "135, #6253E1, #04BEFE",
                 IconSvg = "PoweroffOutlined",
@@ -82,7 +82,8 @@ namespace XelLauncher.Forms
                 Size = new Size(164, 52),
                 BorderWidth = 0,
                 Radius = 24,
-                WaveSize = 4,
+                WaveSize = 0,
+                Padding = new Padding(4),
                 LoadingWaveColor = Color.FromArgb(60, 255, 255, 255),
                 Type = AntdUI.TTypeMini.Primary,
                 Font = new Font("Microsoft YaHei UI", 12.5F, FontStyle.Bold),

@@ -516,6 +516,12 @@
   <data name="App.Game.SkportSign" xml:space="preserve">
     <value>SKPORT Sign</value>
   </data>
+  <data name="App.Game.Running" xml:space="preserve">
+    <value>游戏中...</value>
+  </data>
+  <data name="App.Game.CloseClientBeforeSwitch" xml:space="preserve">
+    <value>渠道文件正在被占用，请关闭游戏客户端后重试。</value>
+  </data>
   <data name="App.Game.Start" xml:space="preserve">
     <value>开始游戏</value>
   </data>
@@ -2762,5 +2768,20 @@
   </data>
   <data name="App.LinkedRuntime.FirstCreationTip" xml:space="preserve">
     <value>首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Creating" xml:space="preserve">
+    <value>正在创建共享运行环境：{0}/{1}（{2}%）</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Updating" xml:space="preserve">
+    <value>正在更新共享运行环境：{0}/{1}（{2}%）</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Verifying" xml:space="preserve">
+    <value>正在校验共享运行环境：{0}/{1}（{2}%）</value>
+  </data>
+  <data name="App.LinkedRuntime.Progress.Finalizing" xml:space="preserve">
+    <value>正在完成共享运行环境…</value>
+  </data>
+  <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
+    <value>检查游戏更新</value>
   </data>
 </root>

@@ -276,6 +276,7 @@ namespace XelLauncher.Helpers
 
                     var health = await InspectHealthAsync(
                             runtimePath, resolution.RootPath, marker,
+                            onProgress,
                             cancellationToken)
                         .ConfigureAwait(false);
                     if (health != LinkedRuntimeHealth.Invalid)
@@ -345,6 +346,7 @@ namespace XelLauncher.Helpers
                             baseManifest,
                             targetManifest,
                             payloadState,
+                            onProgress,
                             cancellationToken)
                         .ConfigureAwait(false);
                 }
@@ -357,12 +359,14 @@ namespace XelLauncher.Helpers
                             baseManifest,
                             targetManifest,
                             payloadState,
+                            onProgress,
                             cancellationToken)
                         .ConfigureAwait(false);
                 }
 
                 var finalHealth = await InspectHealthAsync(
                         runtimePath, resolution.RootPath, updatedMarker,
+                        onProgress,
                         cancellationToken)
                     .ConfigureAwait(false);
                 if (finalHealth == LinkedRuntimeHealth.Invalid)
@@ -778,6 +782,7 @@ namespace XelLauncher.Helpers
                 ServerGameManifest baseManifest,
                 ServerGameManifest targetManifest,
                 ServerPayloadState payloadState,
+                Action<string> onProgress,
                 CancellationToken cancellationToken)
         {
             var parent = Path.GetDirectoryName(runtimePath)!;
@@ -793,6 +798,7 @@ namespace XelLauncher.Helpers
                 var result = await ReconcileAsync(
                         resolution, staging, oldMarker: null,
                         baseManifest, targetManifest, payloadState,
+                        onProgress,
                         cancellationToken)
                     .ConfigureAwait(false);
 
@@ -831,6 +837,7 @@ namespace XelLauncher.Helpers
                 ServerGameManifest baseManifest,
                 ServerGameManifest targetManifest,
                 ServerPayloadState payloadState,
+                Action<string> onProgress,
                 CancellationToken cancellationToken)
         {
             Directory.CreateDirectory(runtimePath);
@@ -849,6 +856,15 @@ namespace XelLauncher.Helpers
                 .Where(file => primaryPaths.Add(NormalizeRelativePath(
                     file.TargetFile.RelativePath)));
             var plannedFiles = plan.Files.Concat(auxiliaryPlan).ToArray();
+            var progressKey = oldMarker == null
+                ? "App.LinkedRuntime.Progress.Creating"
+                : "App.LinkedRuntime.Progress.Updating";
+            var progressFallback = oldMarker == null
+                ? "正在创建共享运行环境：{0}/{1}（{2}%）"
+                : "正在更新共享运行环境：{0}/{1}（{2}%）";
+            ReportRuntimeFileProgress(
+                onProgress, progressKey, progressFallback,
+                completedFiles: 0, plannedFiles.Length);
 
             var oldFiles = (oldMarker?.Files ?? new List<RuntimeFileRecord>())
                 .ToDictionary(
@@ -870,9 +886,10 @@ namespace XelLauncher.Helpers
             }
 
             var records = new List<RuntimeFileRecord>(plannedFiles.Length);
-            foreach (var planned in plannedFiles)
+            for (var index = 0; index < plannedFiles.Length; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var planned = plannedFiles[index];
                 var targetFile = planned.TargetFile;
                 var relativePath = NormalizeRelativePath(targetFile.RelativePath);
                 var runtimeFile = SafeCombine(runtimePath, relativePath);
@@ -884,6 +901,9 @@ namespace XelLauncher.Helpers
                 {
                     DeleteFileIfExists(runtimeFile);
                     counters.Removed++;
+                    ReportRuntimeFileProgress(
+                        onProgress, progressKey, progressFallback,
+                        index + 1, plannedFiles.Length);
                     continue;
                 }
 
@@ -968,8 +988,14 @@ namespace XelLauncher.Helpers
 
                 records.Add(CreateRecord(
                     planned, runtimeFile, actualStorageKind));
+                ReportRuntimeFileProgress(
+                    onProgress, progressKey, progressFallback,
+                    index + 1, plannedFiles.Length);
             }
 
+            onProgress?.Invoke(AntdUI.Localization.Get(
+                "App.LinkedRuntime.Progress.Finalizing",
+                "正在完成共享运行环境…"));
             await SeedArknightsPersistentMetadataAsync(
                     resolution.Target, resolution.RootPath, runtimePath,
                     counters, cancellationToken)
@@ -1260,6 +1286,7 @@ namespace XelLauncher.Helpers
             string runtimePath,
             string sharedRootPath,
             RuntimeMarker marker,
+            Action<string> onProgress,
             CancellationToken cancellationToken)
         {
             var gameFilesPath = Path.Combine(runtimePath, "game_files");
@@ -1300,9 +1327,16 @@ namespace XelLauncher.Helpers
                 return LinkedRuntimeHealth.Invalid;
 
             var degraded = false;
-            foreach (var record in marker.Files)
+            const string progressKey = "App.LinkedRuntime.Progress.Verifying";
+            const string progressFallback =
+                "正在校验共享运行环境：{0}/{1}（{2}%）";
+            ReportRuntimeFileProgress(
+                onProgress, progressKey, progressFallback,
+                completedFiles: 0, marker.Files.Count);
+            for (var index = 0; index < marker.Files.Count; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var record = marker.Files[index];
                 var runtimeFile = SafeCombine(runtimePath, record.RelativePath);
                 if (!File.Exists(runtimeFile) ||
                     new FileInfo(runtimeFile).Length != record.Size)
@@ -1327,6 +1361,9 @@ namespace XelLauncher.Helpers
                         return LinkedRuntimeHealth.Invalid;
                     }
                     if (!isStillLinked) degraded = true;
+                    ReportRuntimeFileProgress(
+                        onProgress, progressKey, progressFallback,
+                        index + 1, marker.Files.Count);
                     continue;
                 }
 
@@ -1344,6 +1381,9 @@ namespace XelLauncher.Helpers
                 {
                     return LinkedRuntimeHealth.Invalid;
                 }
+                ReportRuntimeFileProgress(
+                    onProgress, progressKey, progressFallback,
+                    index + 1, marker.Files.Count);
             }
 
             return degraded
@@ -1626,6 +1666,32 @@ namespace XelLauncher.Helpers
                    (oldRecord.LastWriteTimeUtcTicks == 0 ||
                     info.LastWriteTimeUtc.Ticks ==
                     oldRecord.LastWriteTimeUtcTicks);
+        }
+
+        private static void ReportRuntimeFileProgress(
+            Action<string> onProgress,
+            string resourceKey,
+            string fallback,
+            int completedFiles,
+            int totalFiles)
+        {
+            if (onProgress == null) return;
+
+            var total = Math.Max(0, totalFiles);
+            var completed = Math.Clamp(completedFiles, 0, total);
+            var percentage = total == 0
+                ? 100
+                : (int)((long)completed * 100 / total);
+            if (completed > 1 && completed < total)
+            {
+                var previousPercentage =
+                    (int)((long)(completed - 1) * 100 / total);
+                if (percentage == previousPercentage) return;
+            }
+
+            var format = AntdUI.Localization.Get(resourceKey, fallback);
+            onProgress(string.Format(
+                format, completed, total, percentage));
         }
 
         private static void ValidateSourceFile(
