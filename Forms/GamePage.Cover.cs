@@ -286,14 +286,26 @@ namespace XelLauncher.Forms
             if (_noticePanel == null || panelLaunch == null)
                 return;
 
-            if (_switchAnimationActive)
+            if (!_noticePanel.HasNoticeContent)
+            {
+                StopNoticeAnimation(false);
+                _noticePanelHome = Rectangle.Empty;
+                _noticePanel.Visible = false;
                 return;
+            }
 
             _noticePanelHome = GetNoticePanelHome(GetLaunchPanelHome());
 
             _noticePanel.Visible = !_noticePanelHome.IsEmpty;
             if (!_noticePanel.Visible)
                 return;
+
+            if (_switchAnimationActive)
+            {
+                ApplySwitchAnimationOffset(_switchAnimationProgress);
+                _noticePanel.BringToFront();
+                return;
+            }
 
             StopNoticeAnimation(false);
 
@@ -395,7 +407,8 @@ namespace XelLauncher.Forms
 
         private Rectangle GetNoticePanelHome(Point launchPanelHome)
         {
-            if (_noticePanel == null || panelLaunch == null) return Rectangle.Empty;
+            if (_noticePanel == null || panelLaunch == null || !_noticePanel.HasNoticeContent)
+                return Rectangle.Empty;
 
             const int left = 28;
             const int minReadableWidth = 420;
@@ -557,6 +570,7 @@ namespace XelLauncher.Forms
                 {
                     if (_noticePanel == null || _noticePanel.IsDisposed) return;
                     _noticePanel.SetContent(banners, notices);
+                    PositionNoticePanel();
                 });
             }
             catch (OperationCanceledException) { }
@@ -596,6 +610,7 @@ namespace XelLauncher.Forms
                     return;
 
                 _noticePanel.SetContent(banners, result.Notices);
+                PositionNoticePanel();
                 banners = null;
             }
             catch (OperationCanceledException) { }

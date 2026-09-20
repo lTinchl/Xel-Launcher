@@ -93,6 +93,7 @@ public class NoticeItem
         public event EventHandler CollapsedChanged;
 
         public bool IsCollapsed { get; private set; }
+        public bool HasNoticeContent => _notices.Any(x => !string.IsNullOrWhiteSpace(x?.Title));
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Color ToggleBackColor { get; set; } = Color.FromArgb(92, 255, 255, 255);
@@ -146,7 +147,7 @@ public class NoticeItem
                 ResetPointerInteraction(releaseCapture: true);
             }
 
-            if (notices != null && notices.Count > 0)
+            if (notices != null)
             {
                 _notices.Clear();
                 _notices.AddRange(notices);
