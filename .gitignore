@@ -364,7 +364,7 @@ FodyWeavers.xsd
 
 # Load folder (local files, not for distribution)
 load/
-Tests/
+/Tests/
 
 #
 /XelLauncher.iss
