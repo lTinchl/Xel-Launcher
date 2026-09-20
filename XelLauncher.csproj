@@ -10,7 +10,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyName>XelLauncher</AssemblyName>
 		<RootNamespace>XelLauncher</RootNamespace>
-		<Version>0.2.8</Version>
+		<Version>0.2.9</Version>
 		<Company>XelLauncher</Company>
 		<Product>XelLauncher</Product>
 		<AssemblyCopyright>Copyright (c) 2026 XelLauncher</AssemblyCopyright>
@@ -21,6 +21,7 @@
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		<CetCompat>false</CetCompat>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
