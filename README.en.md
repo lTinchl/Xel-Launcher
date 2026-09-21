@@ -43,7 +43,7 @@
 	| Game | Official | Bilibili | Japanese | Korean | Global | Google Play | Steam |
 	|------|:--------:|:--------:|:--------:|:------:|:------:|:-----------:|:-----:|
 	| Arknights | ✅ | ✅ | — | — | — | — | — |
-	| Endfield |   ✅ | ✅ | —  |  — | ✅ | ✅ | — |
+	| Endfield |   ✅ | ✅ | —  |  — | ✅ | ✅ | —  |
 
 - [x] Seamless multi-account switching for Endfield and Arknights
 - [x] Game download, update, and version detection
