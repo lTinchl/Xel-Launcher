@@ -7,13 +7,13 @@
 </h1>
 
 <h4 align="center">
-  A Windows launcher for Arknights and Arknights: Endfield, built on top of <a href="https://github.com/AntdUI/AntdUI">AntdUI</a>.
+  基于 <a href="https://github.com/AntdUI/AntdUI">AntdUI</a> 构建的游戏启动器，支持明日方舟、终末地多服切换与账号管理。
 </h4>
 
 <p align="center">
-  <a href="./README.md">English</a>
+  <a href="./README.en.md">English</a>
   <span> | </span>
-  <a href="./README.zh.md">中文</a>
+  <a href="./README.md">中文</a>
 </p>
 
 <p align="center">
@@ -27,70 +27,71 @@
 </p>
 
 <p align="center">
-  <a href="#supported-features">Features</a>
+  <a href="#已支持功能">功能</a>
   <span> | </span>
-  <a href="./docs/wiki.en-US.md">Document</a>
+  <a href="./docs/wiki.zh-CN.md">文档</a>
   <span> | </span>
-  <a href="#project-structure">Project Structure</a>
+  <a href="#项目结构">项目结构</a>
   <span> | </span>
-  <a href="#special-thanks">Special Thanks</a>
+  <a href="#特别鸣谢">特别鸣谢</a>
 </p>
 
-## Supported Features
+## 已支持功能
 
-- Server switching
-  - [x] Arknights official server
-  - [x] Arknights Bilibili server
-  - [x] Arknights: Endfield official server
-  - [x] Arknights: Endfield Bilibili server
-  - [x] Arknights: Endfield global server
-  - [x] Arknights: Endfield global server (Google Play)
-- [x] Seamless multi-account switching for Endfield and Arknights
-- [x] Game download, update, and version detection
-- [x] Companion app launching
-- [x] Custom launch parameters
-- [x] Skyland Sign
+- 服务器切换
+  - [x] 明日方舟官服
+  - [x] 明日方舟 Bilibili 服
+  - [x] 终末地官服
+  - [x] 终末地 Bilibili 服
+  - [x] 终末地国际服
+  - [x] 终末地国际服（Google Play）
+- [x] 终末地、方舟多账号无感切换
+- [x] 游戏下载、更新和版本检测
+- [x] 联动软件启动
+- [x] 自定义参数启动
+- [x] 森空岛签到
 
-## Project Structure
+## 项目结构
 
 ```text
 XelLauncher/
-├── docs/                         # English and Chinese wiki documents
-├── Forms/                        # WinForms pages, dialogs, and UI controls
-├── Helpers/                      # App services, launch/update logic, storage, localization, and utilities
-├── load/                         # Server-switching payloads
-│   ├── ArkBilibili/              # Arknights Bilibili server
-│   ├── ArkOfficial/              # Arknights official server
-│   ├── EndBilibili/              # Endfield Bilibili server
-│   ├── EndGlobal/                # Endfield global server
-│   ├── EndOfficial/              # Endfield official server
-│   └── EndPlay/                  # Endfield Google Play server
-├── Models/                       # Configuration, game, account, and update models
-├── Properties/                   # .resx resources and publish profiles
-├── redist/                       # Redistributable runtime/install assets
+├── docs/                         # 中英文 Wiki 文档
+├── Forms/                        # WinForms 页面、弹窗与 UI 控件
+├── Helpers/                      # 应用服务、启动/更新逻辑、存储、本地化与通用工具
+├── load/                         # 切服用差异文件
+│   ├── ArkBilibili/              # 明日方舟 Bilibili 服
+│   ├── ArkOfficial/              # 明日方舟官服
+│   ├── EndBilibili/              # 终末地 Bilibili 服
+│   ├── EndGlobal/                # 终末地国际服
+│   ├── EndOfficial/              # 终末地官服
+│   └── EndPlay/                  # 终末地 Google Play 服
+├── Models/                       # 配置、游戏、账号与更新数据模型
+├── Properties/                   # .resx 资源与发布配置
+├── redist/                       # 可再发行运行库/安装资源
 ├── Resources/
-│   ├── i18n/                     # Localization resources
-│   └── Icon/                     # Application and game icons
-├── Program.cs                    # Application entry point
-├── XelLauncher.csproj            # .NET project file
-├── XelLauncher.sln               # Visual Studio solution
-└── XelLauncher.iss               # Inno Setup installer script
+│   ├── i18n/                     # 本地化资源
+│   └── Icon/                     # 应用与游戏图标
+├── Program.cs                    # 程序入口
+├── XelLauncher.csproj            # .NET 项目文件
+├── XelLauncher.sln               # Visual Studio 解决方案
+└── XelLauncher.iss               # Inno Setup 安装脚本
 ```
 
 > [!CAUTION]
-> Do **not** place the game's root directory on the same disk as Tencent ACE Anti-Cheat. Doing so can prevent the launcher from reading the game directory, making server switching unavailable.
+> 请勿将游戏根目录与某讯 ACE 反作弊放在同一磁盘下。此操作可能导致启动器无权读取游戏目录，无法切服。
 >
-> Configuration is cached at `C:\Users\<username>\AppData\Local\XelLauncher\config.json`. Delete this file to reset the application.
+> 配置文件缓存在 `C:\Users\用户名\AppData\Local\XelLauncher\config.json`，如需重置软件请删除此文件。
 >
-> Account backups are saved by default to `C:\Users\<username>\AppData\Local\XelLauncher\AccountBackups`. Delete this folder to reset all accounts.
+> 账号备份默认保存在 `C:\Users\用户名\AppData\Local\XelLauncher\AccountBackups`，如需重置账号请删除此目录。
 
-## Special Thanks
+## 特别鸣谢
 
-- UI Framework: [AntdUI](https://github.com/AntdUI/AntdUI)
-- Concept reference: [Arknights PC server switching guide](https://www.bilibili.com/video/BV1VHFRzoE7T/?spm_id_from=333.337.search-card.all.click&vd_source=ec94b95a235413f9ad5d2ccb4597ac9f)
-- Seamless account switching: [Arknights PC multi-account switching guide](https://www.bilibili.com/video/BV1dgcsz1EjM/?share_source=copy_web&vd_source=5d993adf522c16219536a4e8a61f8484)
-- Game download & update: [Hi3Helper.Plugin.Arknights](https://github.com/misaka10843/Hi3Helper.Plugin.Arknights) · [Hi3Helper.Plugin.Endfield](https://github.com/misaka10843/Hi3Helper.Plugin.Endfield)
-## Disclaimer
+- UI 框架：[AntdUI](https://github.com/AntdUI/AntdUI)
+- 思路来源：[2 分钟教会你明日方舟 PC 端官服-B 服互转](https://www.bilibili.com/video/BV1VHFRzoE7T/?spm_id_from=333.337.search-card.all.click&vd_source=ec94b95a235413f9ad5d2ccb4597ac9f)
+- 账号无感切换：[明日方舟 PC 端多账号无感切换教程](https://www.bilibili.com/video/BV1dgcsz1EjM/?share_source=copy_web&vd_source=5d993adf522c16219536a4e8a61f8484)
+- 游戏下载更新相关：[Hi3Helper.Plugin.Arknights](https://github.com/misaka10843/Hi3Helper.Plugin.Arknights) · [Hi3Helper.Plugin.Endfield](https://github.com/misaka10843/Hi3Helper.Plugin.Endfield)
 
-- This project is an unofficial tool and has no affiliation with Hypergryph or any of its affiliated organizations/groups/studios. Game images and data copyrights belong to their respective owners.
-- This tool will not upload your account files or login credentials to the internet; it only works on the local client. Please use it with caution if you are concerned about account security. Users are solely responsible for any consequences arising from the use of this tool.
+## 免责声明
+
+- 本项目为非官方工具，与鹰角网络 (Hypergryph) 及其旗下组织/团体/工作室没有任何关联。游戏图片与数据版权归各自权利人所有。
+- 此工具不会将您的账号文件与登录凭证上传至互联网，仅用于本地客户端。如担心账号安全请酌情使用，使用本工具造成的任何后果由使用者自行承担。
