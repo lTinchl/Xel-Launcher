@@ -39,12 +39,12 @@
 ## Supported Features
 
 - Server switching
-  - [x] Arknights official server
-  - [x] Arknights Bilibili server
-  - [x] Arknights: Endfield official server
-  - [x] Arknights: Endfield Bilibili server
-  - [x] Arknights: Endfield global server
-  - [x] Arknights: Endfield global server (Google Play)
+- 
+	| Game | Official | Bilibili | Japanese | Korean | Global | Google Play | Steam |
+	|------|:--------:|:--------:|:--------:|:------:|:------:|:-----------:|:-----:|
+	| Arknights | ✅ | ✅ | — | — | — | — | — |
+	| Endfield |   ✅ | ✅ | —  |  — | ✅ | ✅ | — |
+
 - [x] Seamless multi-account switching for Endfield and Arknights
 - [x] Game download, update, and version detection
 - [x] Companion app launching
@@ -74,7 +74,6 @@ XelLauncher/
 ├── Program.cs                    # Application entry point
 ├── XelLauncher.csproj            # .NET project file
 ├── XelLauncher.sln               # Visual Studio solution
-└── XelLauncher.iss               # Inno Setup installer script
 ```
 
 > [!CAUTION]

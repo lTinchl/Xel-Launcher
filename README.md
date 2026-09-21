@@ -38,13 +38,13 @@
 
 ## 已支持功能
 
-- 服务器切换
-  - [x] 明日方舟官服
-  - [x] 明日方舟 Bilibili 服
-  - [x] 终末地官服
-  - [x] 终末地 Bilibili 服
-  - [x] 终末地国际服
-  - [x] 终末地国际服（Google Play）
+- [x] 游戏服务器切换
+
+	| 游戏 | 官服 | Bilibili | 日服 | 韩服 | 国际服 | Google Play | Steam |
+	|------|:----:|:--------:|:----:|:----:|:------:|:-----------:|:-----:|
+	| 明日方舟 | ✅ | ✅ | — | — | — | — | — |
+	| 终末地 |   ✅ | ✅ | —  |  — | ✅ | ✅ | — |
+
 - [x] 终末地、方舟多账号无感切换
 - [x] 游戏下载、更新和版本检测
 - [x] 联动软件启动
@@ -74,7 +74,6 @@ XelLauncher/
 ├── Program.cs                    # 程序入口
 ├── XelLauncher.csproj            # .NET 项目文件
 ├── XelLauncher.sln               # Visual Studio 解决方案
-└── XelLauncher.iss               # Inno Setup 安装脚本
 ```
 
 > [!CAUTION]
