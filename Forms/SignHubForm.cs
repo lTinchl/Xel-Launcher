@@ -39,15 +39,15 @@ namespace XelLauncher.Forms
 
             var title = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.SignHub.Title", "签到"),
+                Text = Localizer.GetRequiredString("App.SignHub.Title"),
                 Location = new Point(MarginSize, 8),
                 Size = new Size(160, 38),
                 Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
                 ForeColor = normalText,
             };
 
-            _btnSkyland = CreateTabButton(AntdUI.Localization.Get("App.Skyland.Title", "Skyland Sign"));
-            _btnSkport = CreateTabButton(AntdUI.Localization.Get("App.Skport.Title", "SKPORT Sign"));
+            _btnSkyland = CreateTabButton(Localizer.GetRequiredString("App.Skyland.Title"));
+            _btnSkport = CreateTabButton(Localizer.GetRequiredString("App.Skport.Title"));
             _btnSkyland.Location = new Point(190, 13);
             _btnSkyland.Size = new Size(118, 32);
             _btnSkport.Location = new Point(330, 13);

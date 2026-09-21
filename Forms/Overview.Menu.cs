@@ -8,7 +8,7 @@ namespace XelLauncher.Forms
         private void btn_setting_Click(object sender, EventArgs e)
         {
             var setting = new Setting(this);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "设置"), setting)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, Localizer.GetRequiredString("Setting"), setting)
             {
                 BtnHeight = 0,
                 CloseIcon = true,
@@ -52,8 +52,8 @@ namespace XelLauncher.Forms
 
             btn_more.Items.Clear();
             btn_more.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "帮助"), "help").SetIcon("QuestionCircleOutlined"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "关于"),"info").SetIcon("InfoCircleOutlined"),
+                new AntdUI.SelectItem(Localizer.GetRequiredString("App.Menu.Help"), "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem(Localizer.GetRequiredString("App.Menu.About"),"info").SetIcon("InfoCircleOutlined"),
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
             });

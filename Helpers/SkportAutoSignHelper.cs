@@ -38,18 +38,18 @@ namespace XelLauncher.Helpers
             var tokens = SkportTokenStorage.GetTokens(cfg);
             if (tokens.Count == 0)
             {
-                var skipped = AntdUI.Localization.Get("App.Skport.Auto.NoToken", "未配置 Token，自动签到已跳过。");
+                var skipped = Localizer.GetRequiredString("App.Skport.Auto.NoToken");
                 SkportLogStore.Append(skipped);
                 return new SkportAutoSignResult
                 {
                     Notify = true,
                     Success = false,
-                    Title = AntdUI.Localization.Get("App.Skport.Auto.Title", "SKPORT 自动签到"),
+                    Title = Localizer.GetRequiredString("App.Skport.Auto.Title"),
                     Message = skipped
                 };
             }
 
-            ReportProgress(progress, AntdUI.Localization.Get("App.Skport.Auto.Start", "SKPORT 自动签到开始。"));
+            ReportProgress(progress, Localizer.GetRequiredString("App.Skport.Auto.Start"));
             var logProgress = new Progress<string>(message => ReportProgress(progress, message));
             var results = await new SkportService().SignAllAsync(tokens, logProgress, cancellationToken);
 
@@ -58,17 +58,17 @@ namespace XelLauncher.Helpers
             ConfigHelper.Save(cfg);
 
             var message = results.Count == 0
-                ? AntdUI.Localization.Get("App.Skport.Auto.Done", "签到完成。")
+                ? Localizer.GetRequiredString("App.Skport.Auto.Done")
                 : string.Join(Environment.NewLine, results.Take(3));
             if (results.Count > 3)
-                message += Environment.NewLine + string.Format(AntdUI.Localization.Get("App.Skport.Auto.MoreResults", "另有 {0} 条结果。"), results.Count - 3);
-            ReportProgress(progress, AntdUI.Localization.Get("App.Skport.Auto.Complete", "SKPORT 自动签到完成。"));
+                message += Environment.NewLine + string.Format(Localizer.GetRequiredString("App.Skport.Auto.MoreResults"), results.Count - 3);
+            ReportProgress(progress, Localizer.GetRequiredString("App.Skport.Auto.Complete"));
 
             return new SkportAutoSignResult
             {
                 Notify = true,
                 Success = true,
-                Title = AntdUI.Localization.Get("App.Skport.Auto.CompleteTitle", "SKPORT 自动签到完成"),
+                Title = Localizer.GetRequiredString("App.Skport.Auto.CompleteTitle"),
                 Message = message
             };
         }

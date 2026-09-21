@@ -81,7 +81,7 @@ namespace XelLauncher.Forms
                             RebuildFloatMenu();
                         }, new AntdUI.IContextMenuStripItem[]
                         {
-                            new AntdUI.ContextMenuStripItem(AntdUI.Localization.Get("App.Sidebar.Delete", "删除")).SetIcon("DeleteOutlined"),
+                            new AntdUI.ContextMenuStripItem(Localizer.GetRequiredString("App.Sidebar.Delete")).SetIcon("DeleteOutlined"),
                         });
                     }
                 };

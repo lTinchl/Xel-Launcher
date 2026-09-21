@@ -1,3 +1,5 @@
+using XelLauncher.Helpers;
+
 namespace XelLauncher
 {
     partial class Setting
@@ -200,7 +202,7 @@ namespace XelLauncher
             txtChangelog.Font = new System.Drawing.Font("Consolas", 9F);
             txtChangelog.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             txtChangelog.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            txtChangelog.Text = AntdUI.Localization.Get("App.Update.ChangelogHint", "点击「检查更新」查看最新版本信息");
+            txtChangelog.Text = Localizer.GetRequiredString("App.Update.ChangelogHint");
 
             // panelUpdateButtons：下载按钮 + 进度
             panelUpdateButtons = new System.Windows.Forms.Panel();

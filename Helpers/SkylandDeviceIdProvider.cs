@@ -295,9 +295,7 @@ namespace XelLauncher.Helpers
         private static string FormatGenerationError(string detail)
         {
             return string.Format(
-                AntdUI.Localization.Get(
-                    "App.Skyland.Error.DeviceProfileFailed",
-                    "生成森空岛设备信息失败：{0}"),
+                Localizer.GetRequiredString("App.Skyland.Error.DeviceProfileFailed"),
                 detail);
         }
 

@@ -93,9 +93,7 @@ namespace XelLauncher.Forms
                 launchDirectory, isEndfield);
 
         private static string CloseGameClientMessage =>
-            AntdUI.Localization.Get(
-                "App.Game.CloseClientBeforeSwitch",
-                "渠道文件正在被占用，请关闭游戏客户端后重试。");
+            Localizer.GetRequiredString("App.Game.CloseClientBeforeSwitch");
 
         private async Task<bool> CheckGameStatusAsync()
         {
@@ -233,7 +231,7 @@ namespace XelLauncher.Forms
             if (_isGameRunning)
             {
                 GameStart.Loading = false;
-                GameStart.Text = AntdUI.Localization.Get("App.Game.Running", "游戏中");
+                GameStart.Text = Localizer.GetRequiredString("App.Game.Running");
                 GameStart.IconSvg = "PlayCircleOutlined";
                 GameStart.Enabled = false;
                 RefreshPreloadButton();
@@ -247,41 +245,41 @@ namespace XelLauncher.Forms
             switch (_gameState)
             {
                 case GameState.NotInstalled:
-                    GameStart.Text = AntdUI.Localization.Get("App.Game.Install", "安装游戏");
+                    GameStart.Text = Localizer.GetRequiredString("App.Game.Install");
                     GameStart.IconSvg = "DownloadOutlined";
                     break;
                 case GameState.HasUpdate:
-                    GameStart.Text = AntdUI.Localization.Get("App.Game.Update", "更新游戏");
+                    GameStart.Text = Localizer.GetRequiredString("App.Game.Update");
                     GameStart.IconSvg = "SyncOutlined";
                     break;
                 case GameState.Downloading:
                     var updateProgress = _activeUpdate?.LastProgress;
                     if (_activeUpdate?.CanPause == true)
                     {
-                        GameStart.Text = AntdUI.Localization.Get("App.Game.Pause", "暂停");
+                        GameStart.Text = Localizer.GetRequiredString("App.Game.Pause");
                         GameStart.IconSvg = "PauseOutlined";
                     }
                     else
                     {
                         GameStart.Text = updateProgress == null
-                            ? AntdUI.Localization.Get("App.Game.Install.Updating", "处理中...")
+                            ? Localizer.GetRequiredString("App.Game.Install.Updating")
                             : FormatInstallProgress(updateProgress.State, updateProgress.Downloaded, updateProgress.Total)
-                              ?? AntdUI.Localization.Get("App.Game.Install.Updating", "处理中...");
+                              ?? Localizer.GetRequiredString("App.Game.Install.Updating");
                         GameStart.IconSvg = "LoadingOutlined";
                         GameStart.Enabled = false;
                     }
                     break;
                 case GameState.Paused:
-                    GameStart.Text = AntdUI.Localization.Get("App.Game.Resume", "继续");
+                    GameStart.Text = Localizer.GetRequiredString("App.Game.Resume");
                     GameStart.IconSvg = "DownloadOutlined";
                     break;
                 case GameState.Repairing:
-                    GameStart.Text = AntdUI.Localization.Get("App.Game.Repair.Running", "校验中...");
+                    GameStart.Text = Localizer.GetRequiredString("App.Game.Repair.Running");
                     GameStart.IconSvg = "SafetyCertificateOutlined";
                     GameStart.Enabled = false;
                     break;
                 default:
-                    GameStart.Text = AntdUI.Localization.Get("App.Game.Start", "开始游戏");
+                    GameStart.Text = Localizer.GetRequiredString("App.Game.Start");
                     GameStart.IconSvg = "PoweroffOutlined";
                     break;
             }
@@ -299,7 +297,7 @@ namespace XelLauncher.Forms
             {
                 path = Helpers.DialogHelper.BrowseFolder(
                     _overview?.IsHandleCreated == true ? _overview.Handle : IntPtr.Zero,
-                    AntdUI.Localization.Get("App.Game.SelectInstallDir", "选择游戏安装目录"));
+                    Localizer.GetRequiredString("App.Game.SelectInstallDir"));
                 if (path == null) return;
                 var cfg2 = ConfigHelper.Load();
                 var e2 = cfg2.Games.Find(g => g.IconName == _game.IconName);
@@ -345,7 +343,7 @@ namespace XelLauncher.Forms
             _gameState = GameState.Downloading;
             _activeUpdate = update;
             RefreshGameStartButton();
-            AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Install.Init", "初始化..."), async config =>
+            AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.Game.Install.Init"), async config =>
             {
                 long lastTick = 0;
                 InstallProgressState? lastLoggedState = null;
@@ -395,7 +393,7 @@ namespace XelLauncher.Forms
                         progressHandler(update.LastProgress);
                     else if (!started)
                     {
-                        config.Text = AntdUI.Localization.Get("App.Game.Install.Updating", "更新中...");
+                        config.Text = Localizer.GetRequiredString("App.Game.Install.Updating");
                         config.Refresh();
                     }
 
@@ -403,7 +401,7 @@ namespace XelLauncher.Forms
                     if (update.IsCancellationRequested)
                     {
                         _gameState = GameState.Paused;
-                        config.OK(AntdUI.Localization.Get("App.Game.Install.Paused", "已暂停"));
+                        config.OK(Localizer.GetRequiredString("App.Game.Install.Paused"));
                     }
                     else
                     {
@@ -411,23 +409,21 @@ namespace XelLauncher.Forms
                                 update.IconName, capturedPath) &&
                             IsServerPayloadAutoUpdateEnabled(update.IconName))
                         {
-                            config.Text = AntdUI.Localization.Get(
-                                "App.PayloadUpdate.AutoUpdating",
-                                "正在同步切服差异文件...");
+                            config.Text = Localizer.GetRequiredString("App.PayloadUpdate.AutoUpdating");
                             config.Refresh();
                             await UpdateServerPayloadAfterGameUpdateAsync(
                                 update.IconName);
                         }
 
                         MarkGameReadyAfterInstall(capturedPath);
-                        config.OK(AntdUI.Localization.Get("App.Game.Install.Success", "安装/更新完成"));
+                        config.OK(Localizer.GetRequiredString("App.Game.Install.Success"));
                     }
                 }
                 catch (Exception ex) when (IsCancellation(ex))
                 {
                     _gameState = GameState.Paused;
                     LogHelper.LogError(ex, $"Game update paused in UI: {_game.IconName} | {capturedPath}");
-                    config.OK(AntdUI.Localization.Get("App.Game.Install.Paused", "已暂停"));
+                    config.OK(Localizer.GetRequiredString("App.Game.Install.Paused"));
                 }
                 catch (Exception ex)
                 {
@@ -485,34 +481,32 @@ namespace XelLauncher.Forms
 
             if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.Game.WarnSelectDir"));
                 return;
             }
 
             if (GameUpdateManager.Find(path) != null)
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.Preload.UpdateRunning", "游戏正在更新中，无法同时预下载"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.Game.Preload.UpdateRunning"));
                 return;
             }
 
             if (_preloadRunning)
             {
-                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Preload.Running", "预下载中..."));
+                AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.Game.Preload.Running"));
                 return;
             }
 
             if (_preloadCompleted && _gameState == GameState.HasPreload)
             {
-                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Preload.Success", "预下载已完成"));
+                AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.Game.Preload.Success"));
                 return;
             }
 
             if (!LinkedClientOperationCoordinator.TryAcquire(
                     effectiveIconName, path, out var operationLease))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.GroupBusy",
-                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                 return;
             }
 
@@ -538,7 +532,7 @@ namespace XelLauncher.Forms
             _preloadRunning = true;
             RefreshGameStartButton();
 
-            AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Preload.Init", "准备预下载..."), async config =>
+            AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.Game.Preload.Init"), async config =>
             {
                 long lastTick = 0;
                 InstallProgressState? lastLoggedState = null;
@@ -576,7 +570,7 @@ namespace XelLauncher.Forms
                         $"effective={effectiveIconName} | {path}");
                     _preloadCompleted = true;
                     MarkPreloadCompleted(path);
-                    config.OK(AntdUI.Localization.Get("App.Game.Preload.Success", "预下载已完成"));
+                    config.OK(Localizer.GetRequiredString("App.Game.Preload.Success"));
                     _ = CheckGameStatusAsync();
                 }
                 catch (Exception ex)
@@ -585,7 +579,7 @@ namespace XelLauncher.Forms
                     if (IsNoPreloadPackage(ex))
                     {
                         ClearPreloadAvailability(path);
-                        config.OK(AntdUI.Localization.Get("App.Game.Preload.None", "当前没有可用的预下载包"));
+                        config.OK(Localizer.GetRequiredString("App.Game.Preload.None"));
                     }
                     else
                     {
@@ -693,7 +687,7 @@ namespace XelLauncher.Forms
 
             if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.Game.WarnSelectDir"));
                 return;
             }
 
@@ -723,13 +717,13 @@ namespace XelLauncher.Forms
 
             if (GameUpdateManager.Find(path) != null)
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.Repair.UpdateRunning", "游戏正在更新中，无法同时校验"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.Game.Repair.UpdateRunning"));
                 return;
             }
 
             if (_gameState == GameState.Repairing || IsSameInstallPath(_repairingPath, path))
             {
-                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Repair.AlreadyRunning", "游戏完整性校验正在进行中"));
+                AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.Game.Repair.AlreadyRunning"));
                 return;
             }
 
@@ -737,9 +731,7 @@ namespace XelLauncher.Forms
             {
                 if (!GameRepairManager.TryStart(effectiveIconName, path))
                 {
-                    AntdUI.Message.info(_overview, AntdUI.Localization.Get(
-                        "App.Game.Repair.AlreadyRunning",
-                        "游戏完整性校验正在进行中"));
+                    AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.Game.Repair.AlreadyRunning"));
                     return;
                 }
             }
@@ -772,7 +764,7 @@ namespace XelLauncher.Forms
             _gameState = GameState.Repairing;
             RefreshGameStartButton();
 
-            AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Repair.Init", "准备校验..."), async config =>
+            AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.Game.Repair.Init"), async config =>
             {
                 long lastTick = 0;
                 InstallProgressState? lastLoggedState = null;
@@ -812,13 +804,13 @@ namespace XelLauncher.Forms
                     LogHelper.Log(
                         $"Game repair completed: requested={_game.IconName} | " +
                         $"effective={effectiveIconName} | {path}");
-                    config.OK(AntdUI.Localization.Get("App.Game.Repair.Success", "游戏完整性校验完成"));
+                    config.OK(Localizer.GetRequiredString("App.Game.Repair.Success"));
                     _ = CheckGameStatusAsync();
                 }
                 catch (Exception ex) when (IsCancellation(ex))
                 {
                     LogHelper.LogError(ex, $"Game repair canceled: {_game.IconName} | {path}");
-                    config.OK(AntdUI.Localization.Get("App.Game.Repair.Canceled", "校验已取消"));
+                    config.OK(Localizer.GetRequiredString("App.Game.Repair.Canceled"));
                 }
                 catch (Exception ex)
                 {
@@ -847,17 +839,17 @@ namespace XelLauncher.Forms
         {
             string label;
             if (state.HasFlag(InstallProgressState.Completed))
-                label = AntdUI.Localization.Get("App.Game.Install.Completed", "完成");
+                label = Localizer.GetRequiredString("App.Game.Install.Completed");
             else if (state.HasFlag(InstallProgressState.Download))
                 label = FormatDownloadProgress(downloaded, total);
             else if (state.HasFlag(InstallProgressState.Install))
-                label = AntdUI.Localization.Get("App.Game.Install.Installing", "安装中...");
+                label = Localizer.GetRequiredString("App.Game.Install.Installing");
             else if (state.HasFlag(InstallProgressState.Updating))
-                label = AntdUI.Localization.Get("App.Game.Install.Updating", "更新中...");
+                label = Localizer.GetRequiredString("App.Game.Install.Updating");
             else if (state.HasFlag(InstallProgressState.Verify))
-                label = AntdUI.Localization.Get("App.Game.Install.Verifying", "校验中...");
+                label = Localizer.GetRequiredString("App.Game.Install.Verifying");
             else if (state.HasFlag(InstallProgressState.Removing))
-                label = AntdUI.Localization.Get("App.Game.Install.Removing", "清理中...");
+                label = Localizer.GetRequiredString("App.Game.Install.Removing");
             else
                 return null;
 
@@ -983,7 +975,7 @@ namespace XelLauncher.Forms
             {
                 _gameState = GameState.Repairing;
                 RefreshGameStartButton();
-                AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.Repair.UpdateRunning", "游戏正在校验中，无法启动"));
+                AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.Game.Repair.UpdateRunning"));
                 return;
             }
 
@@ -1011,10 +1003,10 @@ namespace XelLauncher.Forms
 
             if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.Game.WarnSelectDir", "请先选择游戏根目录"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.Game.WarnSelectDir"));
                 path = Helpers.DialogHelper.BrowseFolder(
                     _overview?.IsHandleCreated == true ? _overview.Handle : IntPtr.Zero,
-                    AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName()));
+                    Localizer.GetRequiredString("App.Game.SelectDirTitle").Replace("{0}", _game.GetLocalizedName()));
                 if (path == null) return;
                 string exeName = isEndfield ? "Endfield.exe" : "Arknights.exe";
                 var executableExists = File.Exists(Path.Combine(path, exeName));
@@ -1090,9 +1082,7 @@ namespace XelLauncher.Forms
             {
                 AntdUI.Message.warn(
                     _overview,
-                    AntdUI.Localization.Get(
-                        "App.LinkedClient.Error.GroupBusy",
-                        "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                    Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                 return;
             }
 
@@ -1141,9 +1131,7 @@ namespace XelLauncher.Forms
                     launchOperationLease?.Dispose();
                     AntdUI.Message.warn(
                         _overview,
-                        AntdUI.Localization.Get(
-                            "App.LinkedClient.Error.GroupBusy",
-                            "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                        Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                     return;
                 }
             }
@@ -1194,7 +1182,7 @@ namespace XelLauncher.Forms
             launchOperationLease = null;
             try
             {
-                AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.Game.Loading", "加载中..."), async (config) =>
+                AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.Game.Loading"), async (config) =>
                 {
                     try
                     {
@@ -1203,7 +1191,7 @@ namespace XelLauncher.Forms
                             string selectedAccountId = accountSelect.SelectedValue as string;
                             if (!string.IsNullOrEmpty(selectedAccountId))
                             {
-                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
+                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
                                 config.Refresh();
                                 await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
                             }
@@ -1213,7 +1201,7 @@ namespace XelLauncher.Forms
                             string selectedAccountId = accountSelect.SelectedValue as string;
                             if (!string.IsNullOrEmpty(selectedAccountId))
                             {
-                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
+                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
                                 config.Refresh();
                                 await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
                             }
@@ -1223,7 +1211,7 @@ namespace XelLauncher.Forms
                             string selectedAccountId = accountSelect.SelectedValue as string;
                             if (!string.IsNullOrEmpty(selectedAccountId))
                             {
-                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "切换账号中...");
+                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
                                 config.Refresh();
                                 await Helpers.GameLauncher.RestoreGlobalEndfieldAccount(selectedAccountId);
                             }
@@ -1273,9 +1261,7 @@ namespace XelLauncher.Forms
                                         $"SharedRoot={path} | " +
                                         $"BaseChannel={sharedRootResolution.Base?.Channel ?? "Unknown"} | " +
                                         $"TargetChannel={sharedRootResolution.Target.Channel}");
-                                    config.Text = AntdUI.Localization.Get(
-                                        "App.LinkedRuntime.Fallback",
-                                        "共享运行环境不可用，正在使用传统切服...");
+                                    config.Text = Localizer.GetRequiredString("App.LinkedRuntime.Fallback");
                                     config.Refresh();
 
                                     if (IsGameClientRunningAt(path, isEndfield))
@@ -1318,7 +1304,7 @@ namespace XelLauncher.Forms
                             string selectedAccountId = accountSelect.SelectedValue as string;
                             if (!string.IsNullOrEmpty(selectedAccountId))
                             {
-                                config.Text = AntdUI.Localization.Get("App.Game.SwitchingAccount", "Switching account...");
+                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
                                 config.Refresh();
                                 await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
                             }
@@ -1337,7 +1323,7 @@ namespace XelLauncher.Forms
                         GameLauncher.StartArknights(launchPath, _game.IconName);
 
                     // Show launch success only after the game process is detected.
-                    config.Text = AntdUI.Localization.Get("App.Game.WaitingProcess", "等待游戏进程...");
+                    config.Text = Localizer.GetRequiredString("App.Game.WaitingProcess");
                     config.Refresh();
                     Process gameProc = null;
                     for (int i = 0; i < 30 && gameProc == null; i++)
@@ -1346,7 +1332,7 @@ namespace XelLauncher.Forms
                             launchPath, isEndfield);
                         if (gameProc == null) await Task.Delay(1000);
                     }
-                    config.OK(AntdUI.Localization.Get("App.Game.LaunchSuccess", "游戏启动成功"));
+                    config.OK(Localizer.GetRequiredString("App.Game.LaunchSuccess"));
                     var latestCfg = ConfigHelper.Load();
                     if (latestCfg.CloseAfterLaunch)
                     {

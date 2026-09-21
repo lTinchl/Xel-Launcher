@@ -71,13 +71,13 @@ namespace XelLauncher.Forms
             panelSidebarItems.SizeChanged += (s, e) => LayoutSidebarButtons(false);
             panelSidebarItems.ScrollPositionChanged += (s, e) => LayoutSidebarButtons(false);
             var globals = new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.Chinese", "中文"),"zh-CN"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Lang.English", "English"),"en-US")
+                new AntdUI.SelectItem(Localizer.GetRequiredString("App.Lang.Chinese"),"zh-CN"),
+                new AntdUI.SelectItem(Localizer.GetRequiredString("App.Lang.English"),"en-US")
             };
             btn_global.Items.AddRange(globals);
             btn_more.Items.AddRange(new AntdUI.SelectItem[] {
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.Help", "帮助"), "help").SetIcon("QuestionCircleOutlined"),
-                new AntdUI.SelectItem(AntdUI.Localization.Get("App.Menu.About", "关于"),"info").SetIcon("InfoCircleOutlined"),
+                new AntdUI.SelectItem(Localizer.GetRequiredString("App.Menu.Help"), "help").SetIcon("QuestionCircleOutlined"),
+                new AntdUI.SelectItem(Localizer.GetRequiredString("App.Menu.About"),"info").SetIcon("InfoCircleOutlined"),
                 new AntdUI.SelectItem("Github","github").SetIcon("GithubOutlined"),
                 new AntdUI.SelectItem("BiliBili","bilibili").SetIcon("BilibiliOutlined"),
             });

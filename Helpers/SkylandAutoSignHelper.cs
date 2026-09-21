@@ -38,18 +38,18 @@ namespace XelLauncher.Helpers
             var tokens = SkylandTokenStorage.GetTokens(cfg);
             if (tokens.Count == 0)
             {
-                var skipped = AntdUI.Localization.Get("App.Skyland.Auto.NoToken", "未配置 Token，自动签到已跳过。");
+                var skipped = Localizer.GetRequiredString("App.Skyland.Auto.NoToken");
                 SkylandLogStore.Append(skipped);
                 return new SkylandAutoSignResult
                 {
                     Notify = true,
                     Success = false,
-                    Title = AntdUI.Localization.Get("App.Skyland.Auto.Title", "森空岛自动签到"),
+                    Title = Localizer.GetRequiredString("App.Skyland.Auto.Title"),
                     Message = skipped
                 };
             }
 
-            ReportProgress(progress, AntdUI.Localization.Get("App.Skyland.Auto.Start", "森空岛自动签到开始。"));
+            ReportProgress(progress, Localizer.GetRequiredString("App.Skyland.Auto.Start"));
             var logProgress = new Progress<string>(message => ReportProgress(progress, message));
             var results = await new SkylandService().SignAllAsync(tokens, logProgress, cancellationToken);
 
@@ -58,17 +58,17 @@ namespace XelLauncher.Helpers
             ConfigHelper.Save(cfg);
 
             var message = results.Count == 0
-                ? AntdUI.Localization.Get("App.Skyland.Auto.Done", "签到完成。")
+                ? Localizer.GetRequiredString("App.Skyland.Auto.Done")
                 : string.Join(Environment.NewLine, results.Take(3));
             if (results.Count > 3)
-                message += Environment.NewLine + string.Format(AntdUI.Localization.Get("App.Skyland.Auto.MoreResults", "另有 {0} 条结果。"), results.Count - 3);
-            ReportProgress(progress, AntdUI.Localization.Get("App.Skyland.Auto.Complete", "森空岛自动签到完成。"));
+                message += Environment.NewLine + string.Format(Localizer.GetRequiredString("App.Skyland.Auto.MoreResults"), results.Count - 3);
+            ReportProgress(progress, Localizer.GetRequiredString("App.Skyland.Auto.Complete"));
 
             return new SkylandAutoSignResult
             {
                 Notify = true,
                 Success = true,
-                Title = AntdUI.Localization.Get("App.Skyland.Auto.CompleteTitle", "森空岛自动签到完成"),
+                Title = Localizer.GetRequiredString("App.Skyland.Auto.CompleteTitle"),
                 Message = message
             };
         }

@@ -95,9 +95,7 @@ namespace XelLauncher.Helpers
                 if (!LinkedClientOperationCoordinator.TryAcquire(
                         requestedIconName, installPath, out var operationLease))
                 {
-                    throw new InvalidOperationException(AntdUI.Localization.Get(
-                        "App.LinkedClient.Error.GroupBusy",
-                        "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                    throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                 }
 
                 try

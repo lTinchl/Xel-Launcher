@@ -80,7 +80,7 @@ namespace XelLauncher.Forms
 
                 var formTitle = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.Title", "Skyland Sign"),
+                    Text = Localizer.GetRequiredString("App.Skyland.Title"),
                     Location = new Point(margin, 8),
                     Size = new Size(760, 38),
                     Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold),
@@ -117,7 +117,7 @@ namespace XelLauncher.Forms
             };
             var title = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.ConfigTitle", "森空岛配置"),
+                Text = Localizer.GetRequiredString("App.Skyland.ConfigTitle"),
                 Location = new Point(margin + 12, 14),
                 Size = new Size(200, 32),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
@@ -125,7 +125,7 @@ namespace XelLauncher.Forms
             };
             var btnDoc = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.Skyland.Document", "文档"),
+                Text = Localizer.GetRequiredString("App.Skyland.Document"),
                 IconSvg = "BookOutlined",
                 Location = new Point(formWidth - margin - 76, 13),
                 Size = new Size(76, 32),
@@ -143,7 +143,7 @@ namespace XelLauncher.Forms
 
             var lblSign = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.AutoSign", "启动器运行时签到"),
+                Text = Localizer.GetRequiredString("App.Skyland.AutoSign"),
                 Location = new Point(margin + 2, 276),
                 Size = new Size(150, 28),
                 Font = new Font("Microsoft YaHei UI", 9.5F),
@@ -157,7 +157,7 @@ namespace XelLauncher.Forms
             };
             var lblSwitchHint = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.AutoSignHint", "开启后启动器运行期间每日自动签到一次，并在右下角提示结果"),
+                Text = Localizer.GetRequiredString("App.Skyland.AutoSignHint"),
                 Location = new Point(284, 276),
                 Size = new Size(contentWidth - 256, 28),
                 Font = new Font("Microsoft YaHei UI", 9F),
@@ -166,7 +166,7 @@ namespace XelLauncher.Forms
 
             var lblStartupSign = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.StartupSign", "开机自动签到"),
+                Text = Localizer.GetRequiredString("App.Skyland.StartupSign"),
                 Location = new Point(margin + 2, 318),
                 Size = new Size(150, 28),
                 Font = new Font("Microsoft YaHei UI", 9.5F),
@@ -180,7 +180,7 @@ namespace XelLauncher.Forms
             };
             var lblStartupHint = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.StartupSignHint", "开机后后台执行一次签到，不显示主窗口，完成后用右下角通知提示"),
+                Text = Localizer.GetRequiredString("App.Skyland.StartupSignHint"),
                 Location = new Point(284, 318),
                 Size = new Size(contentWidth - 256, 28),
                 Font = new Font("Microsoft YaHei UI", 9F),
@@ -189,7 +189,7 @@ namespace XelLauncher.Forms
 
             var lblToken = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.Token", "森空岛Token"),
+                Text = Localizer.GetRequiredString("App.Skyland.Token"),
                 Location = new Point(margin + 2, 82),
                 Size = new Size(140, 28),
                 Font = new Font("Microsoft YaHei UI", 9.5F),
@@ -197,7 +197,7 @@ namespace XelLauncher.Forms
             };
             var lblTokenHint = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.TokenHint", "使用英文分号 ; 分隔，支持多账号签到"),
+                Text = Localizer.GetRequiredString("App.Skyland.TokenHint"),
                 Location = new Point(184, 82),
                 Size = new Size(360, 28),
                 Font = new Font("Microsoft YaHei UI", 9F),
@@ -213,7 +213,7 @@ namespace XelLauncher.Forms
                 Multiline = false,
                 UseSystemPasswordChar = true,
                 WordWrap = false,
-                PlaceholderText = AntdUI.Localization.Get("App.Skyland.TokenPlaceholder", "请输入森空岛 Token，多个 Token 用 ; 分隔"),
+                PlaceholderText = Localizer.GetRequiredString("App.Skyland.TokenPlaceholder"),
             };
             _btnToggleToken = new AntdUI.Button
             {
@@ -235,13 +235,13 @@ namespace XelLauncher.Forms
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
             };
-            _btnScan = CreateActionButton(AntdUI.Localization.Get("App.Skyland.ScanLogin", "扫码登录"), "QrcodeOutlined", AntdUI.TTypeMini.Primary);
-            _btnSms = CreateActionButton(AntdUI.Localization.Get("App.Skyland.SmsLogin", "手机验证码登录"), "MessageOutlined", AntdUI.TTypeMini.Default, 138);
-            _btnPassword = CreateActionButton(AntdUI.Localization.Get("App.Skyland.PasswordLogin", "账号密码登录"), "KeyOutlined", AntdUI.TTypeMini.Default, 132);
-            _btnSign = CreateActionButton(AntdUI.Localization.Get("App.Skyland.SignNow", "立即签到"), "CheckCircleOutlined", AntdUI.TTypeMini.Success);
+            _btnScan = CreateActionButton(Localizer.GetRequiredString("App.Skyland.ScanLogin"), "QrcodeOutlined", AntdUI.TTypeMini.Primary);
+            _btnSms = CreateActionButton(Localizer.GetRequiredString("App.Skyland.SmsLogin"), "MessageOutlined", AntdUI.TTypeMini.Default, 138);
+            _btnPassword = CreateActionButton(Localizer.GetRequiredString("App.Skyland.PasswordLogin"), "KeyOutlined", AntdUI.TTypeMini.Default, 132);
+            _btnSign = CreateActionButton(Localizer.GetRequiredString("App.Skyland.SignNow"), "CheckCircleOutlined", AntdUI.TTypeMini.Success);
             var btnClear = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.Skyland.ClearLog", "清空日志"),
+                Text = Localizer.GetRequiredString("App.Skyland.ClearLog"),
                 IconSvg = "DeleteOutlined",
                 Location = new Point(formWidth - margin - 102, 360),
                 Size = new Size(102, 34),
@@ -275,7 +275,7 @@ namespace XelLauncher.Forms
             };
             var lblAuto = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.AutoConfigTitle", "自动签到配置"),
+                Text = Localizer.GetRequiredString("App.Skyland.AutoConfigTitle"),
                 Location = new Point(margin + 12, 222),
                 Size = new Size(180, 32),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
@@ -296,7 +296,7 @@ namespace XelLauncher.Forms
             };
             var lblLog = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.Log", "日志"),
+                Text = Localizer.GetRequiredString("App.Skyland.Log"),
                 Location = new Point(margin + 12, 362),
                 Size = new Size(120, 32),
                 Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold),
@@ -509,25 +509,25 @@ namespace XelLauncher.Forms
 
             try
             {
-                AppendLog(AntdUI.Localization.Get("App.Skyland.ScanCreating", "创建森空岛扫码登录..."));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.ScanCreating"));
                 var scan = await _service.CreateScanLoginAsync(_cts.Token);
                 if (!ShowQrDialog(scan.ScanUrl)) return;
 
-                AppendLog(AntdUI.Localization.Get("App.Skyland.ScanChecking", "开始检测扫码状态..."));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.ScanChecking"));
                 var progress = new Progress<string>(AppendLog);
                 var token = await _service.WaitForScanTokenAsync(scan.ScanId, progress, TimeSpan.FromMinutes(3), _cts.Token);
 
                 AddToken(token);
-                AppendLog(AntdUI.Localization.Get("App.Skyland.ScanSuccess", "扫码登录成功，Token 已保存。"));
-                AntdUI.Message.success(FindForm(), AntdUI.Localization.Get("App.Skyland.ScanSuccessToast", "扫码登录成功，Token 已保存"));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.ScanSuccess"));
+                AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.ScanSuccessToast"));
             }
             catch (OperationCanceledException)
             {
-                AppendLog(AntdUI.Localization.Get("App.Skyland.OperationCanceled", "操作已取消。"));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.OperationCanceled"));
             }
             catch (Exception ex)
             {
-                AppendLog(AntdUI.Localization.Get("App.Skyland.ScanFailedPrefix", "扫码获取 Token 失败：") + ex.Message);
+                AppendLog(Localizer.GetRequiredString("App.Skyland.ScanFailedPrefix") + ex.Message);
                 AntdUI.Message.error(FindForm(), ex.Message);
             }
             finally
@@ -548,8 +548,8 @@ namespace XelLauncher.Forms
             if (result != DialogResult.OK || string.IsNullOrWhiteSpace(dialog.Token)) return;
 
             ApplyToken(dialog.Token);
-            AppendLog(AntdUI.Localization.Get("App.Skyland.SmsSuccess", "手机号验证码登录成功，Token 已保存。"));
-            AntdUI.Message.success(FindForm(), AntdUI.Localization.Get("App.Skyland.TokenSaved", "Token 已保存"));
+            AppendLog(Localizer.GetRequiredString("App.Skyland.SmsSuccess"));
+            AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.TokenSaved"));
         }
 
         private Task PasswordTokenAsync()
@@ -565,8 +565,8 @@ namespace XelLauncher.Forms
                 return Task.CompletedTask;
 
             ApplyToken(dialog.Token);
-            AppendLog(AntdUI.Localization.Get("App.Skyland.PasswordSuccess", "账号密码登录成功，Token 已保存。"));
-            AntdUI.Message.success(FindForm(), AntdUI.Localization.Get("App.Skyland.TokenSaved", "Token 已保存"));
+            AppendLog(Localizer.GetRequiredString("App.Skyland.PasswordSuccess"));
+            AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.TokenSaved"));
             return Task.CompletedTask;
         }
 
@@ -589,7 +589,7 @@ namespace XelLauncher.Forms
             var tokens = SkylandService.SplitTokens(_inputToken.Text);
             if (tokens.Count == 0)
             {
-                AntdUI.Message.warn(FindForm(), AntdUI.Localization.Get("App.Skyland.TokenRequired", "请先填写森空岛 Token"));
+                AntdUI.Message.warn(FindForm(), Localizer.GetRequiredString("App.Skyland.TokenRequired"));
                 return;
             }
 
@@ -600,19 +600,19 @@ namespace XelLauncher.Forms
 
             try
             {
-                AppendLog(AntdUI.Localization.Get("App.Skyland.SignStart", "========== 森空岛签到开始 =========="));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.SignStart"));
                 var progress = new Progress<string>(AppendLog);
                 await _service.SignAllAsync(tokens, progress, _cts.Token);
-                AppendLog(AntdUI.Localization.Get("App.Skyland.SignEnd", "========== 森空岛签到结束 =========="));
-                AntdUI.Message.success(FindForm(), AntdUI.Localization.Get("App.Skyland.SignComplete", "森空岛签到完成"));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.SignEnd"));
+                AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.SignComplete"));
             }
             catch (OperationCanceledException)
             {
-                AppendLog(AntdUI.Localization.Get("App.Skyland.SignCanceled", "签到已取消。"));
+                AppendLog(Localizer.GetRequiredString("App.Skyland.SignCanceled"));
             }
             catch (Exception ex)
             {
-                AppendLog(AntdUI.Localization.Get("App.Skyland.SignFailedPrefix", "签到失败：") + ex.Message);
+                AppendLog(Localizer.GetRequiredString("App.Skyland.SignFailedPrefix") + ex.Message);
                 AntdUI.Message.error(FindForm(), ex.Message);
             }
             finally
@@ -635,7 +635,7 @@ namespace XelLauncher.Forms
             };
             var hint = new Label
             {
-                Text = AntdUI.Localization.Get("App.Skyland.QrHint", "请使用森空岛 App 扫码，并在 App 内确认登录后点击确定。"),
+                Text = Localizer.GetRequiredString("App.Skyland.QrHint"),
                 Location = new Point(16, 344),
                 Size = new Size(328, 46),
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -984,7 +984,7 @@ namespace XelLauncher.Forms
 
                 var title = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.PasswordTitle", "账号密码获取 Token"),
+                    Text = Localizer.GetRequiredString("App.Skyland.PasswordTitle"),
                     Location = new Point(left, 12),
                     Size = new Size(320, 30),
                     Font = new Font("Microsoft YaHei UI", 12.5F, FontStyle.Bold),
@@ -992,7 +992,7 @@ namespace XelLauncher.Forms
                 };
                 var subtitle = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.PasswordSubtitle", "使用森空岛账号登录，成功后会自动保存 Token。"),
+                    Text = Localizer.GetRequiredString("App.Skyland.PasswordSubtitle"),
                     Location = new Point(left, 42),
                     Size = new Size(390, 24),
                     Font = new Font("Microsoft YaHei UI", 9F),
@@ -1024,7 +1024,7 @@ namespace XelLauncher.Forms
                 };
                 var lblAccount = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.Account", "账号"),
+                    Text = Localizer.GetRequiredString("App.Skyland.Account"),
                     Location = new Point(left + 12, 94),
                     Size = new Size(120, 28),
                     Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
@@ -1034,7 +1034,7 @@ namespace XelLauncher.Forms
                 {
                     Location = new Point(left, 130),
                     Size = new Size(contentWidth, 42),
-                    PlaceholderText = AntdUI.Localization.Get("App.Skyland.AccountPlaceholder", "请输入手机号 / 账号"),
+                    PlaceholderText = Localizer.GetRequiredString("App.Skyland.AccountPlaceholder"),
                     Radius = 6,
                 };
 
@@ -1046,7 +1046,7 @@ namespace XelLauncher.Forms
                 };
                 var lblPassword = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.Password", "密码"),
+                    Text = Localizer.GetRequiredString("App.Skyland.Password"),
                     Location = new Point(left + 12, 188),
                     Size = new Size(120, 28),
                     Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
@@ -1056,13 +1056,13 @@ namespace XelLauncher.Forms
                 {
                     Location = new Point(left, 224),
                     Size = new Size(288, 42),
-                    PlaceholderText = AntdUI.Localization.Get("App.Skyland.PasswordPlaceholder", "请输入密码"),
+                    PlaceholderText = Localizer.GetRequiredString("App.Skyland.PasswordPlaceholder"),
                     Radius = 6,
                     UseSystemPasswordChar = true,
                 };
                 _btnLogin = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.LoginGet", "登录获取"),
+                    Text = Localizer.GetRequiredString("App.Skyland.LoginGet"),
                     IconSvg = "LoginOutlined",
                     Location = new Point(left + 304, 224),
                     Size = new Size(120, 42),
@@ -1096,27 +1096,27 @@ namespace XelLauncher.Forms
                 if (_loggingIn) return;
 
                 _loggingIn = true;
-                _btnLogin.Text = AntdUI.Localization.Get("App.Skyland.LoggingIn", "登录中...");
+                _btnLogin.Text = Localizer.GetRequiredString("App.Skyland.LoggingIn");
                 _btnLogin.Enabled = false;
                 _inputPhone.ReadOnly = true;
                 _inputPassword.ReadOnly = true;
 
                 try
                 {
-                    _log(AntdUI.Localization.Get("App.Skyland.PasswordLogging", "正在使用账号密码登录..."));
+                    _log(Localizer.GetRequiredString("App.Skyland.PasswordLogging"));
                     Token = await _service.LoginByPasswordAsync(_inputPhone.Text, _inputPassword.Text);
                     FindForm().DialogResult = DialogResult.OK;
                     FindForm().Close();
                 }
                 catch (Exception ex)
                 {
-                    _log(AntdUI.Localization.Get("App.Skyland.PasswordFailedPrefix", "账号密码获取 Token 失败：") + ex.Message);
+                    _log(Localizer.GetRequiredString("App.Skyland.PasswordFailedPrefix") + ex.Message);
                     AntdUI.Message.error(FindForm(), ex.Message);
                 }
                 finally
                 {
                     _loggingIn = false;
-                    _btnLogin.Text = AntdUI.Localization.Get("App.Skyland.LoginGet", "登录获取");
+                    _btnLogin.Text = Localizer.GetRequiredString("App.Skyland.LoginGet");
                     _btnLogin.Enabled = true;
                     _inputPhone.ReadOnly = false;
                     _inputPassword.ReadOnly = false;
@@ -1156,7 +1156,7 @@ namespace XelLauncher.Forms
 
                 var title = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.SmsTitle", "手机号验证码获取 Token"),
+                    Text = Localizer.GetRequiredString("App.Skyland.SmsTitle"),
                     Location = new Point(left, 12),
                     Size = new Size(360, 30),
                     Font = new Font("Microsoft YaHei UI", 12.5F, FontStyle.Bold),
@@ -1164,7 +1164,7 @@ namespace XelLauncher.Forms
                 };
                 var subtitle = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.SmsSubtitle", "输入森空岛绑定手机号，获取验证码后自动登录。"),
+                    Text = Localizer.GetRequiredString("App.Skyland.SmsSubtitle"),
                     Location = new Point(left, 42),
                     Size = new Size(420, 24),
                     Font = new Font("Microsoft YaHei UI", 9F),
@@ -1197,7 +1197,7 @@ namespace XelLauncher.Forms
                 };
                 var lblPhone = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.Phone", "手机号"),
+                    Text = Localizer.GetRequiredString("App.Skyland.Phone"),
                     Location = new Point(left + 12, 94),
                     Size = new Size(120, 28),
                     Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
@@ -1207,12 +1207,12 @@ namespace XelLauncher.Forms
                 {
                     Location = new Point(left, 130),
                     Size = new Size(296, 40),
-                    PlaceholderText = AntdUI.Localization.Get("App.Skyland.PhonePlaceholder", "请输入手机号"),
+                    PlaceholderText = Localizer.GetRequiredString("App.Skyland.PhonePlaceholder"),
                     Radius = 6,
                 };
                 _btnSend = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.SendCode", "发送验证码"),
+                    Text = Localizer.GetRequiredString("App.Skyland.SendCode"),
                     Location = new Point(left + 312, 130),
                     Size = new Size(152, 40),
                     Radius = 6,
@@ -1228,7 +1228,7 @@ namespace XelLauncher.Forms
                 {
                     Location = new Point(left + 12, 188),
                     Size = new Size(160, 28),
-                    Text = AntdUI.Localization.Get("App.Skyland.Code", "验证码"),
+                    Text = Localizer.GetRequiredString("App.Skyland.Code"),
                     Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold),
                     ForeColor = normalText,
                 };
@@ -1239,7 +1239,7 @@ namespace XelLauncher.Forms
                 };
                 _btnLogin = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.Skyland.LoginGet", "登录获取"),
+                    Text = Localizer.GetRequiredString("App.Skyland.LoginGet"),
                     IconSvg = "LoginOutlined",
                     Location = new Point(left + 344, 222),
                     Size = new Size(120, 44),
@@ -1304,22 +1304,22 @@ namespace XelLauncher.Forms
                 try
                 {
                     _btnSend.Enabled = false;
-                    _btnLogin.Text = AntdUI.Localization.Get("App.Skyland.LoggingIn", "登录中...");
+                    _btnLogin.Text = Localizer.GetRequiredString("App.Skyland.LoggingIn");
                     _btnLogin.Enabled = false;
-                    _log(AntdUI.Localization.Get("App.Skyland.SmsLogging", "正在使用手机号验证码登录..."));
+                    _log(Localizer.GetRequiredString("App.Skyland.SmsLogging"));
                     Token = await _service.LoginByPhoneCodeAsync(_inputPhone.Text, _inputCode.Text);
                     FindForm().DialogResult = DialogResult.OK;
                     FindForm().Close();
                 }
                 catch (Exception ex)
                 {
-                    _log(AntdUI.Localization.Get("App.Skyland.SmsFailedPrefix", "手机号验证码获取 Token 失败：") + ex.Message);
+                    _log(Localizer.GetRequiredString("App.Skyland.SmsFailedPrefix") + ex.Message);
                     AntdUI.Message.error(FindForm(), ex.Message);
                 }
                 finally
                 {
                     _loggingIn = false;
-                    _btnLogin.Text = AntdUI.Localization.Get("App.Skyland.LoginGet", "登录获取");
+                    _btnLogin.Text = Localizer.GetRequiredString("App.Skyland.LoginGet");
                     UpdateSendButtonState();
                 }
             }
@@ -1334,13 +1334,13 @@ namespace XelLauncher.Forms
                 {
                     await _service.SendPhoneCodeAsync(_inputPhone.Text);
                     _nextSendCodeTime = DateTime.Now.Add(SendCodeCooldown);
-                    _log(AntdUI.Localization.Get("App.Skyland.CodeSent", "验证码已发送。"));
-                    AntdUI.Message.success(FindForm(), AntdUI.Localization.Get("App.Skyland.CodeSentToast", "验证码已发送"));
+                    _log(Localizer.GetRequiredString("App.Skyland.CodeSent"));
+                    AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.CodeSentToast"));
                     _inputCode.FocusFirst();
                 }
                 catch (Exception ex)
                 {
-                    _log(AntdUI.Localization.Get("App.Skyland.SendCodeFailedPrefix", "发送验证码失败：") + ex.Message);
+                    _log(Localizer.GetRequiredString("App.Skyland.SendCodeFailedPrefix") + ex.Message);
                     AntdUI.Message.error(FindForm(), ex.Message);
                 }
                 finally
@@ -1355,7 +1355,7 @@ namespace XelLauncher.Forms
                 var seconds = GetSendCooldownSeconds();
                 if (seconds > 0)
                 {
-                    _btnSend.Text = string.Format(AntdUI.Localization.Get("App.Skyland.ResendInSeconds", "{0}秒后重发"), seconds);
+                    _btnSend.Text = string.Format(Localizer.GetRequiredString("App.Skyland.ResendInSeconds"), seconds);
                     _btnSend.Enabled = false;
                     if (!_sendCooldownTimer.Enabled) _sendCooldownTimer.Start();
                     return;
@@ -1363,8 +1363,8 @@ namespace XelLauncher.Forms
 
                 if (_sendCooldownTimer.Enabled) _sendCooldownTimer.Stop();
                 _btnSend.Text = _sendingCode
-                    ? AntdUI.Localization.Get("App.Skyland.Sending", "发送中...")
-                    : AntdUI.Localization.Get("App.Skyland.SendCode", "发送验证码");
+                    ? Localizer.GetRequiredString("App.Skyland.Sending")
+                    : Localizer.GetRequiredString("App.Skyland.SendCode");
                 _btnSend.Enabled = !_sendingCode && !_loggingIn;
                 _btnLogin.Enabled = !_loggingIn;
             }

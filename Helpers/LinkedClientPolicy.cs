@@ -76,15 +76,11 @@ namespace XelLauncher.Helpers
             if (IsArknightsChannel(iconName) &&
                 ArknightsLinkedClientService.IsOperationActive)
             {
-                throw new InvalidOperationException(AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.GroupBusy",
-                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
             }
 
             if (!IsSharedClient(iconName, installPath)) return;
-            throw new InvalidOperationException(AntdUI.Localization.Get(
-                "App.LinkedClient.Error.MutationBlocked",
-                "该客户端仍与另一渠道共享硬链接文件。请先在B服设置中解除共享，再更新、预下载或修复。"));
+            throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.MutationBlocked"));
         }
 
         public static void UpdatePath(
@@ -101,9 +97,7 @@ namespace XelLauncher.Helpers
 
             if (!string.IsNullOrWhiteSpace(entry.LinkedClientGroupId))
             {
-                throw new InvalidOperationException(AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.MutationBlocked",
-                    "该客户端仍与另一渠道共享硬链接文件。请先在B服设置中解除共享，再更改路径。"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.MutationBlocked"));
             }
 
             if (IsArknightsChannel(entry.IconName) &&
@@ -134,9 +128,7 @@ namespace XelLauncher.Helpers
                     config, entry.IconName, newPath) ||
                 ArknightsLinkedClientService.HasLinkedClientMarker(newPath))
             {
-                throw new InvalidOperationException(AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.MutationBlocked",
-                    "该客户端仍与另一渠道共享硬链接文件。请先在B服设置中解除共享，再更改路径。"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.MutationBlocked"));
             }
 
             entry.RootPath = newPath ?? "";
@@ -158,9 +150,7 @@ namespace XelLauncher.Helpers
                     IsArknightsChannel(g.IconName) &&
                     ArknightsLinkedClientService.HasLinkedClientMarker(g.RootPath)))
             {
-                throw new InvalidOperationException(AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.MutationBlocked",
-                    "该客户端仍与另一渠道共享硬链接文件。请先在B服设置中解除共享，再切换为旧模式。"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.MutationBlocked"));
             }
 
             foreach (var entry in config.Games.Where(g => IsArknightsChannel(g.IconName)))
@@ -178,9 +168,7 @@ namespace XelLauncher.Helpers
                     groupId,
                     StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException(AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.GroupBusy",
-                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
             }
             if (config.Games.Any(g =>
                     string.Equals(g.LinkedClientGroupId, groupId,
@@ -188,9 +176,7 @@ namespace XelLauncher.Helpers
                     ArknightsLinkedClientService.HasLinkedClientMarker(
                         g.RootPath)))
             {
-                throw new InvalidOperationException(AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.MutationBlocked",
-                    "仍检测到硬链接客户端标记，不能清除共享保护。"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.LinkedClient.Error.MutationBlocked"));
             }
 
             foreach (var entry in config.Games.Where(g =>
@@ -240,8 +226,6 @@ namespace XelLauncher.Helpers
                 Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         private static InvalidOperationException GroupBusy() =>
-            new(AntdUI.Localization.Get(
-                "App.LinkedClient.Error.GroupBusy",
-                "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+            new(Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
     }
 }

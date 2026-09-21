@@ -31,8 +31,8 @@ namespace XelLauncher.Helpers
                         {
                             Notify = true,
                             Success = true,
-                            Title = AntdUI.Localization.Get("App.Skport.Auto.Title", "SKPORT 自动签到"),
-                            Message = AntdUI.Localization.Get("App.Skport.Auto.AlreadyDone", "今日已执行过自动签到，已跳过。")
+                            Title = Localizer.GetRequiredString("App.Skport.Auto.Title"),
+                            Message = Localizer.GetRequiredString("App.Skport.Auto.AlreadyDone")
                         };
                     }
 
@@ -46,7 +46,7 @@ namespace XelLauncher.Helpers
                 catch (Exception ex)
                 {
                     LogHelper.LogError(ex, "SkportAutoSignCommand");
-                    notifyIcon.ShowBalloonTip(8000, AntdUI.Localization.Get("App.Skport.Auto.FailedTitle", "SKPORT 自动签到失败"), ex.Message, ToolTipIcon.Error);
+                    notifyIcon.ShowBalloonTip(8000, Localizer.GetRequiredString("App.Skport.Auto.FailedTitle"), ex.Message, ToolTipIcon.Error);
                     await Task.Delay(8500);
                 }
                 finally

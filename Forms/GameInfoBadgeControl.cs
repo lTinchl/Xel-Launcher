@@ -122,9 +122,7 @@ namespace XelLauncher.Forms
                     Color.FromArgb(172, 207, 219, 230));
                 DrawLeftText(
                     g,
-                    // Latin digits have a shorter visual cap height than the CJK label.
-                    // Lift them by one pixel so both text runs share the same optical center.
-                    new RectangleF(versionLeft + labelWidth, textTop - 1F, valueWidth + 1F, textHeight),
+                    new RectangleF(versionLeft + labelWidth, textTop, valueWidth + 1F, textHeight),
                     versionValue,
                     Font,
                     Color.FromArgb(224, 222, 235, 244));
@@ -189,7 +187,7 @@ namespace XelLauncher.Forms
             }
 
             label = text.Substring(0, separatorIndex + 1);
-            value = text.Substring(separatorIndex + 1).TrimStart();
+            value = text.Substring(separatorIndex + 1);
         }
 
         private static void DrawLeftText(

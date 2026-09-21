@@ -30,8 +30,8 @@ namespace XelLauncher.Helpers
                         {
                             Notify = true,
                             Success = true,
-                            Title = AntdUI.Localization.Get("App.Skyland.Auto.Title", "森空岛自动签到"),
-                            Message = AntdUI.Localization.Get("App.Skyland.Auto.AlreadyDone", "今日已执行过自动签到，已跳过。")
+                            Title = Localizer.GetRequiredString("App.Skyland.Auto.Title"),
+                            Message = Localizer.GetRequiredString("App.Skyland.Auto.AlreadyDone")
                         };
                     }
 
@@ -45,7 +45,7 @@ namespace XelLauncher.Helpers
                 catch (Exception ex)
                 {
                     LogHelper.LogError(ex, "SkylandAutoSignCommand");
-                    notifyIcon.ShowBalloonTip(8000, AntdUI.Localization.Get("App.Skyland.Auto.FailedTitle", "森空岛自动签到失败"), ex.Message, ToolTipIcon.Error);
+                    notifyIcon.ShowBalloonTip(8000, Localizer.GetRequiredString("App.Skyland.Auto.FailedTitle"), ex.Message, ToolTipIcon.Error);
                     await Task.Delay(8500);
                 }
                 finally

@@ -37,7 +37,7 @@ namespace XelLauncher.Forms
         private void btnAccountManage_Click(object sender, EventArgs e)
         {
             var form = new AccountManagerForm(_overview, this, _game.IconName);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, AntdUI.Localization.Get("App.Game.AccountManage", "账号管理"), form)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(_overview, Localizer.GetRequiredString("App.Game.AccountManage"), form)
             {
                 OkText = null,
                 CancelText = null,

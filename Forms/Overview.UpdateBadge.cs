@@ -82,7 +82,7 @@ namespace XelLauncher.Forms
             if (info == null) return;
 
             var dialog = new UpdateReminderDialog(info, Application.ProductVersion);
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("App.Update.ModalTitle", "软件更新"), dialog)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, Localizer.GetRequiredString("App.Update.ModalTitle"), dialog)
             {
                 BtnHeight = 0,
                 CloseIcon = true,
@@ -123,7 +123,7 @@ namespace XelLauncher.Forms
         {
             var setting = new Setting(this);
             setting.NavigateToUpdate();
-            AntdUI.Modal.open(new AntdUI.Modal.Config(this, AntdUI.Localization.Get("Setting", "设置"), setting)
+            AntdUI.Modal.open(new AntdUI.Modal.Config(this, Localizer.GetRequiredString("Setting"), setting)
             {
                 BtnHeight = 0,
                 CloseIcon = true,

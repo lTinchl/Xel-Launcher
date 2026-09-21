@@ -26,7 +26,7 @@ namespace XelLauncher.Forms
                 };
 
                 AntdUI.Modal.open(new AntdUI.Modal.Config(this,
-                    AntdUI.Localization.Get("App.StartupAnnouncement.ModalTitle", "版本信息"),
+                    Localizer.GetRequiredString("App.StartupAnnouncement.ModalTitle"),
                     dialog)
                 {
                     BtnHeight = 0,

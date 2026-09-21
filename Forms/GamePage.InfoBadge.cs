@@ -22,6 +22,8 @@ namespace XelLauncher.Forms
             if (_gameInfoBadge == null || _gameInfoBadge.IsDisposed) return;
 
             string localVersion = "";
+            string targetChannel = GetChannelLabel();
+            string installedChannel = targetChannel;
             try
             {
                 var config = ConfigHelper.Load();
@@ -32,18 +34,32 @@ namespace XelLauncher.Forms
                 {
                     localVersion = cached.LocalVersion ?? "";
                 }
+
+                if (!string.IsNullOrWhiteSpace(entry?.RootPath))
+                {
+                    var resolution = SharedRootManager.Resolve(
+                        config,
+                        _game.IconName,
+                        entry.RootPath,
+                        detectBaseChannel: false,
+                        out _);
+                    installedChannel = resolution.Base?.ChannelLabel ?? targetChannel;
+                }
             }
             catch { }
 
             if (string.IsNullOrWhiteSpace(localVersion))
                 localVersion = "--";
 
-            bool isEnglish = AntdUI.Localization.CurrentLanguage.StartsWith("en", StringComparison.OrdinalIgnoreCase);
-            string versionText = isEnglish
-                ? $"Local version: {localVersion}"
-                : $"本地版本：{localVersion}";
+            string targetText = string.Format(
+                Localizer.GetRequiredString("App.Game.InfoBadge.Target"),
+                targetChannel);
+            string versionText = string.Format(
+                Localizer.GetRequiredString("App.Game.InfoBadge.Installed"),
+                installedChannel,
+                localVersion);
 
-            _gameInfoBadge.SetContent(GetChannelLabel(), versionText);
+            _gameInfoBadge.SetContent(targetText, versionText);
             _gameInfoBadge.AccentColor = GetCoverAccentPalette().PrimaryHover;
             PositionGameInfoBadge();
         }

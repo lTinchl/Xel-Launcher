@@ -113,7 +113,7 @@ namespace XelLauncher.Forms
             _subBtns.Add(CreateSubButton(
                 LoadPaddedToolImage("Skland.png"),
                 btnSignHub_Click,
-                AntdUI.Localization.Get("App.Game.Sign", "森空岛签到")));
+                Localizer.GetRequiredString("App.Game.Sign")));
 
             var channel = GameChannelCatalog.Get(_game.IconName);
             if (channel?.Family == GameFamily.Arknights)
@@ -135,7 +135,7 @@ namespace XelLauncher.Forms
 
         private AntdUI.Avatar CreateAddCustomToolButton()
         {
-            return CreateSubButton(CreatePlusToolImage(), (s, e) => ShowAddCustomToolDialog(), AntdUI.Localization.Get("App.Game.CustomToolAdd", "添加自定义工具"));
+            return CreateSubButton(CreatePlusToolImage(), (s, e) => ShowAddCustomToolDialog(), Localizer.GetRequiredString("App.Game.CustomToolAdd"));
         }
 
         private static Bitmap CreatePlusToolImage()
@@ -316,14 +316,14 @@ namespace XelLauncher.Forms
                 : Color.FromArgb(110, 110, 110);
             var nameLabel = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Game.CustomToolName", "工具名称"),
+                Text = Localizer.GetRequiredString("App.Game.CustomToolName"),
                 Location = new Point(0, 0),
                 Size = new Size(336, 20),
                 Font = fieldLabelFont,
             };
             var nameInput = new AntdUI.Input
             {
-                PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolNamePlaceholder", "例如：游戏官网"),
+                PlaceholderText = Localizer.GetRequiredString("App.Game.CustomToolNamePlaceholder"),
                 Location = new Point(0, 24),
                 Size = new Size(336, 40),
                 Height = 40,
@@ -332,14 +332,14 @@ namespace XelLauncher.Forms
             };
             var urlLabel = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Game.CustomToolUrlLabel", "链接地址"),
+                Text = Localizer.GetRequiredString("App.Game.CustomToolUrlLabel"),
                 Location = new Point(0, 76),
                 Size = new Size(336, 20),
                 Font = fieldLabelFont,
             };
             var urlInput = new AntdUI.Input
             {
-                PlaceholderText = AntdUI.Localization.Get("App.Game.CustomToolUrl", "https://example.com"),
+                PlaceholderText = Localizer.GetRequiredString("App.Game.CustomToolUrl"),
                 Location = new Point(0, 100),
                 Size = new Size(336, 40),
                 Height = 40,
@@ -348,7 +348,7 @@ namespace XelLauncher.Forms
             };
             var iconLabel = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Game.CustomToolIconLabel", "工具图标（可选）"),
+                Text = Localizer.GetRequiredString("App.Game.CustomToolIconLabel"),
                 Location = new Point(0, 152),
                 Size = new Size(336, 20),
                 Font = fieldLabelFont,
@@ -365,7 +365,7 @@ namespace XelLauncher.Forms
             };
             var chooseIcon = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.Game.CustomToolChooseIcon", "选择图标"),
+                Text = Localizer.GetRequiredString("App.Game.CustomToolChooseIcon"),
                 IconSvg = "PictureOutlined",
                 IconRatio = .62F,
                 IconGap = .18F,
@@ -377,7 +377,7 @@ namespace XelLauncher.Forms
             };
             var iconHint = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Game.CustomToolIconHint", "支持 PNG、JPG、WebP 和 ICO"),
+                Text = Localizer.GetRequiredString("App.Game.CustomToolIconHint"),
                 Location = new Point(72, 214),
                 Size = new Size(264, 18),
                 Font = new Font("Microsoft YaHei UI", 8F),
@@ -388,8 +388,8 @@ namespace XelLauncher.Forms
             {
                 using var dlg = new OpenFileDialog
                 {
-                    Title = AntdUI.Localization.Get("App.Game.CustomToolChooseIcon", "选择图标"),
-                    Filter = AntdUI.Localization.Get("App.Game.CustomToolIconFilter", "图片文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.ico|所有文件|*.*"),
+                    Title = Localizer.GetRequiredString("App.Game.CustomToolChooseIcon"),
+                    Filter = Localizer.GetRequiredString("App.Game.CustomToolIconFilter"),
                     CheckFileExists = true,
                 };
                 if (dlg.ShowDialog(FindForm()) != DialogResult.OK) return;
@@ -397,7 +397,7 @@ namespace XelLauncher.Forms
                 var preview = LoadCustomToolImage(dlg.FileName);
                 if (preview == null)
                 {
-                    AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.Game.CustomToolIconInvalid", "无法读取该图片"));
+                    AntdUI.Message.error(_overview, Localizer.GetRequiredString("App.Game.CustomToolIconInvalid"));
                     return;
                 }
 
@@ -424,10 +424,10 @@ namespace XelLauncher.Forms
             wrap.Controls.Add(nameLabel);
             wrap.HandleCreated += (s, e) => wrap.BeginInvoke((Action)(() => nameInput.Focus()));
 
-            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, AntdUI.Localization.Get("App.Game.CustomToolAdd", "添加自定义工具"), wrap)
+            var result = AntdUI.Modal.open(new AntdUI.Modal.Config(form, Localizer.GetRequiredString("App.Game.CustomToolAdd"), wrap)
             {
-                OkText = AntdUI.Localization.Get("OK", "确定"),
-                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
+                OkText = Localizer.GetRequiredString("OK"),
+                CancelText = Localizer.GetRequiredString("Cancel"),
             });
             if (result != DialogResult.OK) return;
 
@@ -435,7 +435,7 @@ namespace XelLauncher.Forms
             var url = NormalizeCustomToolUrl(urlInput.Text.Trim());
             if (string.IsNullOrWhiteSpace(name) || !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
             {
-                AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.Game.CustomToolInvalid", "请输入有效的名称和链接"));
+                AntdUI.Message.error(_overview, Localizer.GetRequiredString("App.Game.CustomToolInvalid"));
                 return;
             }
 
@@ -451,7 +451,7 @@ namespace XelLauncher.Forms
                 var savedIconPath = SaveCustomToolIcon(selectedIconPath, link.Id);
                 if (string.IsNullOrWhiteSpace(savedIconPath))
                 {
-                    AntdUI.Message.error(_overview, AntdUI.Localization.Get("App.Game.CustomToolIconInvalid", "无法读取该图片"));
+                    AntdUI.Message.error(_overview, Localizer.GetRequiredString("App.Game.CustomToolIconInvalid"));
                     return;
                 }
                 link.IconPath = savedIconPath;
@@ -482,7 +482,7 @@ namespace XelLauncher.Forms
                 RebuildCustomToolButtons();
             }, new AntdUI.IContextMenuStripItem[]
             {
-                new AntdUI.ContextMenuStripItem(AntdUI.Localization.Get("App.Sidebar.Delete", "删除")).SetIcon("DeleteOutlined"),
+                new AntdUI.ContextMenuStripItem(Localizer.GetRequiredString("App.Sidebar.Delete")).SetIcon("DeleteOutlined"),
             });
         }
 

@@ -255,6 +255,12 @@
   <data name="App.Game.HardLinkTip" xml:space="preserve">
     <value>提示：将启动器安装到与游戏相同的磁盘分区可启用硬链接，切服速度更快</value>
   </data>
+  <data name="App.Game.InfoBadge.Installed" xml:space="preserve">
+    <value>本地客户端：{0} · v{1}</value>
+  </data>
+  <data name="App.Game.InfoBadge.Target" xml:space="preserve">
+    <value>目标：{0}</value>
+  </data>
   <data name="App.Game.Install" xml:space="preserve">
     <value>安装游戏</value>
   </data>
@@ -1016,6 +1022,12 @@
   </data>
   <data name="App.Skyland.Error.CredMissing" xml:space="preserve">
     <value>获取 cred 失败：返回结果缺少 cred 或 token。</value>
+  </data>
+  <data name="App.Skyland.Error.DeviceProfileFailed" xml:space="preserve">
+    <value>生成森空岛设备信息失败：{0}</value>
+  </data>
+  <data name="App.Skyland.Error.DeviceRefreshFailed" xml:space="preserve">
+    <value>设备信息更新后请求仍然失败。</value>
   </data>
   <data name="App.Skyland.Error.GrantCodeMissing" xml:space="preserve">
     <value>使用 token 获取授权码失败：返回结果缺少 code。</value>
@@ -2768,6 +2780,9 @@
   </data>
   <data name="App.LinkedRuntime.FirstCreationTip" xml:space="preserve">
     <value>首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。</value>
+  </data>
+  <data name="App.LinkedRuntime.Fallback" xml:space="preserve">
+    <value>共享运行环境不可用，正在使用传统切服...</value>
   </data>
   <data name="App.LinkedRuntime.Progress.Creating" xml:space="preserve">
     <value>正在创建共享运行环境：{0}/{1}（{2}%）</value>

@@ -55,7 +55,7 @@ namespace XelLauncher.Forms
             // ── 游戏安装路径 标题 ──
             var lblPathSection = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.GameSetting.InstallPath", "游戏安装路径"),
+                Text = Localizer.GetRequiredString("App.GameSetting.InstallPath"),
                 Location = new Point(20, 94),
                 Size = new Size(320, 24),
                 Font = new Font("Microsoft YaHei UI", 9F),
@@ -67,7 +67,7 @@ namespace XelLauncher.Forms
                 Text = currentPath,
                 Location = new Point(20, 124),
                 Size = new Size(320, 36),
-                PlaceholderText = AntdUI.Localization.Get("App.GameSetting.PathPlaceholder", "未设置路径"),
+                PlaceholderText = Localizer.GetRequiredString("App.GameSetting.PathPlaceholder"),
                 ReadOnly = linkedGroupActive,
             };
             _inputPath.TextChanged += (s, e) =>
@@ -84,7 +84,7 @@ namespace XelLauncher.Forms
             // ── 更改路径 ──
             var btnBrowse = _btnBrowse = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.GameSetting.ChangePath", "更改路径"),
+                Text = Localizer.GetRequiredString("App.GameSetting.ChangePath"),
                 IconSvg = "FolderOpenOutlined",
                 IconRatio = .58F,
                 IconGap = .18F,
@@ -98,7 +98,7 @@ namespace XelLauncher.Forms
             // ── 打开文件目录 ──
             var btnOpenDir = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.GameSetting.OpenDir", "打开文件目录"),
+                Text = Localizer.GetRequiredString("App.GameSetting.OpenDir"),
                 IconSvg = "FolderOutlined",
                 IconRatio = .58F,
                 IconGap = .18F,
@@ -122,9 +122,7 @@ namespace XelLauncher.Forms
             {
                 var btnCreateLinked = _btnCreateLinked = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get(
-                        "App.LinkedClient.CreateBili",
-                        "从官服创建 B 服硬链接客户端"),
+                    Text = Localizer.GetRequiredString("App.LinkedClient.CreateBili"),
                     IconSvg = "LinkOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -144,9 +142,7 @@ namespace XelLauncher.Forms
 
                 var btnDetachLinked = _btnDetachLinked = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get(
-                        "App.LinkedClient.Detach",
-                        "解除硬链接共享"),
+                    Text = Localizer.GetRequiredString("App.LinkedClient.Detach"),
                     IconSvg = "DisconnectOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -162,7 +158,7 @@ namespace XelLauncher.Forms
 
                 var btnReplaceOfficial = _btnReplaceLegacy = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.ReplaceBili"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -176,21 +172,21 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetBiliPath", "请先设置B服路径"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetBiliPath"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplaceArkBili", "确定要将当前官服替换为B服吗？此操作会覆盖游戏文件"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplace"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplaceArkBili"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = AntdUI.Localization.Get("OK", "确定"),
-                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
+                        OkText = Localizer.GetRequiredString("OK"),
+                        CancelText = Localizer.GetRequiredString("Cancel")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
+                    AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.GameSetting.Replacing"), async (cfg) =>
                     {
                         try
                         {
@@ -208,12 +204,12 @@ namespace XelLauncher.Forms
                             LinkedClientPolicy.ClearLegacyPairState(cfg2);
                             if (BiliBili != null) BiliBili.RootPath = path;
                             ConfigHelper.Save(cfg2);
-                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
+                            cfg.OK(Localizer.GetRequiredString("App.GameSetting.ReplaceSuccess"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
+                            cfg.Error(Localizer.GetRequiredString("App.GameSetting.ReplaceFailed") + ex.Message);
                         }
                     });
                 };
@@ -221,7 +217,7 @@ namespace XelLauncher.Forms
 
                 var btnBili = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.BiliWebsite", "Arknights BiliBili官网"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.BiliWebsite"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -233,7 +229,7 @@ namespace XelLauncher.Forms
             {
                 var btn = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.EndfieldWebsite", "Endfield 官网"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.EndfieldWebsite"),
                     Location = new Point(20, 268),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -242,7 +238,7 @@ namespace XelLauncher.Forms
 
                 var btnSync = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.SyncToAll", "同步路径到 BillBili服 / 国际服 / GooglePlay服"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.SyncToAll"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -255,7 +251,7 @@ namespace XelLauncher.Forms
                     string currentPath = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(currentPath))
                     {
-                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetOfficialPath", "请先设置官服路径"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetOfficialPath"));
                         return;
                     }
                     var cfg = ConfigHelper.Load();
@@ -265,7 +261,7 @@ namespace XelLauncher.Forms
                         if (other != null) other.RootPath = currentPath;
                     }
                     ConfigHelper.Save(cfg);
-                    AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccessAll", "路径已同步到 BillBili服 / 国际服 / GooglePlay服"));
+                    AntdUI.Message.success(_overview, Localizer.GetRequiredString("App.GameSetting.SyncSuccessAll"));
                 };
                 Controls.Add(btnSync);
                 Size = LogicalSize(360, 386);
@@ -274,7 +270,7 @@ namespace XelLauncher.Forms
             {
                 var btnReplace = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.ReplaceBili", "将文件替换为B服"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.ReplaceBili"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -287,21 +283,21 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetBiliPath", "请先设置B服路径"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetBiliPath"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplaceEndBili", "确定要将当前目录替换为B服文件吗？此操作会覆盖游戏文件"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplace"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplaceEndBili"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = AntdUI.Localization.Get("OK", "确定"),
-                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
+                        OkText = Localizer.GetRequiredString("OK"),
+                        CancelText = Localizer.GetRequiredString("Cancel")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
+                    AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.GameSetting.Replacing"), async (cfg) =>
                     {
                         try
                         {
@@ -312,12 +308,12 @@ namespace XelLauncher.Forms
                                 cfg.Text = msg;
                                 cfg.Refresh();
                             }, true, _ => { });
-                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，B服资源包已覆盖至当前目录"));
+                            cfg.OK(Localizer.GetRequiredString("App.GameSetting.ReplaceSuccess"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
+                            cfg.Error(Localizer.GetRequiredString("App.GameSetting.ReplaceFailed") + ex.Message);
                         }
                     });
                 };
@@ -327,7 +323,7 @@ namespace XelLauncher.Forms
             {
                 var btnReplace = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.ReplaceGlobal", "将文件替换为国际服"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.ReplaceGlobal"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -340,21 +336,21 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetGlobalPath", "请先设置国际服路径"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetGlobalPath"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplaceGlobal", "确定要将当前目录替换为国际服文件吗？此操作会覆盖游戏文件"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplace"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplaceGlobal"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = AntdUI.Localization.Get("OK", "确定"),
-                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
+                        OkText = Localizer.GetRequiredString("OK"),
+                        CancelText = Localizer.GetRequiredString("Cancel")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
+                    AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.GameSetting.Replacing"), async (cfg) =>
                     {
                         try
                         {
@@ -365,12 +361,12 @@ namespace XelLauncher.Forms
                                 cfg.Text = msg;
                                 cfg.Refresh();
                             }, true, _ => { });
-                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，国际服资源包已覆盖至当前目录"));
+                            cfg.OK(Localizer.GetRequiredString("App.GameSetting.ReplaceSuccess"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
+                            cfg.Error(Localizer.GetRequiredString("App.GameSetting.ReplaceFailed") + ex.Message);
                         }
                     });
                 };
@@ -380,7 +376,7 @@ namespace XelLauncher.Forms
             {
                 var btnReplace = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.ReplacePlay", "将文件替换为GooglePlay服"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.ReplacePlay"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -393,21 +389,21 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetPlayPath", "请先设置GooglePlay服路径"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetPlayPath"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplace", "确认替换"),
-                        AntdUI.Localization.Get("App.GameSetting.ConfirmReplacePlay", "确定要将当前目录替换为GooglePlay服文件吗？此操作会覆盖游戏文件"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplace"),
+                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplacePlay"),
                         AntdUI.TType.Warn)
                     {
-                        OkText = AntdUI.Localization.Get("OK", "确定"),
-                        CancelText = AntdUI.Localization.Get("Cancel", "取消")
+                        OkText = Localizer.GetRequiredString("OK"),
+                        CancelText = Localizer.GetRequiredString("Cancel")
                     });
                     if (result != DialogResult.OK) return;
 
-                    AntdUI.Message.loading(_overview, AntdUI.Localization.Get("App.GameSetting.Replacing", "替换中..."), async (cfg) =>
+                    AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.GameSetting.Replacing"), async (cfg) =>
                     {
                         try
                         {
@@ -418,12 +414,12 @@ namespace XelLauncher.Forms
                                 cfg.Text = msg;
                                 cfg.Refresh();
                             }, true, _ => { });
-                            cfg.OK(AntdUI.Localization.Get("App.GameSetting.ReplaceSuccess", "替换成功，GooglePlay服资源包已覆盖至当前目录"));
+                            cfg.OK(Localizer.GetRequiredString("App.GameSetting.ReplaceSuccess"));
                             (FindForm() as AntdUI.BaseForm)?.Close();
                         }
                         catch (Exception ex)
                         {
-                            cfg.Error(AntdUI.Localization.Get("App.GameSetting.ReplaceFailed", "替换失败：") + ex.Message);
+                            cfg.Error(Localizer.GetRequiredString("App.GameSetting.ReplaceFailed") + ex.Message);
                         }
                     });
                 };
@@ -440,7 +436,7 @@ namespace XelLauncher.Forms
                 // ── Token 标题 ──
                 lblToken = new AntdUI.Label
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.SessionToken", "Session Token"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.SessionToken"),
                     Location = new Point(20, 330),
                     Size = new Size(320, 24),
                     Font = new Font("Microsoft YaHei UI", 9F),
@@ -455,7 +451,7 @@ namespace XelLauncher.Forms
                     Text = savedToken,
                     Location = new Point(20, 358),
                     Size = new Size(320, 36),
-                    PlaceholderText = AntdUI.Localization.Get("App.GameSetting.TokenPlaceholder", "未设置 Token"),
+                    PlaceholderText = Localizer.GetRequiredString("App.GameSetting.TokenPlaceholder"),
                 };
                 inputToken.TextChanged += (s, e) =>
                 {
@@ -471,7 +467,7 @@ namespace XelLauncher.Forms
                 // ── 自动获取 Token ──
                 btnAutoToken = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.AutoGetToken", "自动获取 Token"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.AutoGetToken"),
                     Location = new Point(20, 406),
                     Size = new Size(320, 36),
                     Ghost = true,
@@ -506,7 +502,7 @@ namespace XelLauncher.Forms
                             string token = match.Groups[1].Value;
                             inputToken.Text = token;
                             AntdUI.Message.success(_overview,
-                                AntdUI.Localization.Get("App.GameSetting.TokenSuccess", "Token 获取成功"));
+                                Localizer.GetRequiredString("App.GameSetting.TokenSuccess"));
                         }
                         else
                         {
@@ -517,7 +513,7 @@ namespace XelLauncher.Forms
                                 detail = output.Trim();
                             AntdUI.Modal.open(new AntdUI.Modal.Config(
                                 FindForm() as AntdUI.BaseForm ?? null,
-                                AntdUI.Localization.Get("App.GameSetting.TokenNotFound", "未找到 Token，请确认游戏已启动"),
+                                Localizer.GetRequiredString("App.GameSetting.TokenNotFound"),
                                 string.IsNullOrEmpty(detail) ? "No output from PowerShell" : detail,
                                 AntdUI.TType.Warn)
                             {
@@ -530,7 +526,7 @@ namespace XelLauncher.Forms
                     {
                         AntdUI.Modal.open(new AntdUI.Modal.Config(
                             FindForm() as AntdUI.BaseForm ?? null,
-                            AntdUI.Localization.Get("App.GameSetting.TokenNotFound", "未找到 Token，请确认游戏已启动"),
+                            Localizer.GetRequiredString("App.GameSetting.TokenNotFound"),
                             ex.ToString(),
                             AntdUI.TType.Error)
                         {
@@ -549,7 +545,7 @@ namespace XelLauncher.Forms
             {
                 var btnSync = new AntdUI.Button
                 {
-                    Text = AntdUI.Localization.Get("App.GameSetting.SyncToBili", "同步路径到 BillBili服"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.SyncToBili"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -563,7 +559,7 @@ namespace XelLauncher.Forms
                     string currentPath = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(currentPath))
                     {
-                        AntdUI.Message.warn(_overview, AntdUI.Localization.Get("App.GameSetting.WarnSetOfficialPath", "请先设置官服路径"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetOfficialPath"));
                         return;
                     }
                     try
@@ -573,7 +569,7 @@ namespace XelLauncher.Forms
                         var bili = cfg.Games.Find(g => g.IconName == "BiliArknights");
                         if (bili != null) bili.RootPath = currentPath;
                         ConfigHelper.Save(cfg);
-                        AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.GameSetting.SyncSuccess", "路径已同步到 BillBili服"));
+                        AntdUI.Message.success(_overview, Localizer.GetRequiredString("App.GameSetting.SyncSuccess"));
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -596,7 +592,7 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 630),
                 Size = new Size(264, 20),
                 Thickness = 1F,
-                Text = AntdUI.Localization.Get("App.GameSetting.CustomSync", "自定义联动软件"),
+                Text = Localizer.GetRequiredString("App.GameSetting.CustomSync"),
                 Orientation = AntdUI.TOrientation.Left,
                 OrientationMargin = 0
             };
@@ -611,7 +607,7 @@ namespace XelLauncher.Forms
             // ── 管理按钮（Switch 开启时才显示）──
             var btnManage = new AntdUI.Button
             {
-                Text = AntdUI.Localization.Get("App.GameSetting.ManageSync", "管理联动软件"),
+                Text = Localizer.GetRequiredString("App.GameSetting.ManageSync"),
                 Location = new Point(20, 660),
                 Size = new Size(320, 36),
                 Ghost = true,
@@ -652,7 +648,7 @@ namespace XelLauncher.Forms
                     Location = new Point(20, 530),
                     Size = new Size(264, 20),
                     Thickness = 1F,
-                    Text = AntdUI.Localization.Get("App.GameSetting.AccountSwitch", "启用账号切换"),
+                    Text = Localizer.GetRequiredString("App.GameSetting.AccountSwitch"),
                     Orientation = AntdUI.TOrientation.Left,
                     OrientationMargin = 0
                 };
@@ -682,7 +678,7 @@ namespace XelLauncher.Forms
                 Location = new Point(20, 560),
                 Size = new Size(270, 20),
                 Thickness = 1F,
-                Text = AntdUI.Localization.Get("App.GameSetting.CustomLaunchArgs", "自定义启动参数"),
+                Text = Localizer.GetRequiredString("App.GameSetting.CustomLaunchArgs"),
                 Orientation = AntdUI.TOrientation.Left,
                 OrientationMargin = 0
             };
@@ -700,7 +696,7 @@ namespace XelLauncher.Forms
                 Size = new Size(320, 36),
                 Text = entryNow?.CustomLaunchArgs ?? "",
                 ReadOnly = !launchArgsEnabled,
-                PlaceholderText = AntdUI.Localization.Get("App.GameSetting.CustomLaunchArgsPlaceholder", "输入启动参数"),
+                PlaceholderText = Localizer.GetRequiredString("App.GameSetting.CustomLaunchArgsPlaceholder"),
             };
             inputArgs.TextChanged += (s, e) =>
             {
@@ -988,9 +984,7 @@ namespace XelLauncher.Forms
             var officialPath = official?.RootPath?.Trim();
             if (string.IsNullOrWhiteSpace(officialPath) || !Directory.Exists(officialPath))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.SourceMissing",
-                    "未找到完整的明日方舟官服客户端"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.LinkedClient.Error.SourceMissing"));
                 return;
             }
 
@@ -999,47 +993,35 @@ namespace XelLauncher.Forms
                 LinkedClientPolicy.IsSharedClient(
                     "BiliArknights", bilibili?.RootPath))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.MutationBlocked",
-                    "当前客户端仍在共享硬链接文件，请先解除共享。"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.LinkedClient.Error.MutationBlocked"));
                 return;
             }
 
             if (GameUpdateManager.Find(officialPath) != null ||
                 GameRepairManager.IsRepairing(officialPath))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.GroupBusy",
-                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                 return;
             }
 
             var owner = FindForm();
             var targetPath = DialogHelper.BrowseFolder(
                 owner?.IsHandleCreated == true ? owner.Handle : IntPtr.Zero,
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.SelectTarget",
-                    "选择 B 服客户端目录"),
+                Localizer.GetRequiredString("App.LinkedClient.SelectTarget"),
                 _inputPath.Text);
             if (targetPath == null) return;
 
             var confirm = AntdUI.Modal.open(new AntdUI.Modal.Config(
                 owner as AntdUI.BaseForm ?? null,
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.ConfirmTitle",
-                    "创建独立 B 服客户端"),
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.ConfirmMessage",
-                    "将在同一 NTFS 分区的空目录创建 B 服客户端。创建时请关闭游戏及两个渠道启动器；共享期间请勿更新或修复，更新前请先解除共享。是否继续？") +
+                Localizer.GetRequiredString("App.LinkedClient.ConfirmTitle"),
+                Localizer.GetRequiredString("App.LinkedClient.ConfirmMessage") +
                 Environment.NewLine + Environment.NewLine +
-                AntdUI.Localization.Get(
-                    "App.LinkedRuntime.FirstCreationTip",
-                    "首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。") +
+                Localizer.GetRequiredString("App.LinkedRuntime.FirstCreationTip") +
                 Environment.NewLine + Environment.NewLine + targetPath,
                 AntdUI.TType.Warn)
             {
-                OkText = AntdUI.Localization.Get("OK", "确定"),
-                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
+                OkText = Localizer.GetRequiredString("OK"),
+                CancelText = Localizer.GetRequiredString("Cancel"),
                 Width = 580,
             });
             if (confirm != DialogResult.OK) return;
@@ -1047,9 +1029,7 @@ namespace XelLauncher.Forms
             SetLinkedClientControlsBusy(true);
             AntdUI.Message.loading(
                 _overview,
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.Creating",
-                    "正在创建硬链接客户端…"),
+                Localizer.GetRequiredString("App.LinkedClient.Creating"),
                 async loading =>
                 {
                     ArknightsLinkedClientResult result;
@@ -1068,9 +1048,7 @@ namespace XelLauncher.Forms
                     {
                         LogHelper.LogError(ex, "Create linked Arknights Bilibili client");
                         loading.Error(string.Format(
-                            AntdUI.Localization.Get(
-                                "App.LinkedClient.Failed",
-                                "创建硬链接客户端失败：{0}"),
+                            Localizer.GetRequiredString("App.LinkedClient.Failed"),
                             ex.Message));
                         RefreshLinkedClientControls();
                         return;
@@ -1079,9 +1057,7 @@ namespace XelLauncher.Forms
                     try
                     {
                         loading.OK(string.Format(
-                            AntdUI.Localization.Get(
-                                "App.LinkedClient.Success",
-                                "已通过硬链接共享 {0} 个文件，B 服客户端版本为 {1}。"),
+                            Localizer.GetRequiredString("App.LinkedClient.Success"),
                             result.LinkedFileCount,
                             result.TargetVersion));
                     }
@@ -1155,34 +1131,26 @@ namespace XelLauncher.Forms
                 string.IsNullOrWhiteSpace(clientPath) ||
                 !Directory.Exists(clientPath))
             {
-                AntdUI.Message.info(_overview, AntdUI.Localization.Get(
-                    "App.LinkedClient.DetachSuccess",
-                    "当前客户端没有共享中的硬链接文件。"));
+                AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.LinkedClient.DetachSuccess"));
                 return;
             }
 
             if (GameUpdateManager.Find(clientPath) != null ||
                 GameRepairManager.IsRepairing(clientPath))
             {
-                AntdUI.Message.warn(_overview, AntdUI.Localization.Get(
-                    "App.LinkedClient.Error.GroupBusy",
-                    "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                 return;
             }
 
             var owner = FindForm();
             var confirm = AntdUI.Modal.open(new AntdUI.Modal.Config(
                 owner as AntdUI.BaseForm ?? null,
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.DetachConfirmTitle",
-                    "解除客户端共享"),
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.DetachConfirmMessage",
-                    "将把共享硬链接转换为独立文件，并占用额外磁盘空间。是否继续？"),
+                Localizer.GetRequiredString("App.LinkedClient.DetachConfirmTitle"),
+                Localizer.GetRequiredString("App.LinkedClient.DetachConfirmMessage"),
                 AntdUI.TType.Warn)
             {
-                OkText = AntdUI.Localization.Get("OK", "确定"),
-                CancelText = AntdUI.Localization.Get("Cancel", "取消"),
+                OkText = Localizer.GetRequiredString("OK"),
+                CancelText = Localizer.GetRequiredString("Cancel"),
                 Width = 580,
             });
             if (confirm != DialogResult.OK) return;
@@ -1190,9 +1158,7 @@ namespace XelLauncher.Forms
             SetLinkedClientControlsBusy(true);
             AntdUI.Message.loading(
                 _overview,
-                AntdUI.Localization.Get(
-                    "App.LinkedClient.Detaching",
-                    "正在解除硬链接共享…"),
+                Localizer.GetRequiredString("App.LinkedClient.Detaching"),
                 async loading =>
                 {
                     try
@@ -1214,9 +1180,7 @@ namespace XelLauncher.Forms
                     {
                         LogHelper.LogError(ex, "Detach linked Arknights client");
                         loading.Error(string.Format(
-                            AntdUI.Localization.Get(
-                                "App.LinkedClient.DetachFailed",
-                                "解除硬链接共享失败：{0}"),
+                            Localizer.GetRequiredString("App.LinkedClient.DetachFailed"),
                             ex.Message));
                         RefreshLinkedClientControls();
                         return;
@@ -1224,9 +1188,7 @@ namespace XelLauncher.Forms
 
                     try
                     {
-                        loading.OK(AntdUI.Localization.Get(
-                            "App.LinkedClient.DetachSuccess",
-                            "已解除硬链接共享，当前客户端现在拥有独立文件。"));
+                        loading.OK(Localizer.GetRequiredString("App.LinkedClient.DetachSuccess"));
                     }
                     catch (Exception ex)
                     {
@@ -1328,27 +1290,17 @@ namespace XelLauncher.Forms
             bool detaching)
         {
             var text = detaching
-                ? AntdUI.Localization.Get(
-                    "App.LinkedClient.Detaching",
-                    "正在解除硬链接共享…")
+                ? Localizer.GetRequiredString("App.LinkedClient.Detaching")
                 : progress.Stage switch
                 {
-                    ArknightsLinkedClientStage.Validating => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.Validating", "正在检查目录与磁盘…"),
-                    ArknightsLinkedClientStage.FetchingManifests => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.FetchingManifests", "正在获取文件清单…"),
-                    ArknightsLinkedClientStage.VerifyingSource => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.VerifyingSource", "正在校验官服客户端…"),
-                    ArknightsLinkedClientStage.LinkingFiles => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.LinkingFiles", "正在创建共享硬链接…"),
-                    ArknightsLinkedClientStage.RepairingTarget => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.RepairingTarget", "正在补全 B 服专用文件…"),
-                    ArknightsLinkedClientStage.VerifyingTarget => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.VerifyingTarget", "正在校验 B 服客户端…"),
-                    ArknightsLinkedClientStage.Finalizing => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.Finalizing", "正在写入客户端目录…"),
-                    _ => AntdUI.Localization.Get(
-                        "App.LinkedClient.Stage.Completed", "创建完成"),
+                    ArknightsLinkedClientStage.Validating => Localizer.GetRequiredString("App.LinkedClient.Stage.Validating"),
+                    ArknightsLinkedClientStage.FetchingManifests => Localizer.GetRequiredString("App.LinkedClient.Stage.FetchingManifests"),
+                    ArknightsLinkedClientStage.VerifyingSource => Localizer.GetRequiredString("App.LinkedClient.Stage.VerifyingSource"),
+                    ArknightsLinkedClientStage.LinkingFiles => Localizer.GetRequiredString("App.LinkedClient.Stage.LinkingFiles"),
+                    ArknightsLinkedClientStage.RepairingTarget => Localizer.GetRequiredString("App.LinkedClient.Stage.RepairingTarget"),
+                    ArknightsLinkedClientStage.VerifyingTarget => Localizer.GetRequiredString("App.LinkedClient.Stage.VerifyingTarget"),
+                    ArknightsLinkedClientStage.Finalizing => Localizer.GetRequiredString("App.LinkedClient.Stage.Finalizing"),
+                    _ => Localizer.GetRequiredString("App.LinkedClient.Stage.Completed"),
                 };
 
             if (progress.FileCount > 0)
@@ -1427,7 +1379,7 @@ namespace XelLauncher.Forms
             IntPtr ownerHandle = form?.IsHandleCreated == true ? form.Handle : IntPtr.Zero;
             string path = Helpers.DialogHelper.BrowseFolder(
                 ownerHandle,
-                AntdUI.Localization.Get("App.Game.SelectDirTitle", "选择「{0}」游戏根目录").Replace("{0}", _game.GetLocalizedName()),
+                Localizer.GetRequiredString("App.Game.SelectDirTitle").Replace("{0}", _game.GetLocalizedName()),
                 _inputPath.Text);
             if (path == null) return;
 

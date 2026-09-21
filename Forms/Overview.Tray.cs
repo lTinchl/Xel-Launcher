@@ -15,9 +15,9 @@ namespace XelLauncher.Forms
                 Visible = false,
             };
             var menu = new ContextMenuStrip();
-            menu.Items.Add(AntdUI.Localization.Get("App.Tray.Show", "显示主窗口"), null, (s, e) => RestoreFromTray());
+            menu.Items.Add(Localizer.GetRequiredString("App.Tray.Show"), null, (s, e) => RestoreFromTray());
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(AntdUI.Localization.Get("App.Tray.Exit", "退出"), null, (s, e) => { _forceClose = true; _trayIcon.Visible = false; Application.Exit(); });
+            menu.Items.Add(Localizer.GetRequiredString("App.Tray.Exit"), null, (s, e) => { _forceClose = true; _trayIcon.Visible = false; Application.Exit(); });
             _trayIcon.ContextMenuStrip = menu;
             _trayIcon.DoubleClick += (s, e) => RestoreFromTray();
         }

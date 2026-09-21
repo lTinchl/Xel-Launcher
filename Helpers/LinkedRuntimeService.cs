@@ -238,9 +238,7 @@ namespace XelLauncher.Helpers
                 if (marker == null && onProgress != null)
                 {
                     var reportProgress = onProgress;
-                    var creationTip = AntdUI.Localization.Get(
-                        "App.LinkedRuntime.FirstCreationTip",
-                        "首次创建硬链接运行目录可能耗时较长，具体取决于文件数量和硬盘读写速度，请耐心等待。");
+                    var creationTip = Localizer.GetRequiredString("App.LinkedRuntime.FirstCreationTip");
                     onProgress = message => reportProgress(
                         message + Environment.NewLine + creationTip);
                     onProgress("正在检查共享运行环境...");
@@ -993,9 +991,7 @@ namespace XelLauncher.Helpers
                     index + 1, plannedFiles.Length);
             }
 
-            onProgress?.Invoke(AntdUI.Localization.Get(
-                "App.LinkedRuntime.Progress.Finalizing",
-                "正在完成共享运行环境…"));
+            onProgress?.Invoke(Localizer.GetRequiredString("App.LinkedRuntime.Progress.Finalizing"));
             await SeedArknightsPersistentMetadataAsync(
                     resolution.Target, resolution.RootPath, runtimePath,
                     counters, cancellationToken)

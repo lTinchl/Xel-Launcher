@@ -47,9 +47,7 @@ namespace XelLauncher.Helpers
                         iconName, rootPath, out operationLease))
                 {
                     throw new InvalidOperationException(
-                        AntdUI.Localization.Get(
-                            "App.LinkedClient.Error.GroupBusy",
-                            "关联客户端正在执行更新、修复或共享操作，请稍后重试"));
+                        Localizer.GetRequiredString("App.LinkedClient.Error.GroupBusy"));
                 }
 
                 // Resolve the on-disk channel while holding the path lease. A
@@ -82,13 +80,10 @@ namespace XelLauncher.Helpers
                         if (payloadDir == null || !Directory.Exists(payloadDir))
                         {
                             throw new FileNotFoundException(
-                                AntdUI.Localization.Get(
-                                    "App.Switch.NoPayload",
-                                    "未找到切服资源（文件夹或 ZIP 均不存在）"));
+                                Localizer.GetRequiredString("App.Switch.NoPayload"));
                         }
 
-                        onProgress(AntdUI.Localization.Get(
-                            "App.Switch.Copying", "切服中..."));
+                        onProgress(Localizer.GetRequiredString("App.Switch.Copying"));
 
                         return await ServerPayloadDeployment.DeployProfileAsync(
                             profile, payloadDir, rootPath,
@@ -101,8 +96,7 @@ namespace XelLauncher.Helpers
                         iconName, rootPath, "traditional-server-switch");
                 }
 
-                string doneMsg = AntdUI.Localization.Get(
-                    "App.Switch.DoneCopy", "游戏启动中···");
+                string doneMsg = Localizer.GetRequiredString("App.Switch.DoneCopy");
                 onProgress(doneMsg);
             }
             catch (Exception ex) when (IsFileInUseException(ex))
@@ -246,9 +240,7 @@ namespace XelLauncher.Helpers
         }
 
         private static string GetCloseGameClientMessage() =>
-            AntdUI.Localization.Get(
-                "App.Game.CloseClientBeforeSwitch",
-                "渠道文件正在被占用，请关闭游戏客户端后重试。");
+            Localizer.GetRequiredString("App.Game.CloseClientBeforeSwitch");
 
         private static bool IsFileInUseException(Exception exception)
         {

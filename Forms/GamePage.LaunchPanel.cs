@@ -30,7 +30,7 @@ namespace XelLauncher.Forms
             };
 
             var tooltip = new AntdUI.TooltipComponent();
-            tooltip.SetTip(btnArknightsWiki, AntdUI.Localization.Get("App.Game.Toolbox", "小工具"));
+            tooltip.SetTip(btnArknightsWiki, Localizer.GetRequiredString("App.Game.Toolbox"));
             btnArknightsWiki.Click += btnArknightsWiki_Click;
 
             btnAccountManage = new AntdUI.Button
@@ -43,7 +43,7 @@ namespace XelLauncher.Forms
                 Radius = 22,
                 WaveSize = 0,
             };
-            TopTooltip().SetTip(btnAccountManage, AntdUI.Localization.Get("App.Game.AccountManage", "账号管理"));
+            TopTooltip().SetTip(btnAccountManage, Localizer.GetRequiredString("App.Game.AccountManage"));
             btnAccountManage.Click += btnAccountManage_Click;
 
             accountSelect = new AntdUI.Select
@@ -52,7 +52,7 @@ namespace XelLauncher.Forms
                 Size = new Size(164, 52),
                 Radius = 24,
                 BorderWidth = 1F,
-                PlaceholderText = AntdUI.Localization.Get("App.Game.SelectAccount", "  选择账号"),
+                PlaceholderText = Localizer.GetRequiredString("App.Game.SelectAccount"),
                 Font = new Font("Microsoft YaHei UI", 11F),
                 DropDownRadius = 8,
                 Placement = AntdUI.TAlignFrom.TL,
@@ -70,14 +70,14 @@ namespace XelLauncher.Forms
                 WaveSize = 4,
                 Visible = false,
             };
-            TopTooltip().SetTip(btnPreload, AntdUI.Localization.Get("App.Game.Preload", "预下载"));
+            TopTooltip().SetTip(btnPreload, Localizer.GetRequiredString("App.Game.Preload"));
             btnPreload.Click += (s, e) => PreloadGame();
 
             GameStart = new GameLaunchButton
             {
                 BackExtend = "135, #6253E1, #04BEFE",
                 IconSvg = "PoweroffOutlined",
-                Text = AntdUI.Localization.Get("App.Game.Start", "开始游戏"),
+                Text = Localizer.GetRequiredString("App.Game.Start"),
                 Location = new Point(224, 0),
                 Size = new Size(164, 52),
                 BorderWidth = 0,
@@ -113,7 +113,7 @@ namespace XelLauncher.Forms
             AcrylicPopupHelper.Attach(accountSelect);
             AcrylicPopupHelper.Attach(floatMenu);
 
-            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Setting", "游戏设置"), "setting").SetIcon("SettingOutlined"));
+            floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Setting"), "setting").SetIcon("SettingOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "setting")
@@ -128,7 +128,7 @@ namespace XelLauncher.Forms
                     });
                 }
             };
-            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Repair", "校验游戏完整性"), "repair").SetIcon("SafetyCertificateOutlined"));
+            floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Repair"), "repair").SetIcon("SafetyCertificateOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "repair")
@@ -142,7 +142,7 @@ namespace XelLauncher.Forms
             };
 
             floatMenu.Items.Add(new AntdUI.SelectItem(
-                AntdUI.Localization.Get("App.Game.PayloadUpdate", "更新切服资源"),
+                Localizer.GetRequiredString("App.Game.PayloadUpdate"),
                 "payloadUpdate").SetIcon("CloudSyncOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
@@ -154,9 +154,7 @@ namespace XelLauncher.Forms
                         var content = new ServerPayloadUpdateForm(_overview);
                         AntdUI.Modal.open(new AntdUI.Modal.Config(
                             _overview,
-                            AntdUI.Localization.Get(
-                                "App.PayloadUpdate.Title",
-                                "切服差异文件更新"),
+                            Localizer.GetRequiredString("App.PayloadUpdate.Title"),
                             content)
                         {
                             OkText = null,
@@ -169,7 +167,7 @@ namespace XelLauncher.Forms
                 }
             };
 
-            floatMenu.Items.Add(new AntdUI.SelectItem(AntdUI.Localization.Get("App.Game.Deledwonload", "清理下载缓存"), "Deledwonload").SetIcon("DeleteOutlined"));
+            floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Deledwonload"), "Deledwonload").SetIcon("DeleteOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "Deledwonload")
@@ -187,17 +185,17 @@ namespace XelLauncher.Forms
                             {
                                 Directory.Delete(cachePath, true);
                                 ResetInstallStateAfterDownloadCacheClear(path);
-                                AntdUI.Message.success(_overview, AntdUI.Localization.Get("App.Game.ClearCacheSuccess", "下载缓存已清理"));
+                                AntdUI.Message.success(_overview, Localizer.GetRequiredString("App.Game.ClearCacheSuccess"));
                             }
                             catch (Exception ex)
                             {
-                                AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Game.ClearCacheFailed", "清理下载缓存失败: {0}"), ex.Message));
+                                AntdUI.Message.error(_overview, string.Format(Localizer.GetRequiredString("App.Game.ClearCacheFailed"), ex.Message));
                             }
                         }
                         else
                         {
                             ResetInstallStateAfterDownloadCacheClear(path);
-                            AntdUI.Message.info(_overview, AntdUI.Localization.Get("App.Game.NoCache", "未找到下载缓存"));
+                            AntdUI.Message.info(_overview, Localizer.GetRequiredString("App.Game.NoCache"));
                         }
                     });
                 }
@@ -232,9 +230,10 @@ namespace XelLauncher.Forms
             btnPreload.Enabled = !_preloadRunning;
             btnPreload.Loading = _preloadRunning;
             btnPreload.IconSvg = _preloadCompleted && !_preloadRunning ? "CheckCircleOutlined" : "CloudDownloadOutlined";
-            TopTooltip().SetTip(btnPreload, AntdUI.Localization.Get(
-                _preloadCompleted && !_preloadRunning ? "App.Game.Preload.Success" : "App.Game.Preload",
-                _preloadCompleted && !_preloadRunning ? "预下载已完成" : "预下载"));
+            var tooltipKey = _preloadCompleted && !_preloadRunning
+                ? "App.Game.Preload.Success"
+                : "App.Game.Preload";
+            TopTooltip().SetTip(btnPreload, Localizer.GetRequiredString(tooltipKey));
             ApplyLaunchPanelLayout();
         }
 

@@ -30,7 +30,7 @@ namespace XelLauncher.Forms
 
             var lblTitle = new AntdUI.Label
             {
-                Text = AntdUI.Localization.Get("App.Picker.Title", "选择要添加的游戏"),
+                Text = Localizer.GetRequiredString("App.Picker.Title"),
                 Dock = DockStyle.Top,
                 Height = 36,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -61,7 +61,7 @@ namespace XelLauncher.Forms
                     var cfg = ConfigHelper.Load();
                     if (cfg.Games.Exists(x => channel.Matches(x.IconName)))
                     {
-                        AntdUI.Message.error(_overview, string.Format(AntdUI.Localization.Get("App.Picker.AlreadyAdded", "「{0}」已在列表中，不能重复添加。"), lbl));
+                        AntdUI.Message.error(_overview, string.Format(Localizer.GetRequiredString("App.Picker.AlreadyAdded"), lbl));
                         return;
                     }
                     var entry = new GameEntry

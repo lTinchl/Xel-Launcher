@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
 {
@@ -19,7 +20,7 @@ namespace XelLauncher.Forms
 
         public BrowserForm(string startUrl = "https://www.google.com")
         {
-            this.Text = AntdUI.Localization.Get("App.Browser.Title", "浏览器");
+            this.Text = Localizer.GetRequiredString("App.Browser.Title");
             this.Size = new System.Drawing.Size(1200, 800);
             this.StartPosition = FormStartPosition.CenterParent;
 
@@ -87,7 +88,7 @@ namespace XelLauncher.Forms
             }
             catch
             {
-                AntdUI.Message.error(this, AntdUI.Localization.Get("App.Browser.NoRuntime", "未找到 WebView2 Runtime，请先安装！"));
+                AntdUI.Message.error(this, Localizer.GetRequiredString("App.Browser.NoRuntime"));
             }
         }
 

@@ -202,7 +202,7 @@
     <value>Saving...</value>
   </data>
   <data name="App.Account.SaveOK" xml:space="preserve">
-    <value>Account \"{0}\" saved</value>
+    <value>Account [{0}] saved</value>
   </data>
   <data name="App.Account.TagDefault" xml:space="preserve">
     <value>Default</value>
@@ -254,6 +254,12 @@
   </data>
   <data name="App.Game.HardLinkTip" xml:space="preserve">
     <value>Tip: Install the launcher on the same drive as your game to enable hard links for instant server switching</value>
+  </data>
+  <data name="App.Game.InfoBadge.Installed" xml:space="preserve">
+    <value>Local: {0} · v{1}</value>
+  </data>
+  <data name="App.Game.InfoBadge.Target" xml:space="preserve">
+    <value>Target: {0}</value>
   </data>
   <data name="App.Game.Install" xml:space="preserve">
     <value>Install Game</value>
@@ -694,7 +700,7 @@
     <value>Help</value>
   </data>
   <data name="App.Picker.AlreadyAdded" xml:space="preserve">
-    <value>\"{0}\" is already in the list.</value>
+    <value>[{0}] is already in the list.</value>
   </data>
   <data name="App.Picker.Title" xml:space="preserve">
     <value>Select a game to add</value>
@@ -1017,6 +1023,12 @@
   <data name="App.Skyland.Error.CredMissing" xml:space="preserve">
     <value>Failed to get cred: response is missing cred or token.</value>
   </data>
+  <data name="App.Skyland.Error.DeviceProfileFailed" xml:space="preserve">
+    <value>Failed to generate the Skland device profile: {0}</value>
+  </data>
+  <data name="App.Skyland.Error.DeviceRefreshFailed" xml:space="preserve">
+    <value>The request still failed after refreshing the device information.</value>
+  </data>
   <data name="App.Skyland.Error.GrantCodeMissing" xml:space="preserve">
     <value>Failed to get grant code with token: response is missing code.</value>
   </data>
@@ -1108,7 +1120,7 @@
     <value>Get Token by Password</value>
   </data>
   <data name="App.Skyland.Phone" xml:space="preserve">
-    <value>Phone</value>
+    <value>Phone number</value>
   </data>
   <data name="App.Skyland.PhonePlaceholder" xml:space="preserve">
     <value>Enter phone number</value>
@@ -1276,7 +1288,7 @@
     <value>No sync apps yet</value>
   </data>
   <data name="App.Sync.EmptySub" xml:space="preserve">
-    <value>Click \"+ Add\" in the top right to add an app</value>
+    <value>Click "+ Add" in the top right to add an app</value>
   </data>
   <data name="App.Sync.Title" xml:space="preserve">
     <value>Sync App Manager</value>
@@ -1297,7 +1309,7 @@
     <value>Canceling...</value>
   </data>
   <data name="App.Update.ChangelogHint" xml:space="preserve">
-    <value>Click \"Check for Updates\" to see the latest release notes</value>
+    <value>Click "Check for Updates" to see the latest release notes</value>
   </data>
   <data name="App.Update.CheckFailed" xml:space="preserve">
     <value>Check failed. Please check your network connection.</value>
@@ -2768,6 +2780,9 @@
   </data>
   <data name="App.LinkedRuntime.FirstCreationTip" xml:space="preserve">
     <value>Creating the hard-linked runtime directory for the first time may take a while, depending on the number of files and disk read/write speed. Please wait.</value>
+  </data>
+  <data name="App.LinkedRuntime.Fallback" xml:space="preserve">
+    <value>The shared runtime is unavailable. Falling back to traditional channel switching...</value>
   </data>
   <data name="App.LinkedRuntime.Progress.Creating" xml:space="preserve">
     <value>Creating the shared runtime: {0}/{1} ({2}%)</value>

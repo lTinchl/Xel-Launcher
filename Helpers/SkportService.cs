@@ -39,9 +39,9 @@ namespace XelLauncher.Helpers
         public async Task<string> LoginByPasswordAsync(string account, string password, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(account))
-                throw new ArgumentException(AntdUI.Localization.Get("App.Skport.Error.AccountRequired", "请输入账号"), nameof(account));
+                throw new ArgumentException(Localizer.GetRequiredString("App.Skport.Error.AccountRequired"), nameof(account));
             if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException(AntdUI.Localization.Get("App.Skport.Error.PasswordRequired", "请输入密码"), nameof(password));
+                throw new ArgumentException(Localizer.GetRequiredString("App.Skport.Error.PasswordRequired"), nameof(password));
 
             using var request = CreateRequest(HttpMethod.Post, TokenByPasswordUrl);
             // using "account" and "password" as a best effort guess for gryphline if it's not "phone"
@@ -59,19 +59,19 @@ namespace XelLauncher.Helpers
             request.Content = JsonContent(JsonSerializer.Serialize(payload));
 
             var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
-            return ExtractLoginToken(root, AntdUI.Localization.Get("App.Skport.Action.PasswordLogin", "账号密码登录"));
+            return ExtractLoginToken(root, Localizer.GetRequiredString("App.Skport.Action.PasswordLogin"));
         }
 
         public async Task<List<string>> SignAllAsync(IEnumerable<string> tokens, IProgress<string> progress, CancellationToken cancellationToken = default)
         {
             var messages = new List<string>();
             var tokenList = tokens.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
-            if (tokenList.Count == 0) throw new InvalidOperationException(AntdUI.Localization.Get("App.Skport.Error.TokenRequiredEnv", "请先添加 SKPORT_TOKEN。"));
+            if (tokenList.Count == 0) throw new InvalidOperationException(Localizer.GetRequiredString("App.Skport.Error.TokenRequiredEnv"));
 
             for (var i = 0; i < tokenList.Count; i++)
             {
-                var accountLabel = string.Format(AntdUI.Localization.Get("App.Skport.Log.Account", "账号 {0}"), i + 1);
-                progress?.Report(string.Format(AntdUI.Localization.Get("App.Skport.Log.ProcessAccount", "开始处理{0}..."), accountLabel));
+                var accountLabel = string.Format(Localizer.GetRequiredString("App.Skport.Log.Account"), i + 1);
+                progress?.Report(string.Format(Localizer.GetRequiredString("App.Skport.Log.ProcessAccount"), accountLabel));
 
                 try
                 {
@@ -80,7 +80,7 @@ namespace XelLauncher.Helpers
 
                     if (bindings.Count == 0)
                     {
-                        var message = string.Format(AntdUI.Localization.Get("App.Skport.Log.NoBindings", "[{0}] 未找到可签到的终末地绑定角色。"), accountLabel);
+                        var message = string.Format(Localizer.GetRequiredString("App.Skport.Log.NoBindings"), accountLabel);
                         messages.Add(message);
                         progress?.Report(message);
                         continue;
@@ -106,7 +106,7 @@ namespace XelLauncher.Helpers
                 }
                 catch (Exception ex)
                 {
-                    var message = string.Format(AntdUI.Localization.Get("App.Skport.Log.AccountFailed", "[{0}] 签到失败：{1}"), accountLabel, ex.Message);
+                    var message = string.Format(Localizer.GetRequiredString("App.Skport.Log.AccountFailed"), accountLabel, ex.Message);
                     messages.Add(message);
                     progress?.Report(message);
                 }
@@ -114,7 +114,7 @@ namespace XelLauncher.Helpers
                 if (i < tokenList.Count - 1)
                 {
                     var delaySeconds = Random.Shared.Next(MinAccountSignDelaySeconds, MaxAccountSignDelaySeconds + 1);
-                    progress?.Report(string.Format(AntdUI.Localization.Get("App.Skport.Log.WaitNext", "等待 {0} 秒后继续处理下一个账号..."), delaySeconds));
+                    progress?.Report(string.Format(Localizer.GetRequiredString("App.Skport.Log.WaitNext"), delaySeconds));
                     await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -143,10 +143,10 @@ namespace XelLauncher.Helpers
                 ["type"] = 0
             }));
             var grantRoot = await SendJsonAsync(grantRequest, cancellationToken).ConfigureAwait(false);
-            EnsureAuthOk(grantRoot, AntdUI.Localization.Get("App.Skport.Action.GetGrantCode", "使用 token 获取授权码"));
+            EnsureAuthOk(grantRoot, Localizer.GetRequiredString("App.Skport.Action.GetGrantCode"));
             var grantCode = grantRoot["data"]?["code"]?.GetValue<string>() ?? "";
             if (string.IsNullOrWhiteSpace(grantCode))
-                throw new InvalidOperationException(AntdUI.Localization.Get("App.Skport.Error.GrantCodeMissing", "使用 token 获取授权码失败：返回结果缺少 code。"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.Skport.Error.GrantCodeMissing"));
 
             using var credRequest = CreateRequest(HttpMethod.Post, CredCodeUrl);
             credRequest.Content = JsonContent(JsonSerializer.Serialize(new Dictionary<string, object>
@@ -155,13 +155,13 @@ namespace XelLauncher.Helpers
                 ["kind"] = 1
             }));
             var credRoot = await SendJsonAsync(credRequest, cancellationToken).ConfigureAwait(false);
-            EnsureApiOk(credRoot, AntdUI.Localization.Get("App.Skport.Action.GetCred", "获取 cred"));
+            EnsureApiOk(credRoot, Localizer.GetRequiredString("App.Skport.Action.GetCred"));
 
             var data = credRoot["data"];
             var cred = data?["cred"]?.GetValue<string>() ?? "";
             var signToken = data?["token"]?.GetValue<string>() ?? "";
             if (string.IsNullOrWhiteSpace(cred) || string.IsNullOrWhiteSpace(signToken))
-                throw new InvalidOperationException(AntdUI.Localization.Get("App.Skport.Error.CredMissing", "获取 cred 失败：返回结果缺少 cred 或 token。"));
+                throw new InvalidOperationException(Localizer.GetRequiredString("App.Skport.Error.CredMissing"));
 
             return new SkportSession(cred, signToken);
         }
@@ -170,7 +170,7 @@ namespace XelLauncher.Helpers
         {
             using var request = CreateSignedRequest(HttpMethod.Get, BindingUrl, null, session);
             var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
-            EnsureApiOk(root, AntdUI.Localization.Get("App.Skport.Action.GetBindings", "获取绑定角色列表"));
+            EnsureApiOk(root, Localizer.GetRequiredString("App.Skport.Action.GetBindings"));
 
             var result = new List<SkportBinding>();
             foreach (var game in root["data"]?["list"]?.AsArray() ?? new JsonArray())
@@ -200,10 +200,10 @@ namespace XelLauncher.Helpers
                 request.Headers.TryAddWithoutValidation("origin", "https://game.skport.com/");
 
                 var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
-                var title = string.Format(AntdUI.Localization.Get("App.Skport.Log.RoleTitle", "[{0}] 角色 {1}({2})"), binding.GameName, role.Nickname, binding.ChannelName);
+                var title = string.Format(Localizer.GetRequiredString("App.Skport.Log.RoleTitle"), binding.GameName, role.Nickname, binding.ChannelName);
                 if (!IsApiOk(root))
                 {
-                    results.Add(string.Format(AntdUI.Localization.Get("App.Skport.Log.SignFailed", "{0} 签到失败：{1}"), title, GetErrorMessage(root)));
+                    results.Add(string.Format(Localizer.GetRequiredString("App.Skport.Log.SignFailed"), title, GetErrorMessage(root)));
                     continue;
                 }
 
@@ -220,7 +220,7 @@ namespace XelLauncher.Helpers
                     if (!string.IsNullOrWhiteSpace(name)) awards.Add($"{name}x{count}");
                 }
 
-                results.Add(string.Format(AntdUI.Localization.Get("App.Skport.Log.SignSuccess", "{0} 签到成功，获得 {1}"), title, string.Join(AntdUI.Localization.Get("App.Skport.ListSeparator", "、"), awards)));
+                results.Add(string.Format(Localizer.GetRequiredString("App.Skport.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skport.ListSeparator"), awards)));
             }
 
             return string.Join(Environment.NewLine, results);
@@ -289,7 +289,7 @@ namespace XelLauncher.Helpers
         {
             var status = root["status"]?.GetValue<int?>() ?? root["code"]?.GetValue<int?>() ?? -1;
             if (status != 0)
-                throw new InvalidOperationException(string.Format(AntdUI.Localization.Get("App.Skport.Error.ActionFailed", "{0}失败：{1}"), action, GetErrorMessage(root)));
+                throw new InvalidOperationException(string.Format(Localizer.GetRequiredString("App.Skport.Error.ActionFailed"), action, GetErrorMessage(root)));
         }
 
         private static string ExtractLoginToken(JsonNode root, string action)
@@ -297,14 +297,14 @@ namespace XelLauncher.Helpers
             EnsureAuthOk(root, action);
             var token = root["data"]?["token"]?.GetValue<string>() ?? "";
             if (string.IsNullOrWhiteSpace(token))
-                throw new InvalidOperationException(string.Format(AntdUI.Localization.Get("App.Skport.Error.TokenMissing", "{0}失败：返回结果缺少 token。"), action));
+                throw new InvalidOperationException(string.Format(Localizer.GetRequiredString("App.Skport.Error.TokenMissing"), action));
             return token;
         }
 
         private static void EnsureApiOk(JsonNode root, string action)
         {
             if (!IsApiOk(root))
-                throw new InvalidOperationException(string.Format(AntdUI.Localization.Get("App.Skport.Error.ActionFailed", "{0}失败：{1}"), action, GetErrorMessage(root)));
+                throw new InvalidOperationException(string.Format(Localizer.GetRequiredString("App.Skport.Error.ActionFailed"), action, GetErrorMessage(root)));
         }
 
         private static bool IsApiOk(JsonNode root)

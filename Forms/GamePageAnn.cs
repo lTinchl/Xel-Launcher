@@ -912,7 +912,7 @@ public class NoticeItem
             Math.Max(0, Math.Min(255, value));
 
         private static string NoticeTitle =>
-            AntdUI.Localization.Get("App.Game.Notice", "公告");
+            Localizer.GetRequiredString("App.Game.Notice");
 
         private void PaintScrollBar(Graphics g, int x, int y, int height)
         {
