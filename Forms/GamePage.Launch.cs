@@ -1369,6 +1369,11 @@ namespace XelLauncher.Forms
                             }
                         });
                     }
+                    else
+                    {
+                        _overview.Invoke(new Action(() =>
+                            _overview.WindowState = FormWindowState.Minimized));
+                    }
                     }
                     catch (Exception ex)
                     {
