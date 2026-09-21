@@ -38,6 +38,8 @@ namespace XelLauncher.Forms
                 Font = new Font("Microsoft YaHei UI", 12F),
             };
 
+            var accent = overview.GetCurrentAccentColor();
+
             foreach (var channel in GameChannelCatalog.Channels)
             {
                 // First-phase UI only exposes the six supported channels.
@@ -49,7 +51,7 @@ namespace XelLauncher.Forms
                 var store = channel.StoreName;
                 bool isEn = AntdUI.Localization.CurrentLanguage.StartsWith("en");
                 var lbl = isEn ? channel.LabelEn : channel.StoreName;
-                var card = new CardPanel(key, lbl)
+                var card = new CardPanel(key, lbl, accent)
                 {
                     Width = 120,
                     Height = 110,
@@ -94,14 +96,14 @@ namespace XelLauncher.Forms
             private bool _hovered;
             private Color _bgNormal, _bgHover, _border, _fore, _accent;
 
-            public CardPanel(string iconName, string label)
+            public CardPanel(string iconName, string label, Color accent)
             {
                 _iconName = iconName;
                 _label = label;
                 DoubleBuffered = true;
                 SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
                 _icon = LoadIcon(iconName);
-                _accent = GameTheme.GetAccent(iconName);
+                _accent = accent;
                 UpdateTheme(AntdUI.Config.IsDark);
             }
 

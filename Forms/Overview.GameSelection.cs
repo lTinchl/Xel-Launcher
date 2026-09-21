@@ -136,13 +136,18 @@ namespace XelLauncher.Forms
         private void UpdateSelectedGameButton(GameEntry g)
         {
             var config = ConfigHelper.Load();
-            var accent = _currentGamePage?.GetCoverAccentPalette().Primary ?? AntdUI.Style.Db.Primary;
+            var accent = GetCurrentAccentColor();
 
             for (int i = 0; i < _sidebarBtns.Count && i < config.Games.Count; i++)
             {
                 _sidebarBtns[i].AccentColor = accent;
                 _sidebarBtns[i].Selected = config.Games[i].IconName == g.IconName;
             }
+        }
+
+        internal System.Drawing.Color GetCurrentAccentColor()
+        {
+            return _currentGamePage?.GetCoverAccentPalette().Primary ?? AntdUI.Style.Db.Primary;
         }
     }
 }
