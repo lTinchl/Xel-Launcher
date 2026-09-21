@@ -122,7 +122,7 @@ namespace XelLauncher.Forms
                     Color.FromArgb(172, 207, 219, 230));
                 DrawLeftText(
                     g,
-                    new RectangleF(versionLeft + labelWidth, textTop, valueWidth + 1F, textHeight),
+                    new RectangleF(versionLeft + labelWidth, textTop - 1F, valueWidth + 1F, textHeight),
                     versionValue,
                     Font,
                     Color.FromArgb(224, 222, 235, 244));
