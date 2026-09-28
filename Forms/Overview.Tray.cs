@@ -39,14 +39,19 @@ namespace XelLauncher.Forms
 
         public void ShowFromTray()
         {
-            if (!IsHandleCreated) return;
-            Invoke(new Action(() =>
+            if (IsDisposed || Disposing || !IsHandleCreated) return;
+            try
             {
-                Show();
-                WindowState = FormWindowState.Normal;
-                Activate();
-                _trayIcon.Visible = false;
-            }));
+                BeginInvoke(new Action(() =>
+                {
+                    if (!IsDisposed && !Disposing)
+                        RestoreFromTray();
+                }));
+            }
+            catch (InvalidOperationException)
+            {
+                // The window can be disposed between the check and posting the callback.
+            }
         }
 
         protected override void OnSizeChanged(EventArgs e)

@@ -540,6 +540,9 @@
   <data name="App.Game.Update" xml:space="preserve">
     <value>更新游戏</value>
   </data>
+  <data name="App.Game.ProcessNotDetected" xml:space="preserve">
+    <value>未检测到游戏进程，请检查游戏是否成功启动。</value>
+  </data>
   <data name="App.Game.WaitingProcess" xml:space="preserve">
     <value>等待游戏进程...</value>
   </data>

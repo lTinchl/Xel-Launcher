@@ -17,6 +17,23 @@ namespace XelLauncher.Forms
     {
         private bool _isGameRunning;
 
+        private static async Task RestoreLauncherAfterGameExitAsync(
+            Process process, Overview overview)
+        {
+            using (process)
+            {
+                try
+                {
+                    await process.WaitForExitAsync().ConfigureAwait(false);
+                    overview.ShowFromTray();
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.LogError(ex, "RestoreLauncherAfterGameExit");
+                }
+            }
+        }
+
         private void InitializeGameRunningMonitor()
         {
             var timer = new System.Windows.Forms.Timer { Interval = 1000 };
@@ -1332,48 +1349,33 @@ namespace XelLauncher.Forms
                             launchPath, isEndfield);
                         if (gameProc == null) await Task.Delay(1000);
                     }
+                    if (gameProc == null)
+                        throw new TimeoutException(Localizer.GetRequiredString("App.Game.ProcessNotDetected"));
+
                     config.OK(Localizer.GetRequiredString("App.Game.LaunchSuccess"));
                     var latestCfg = ConfigHelper.Load();
-                    if (latestCfg.CloseAfterLaunch)
-                    {
-                        _overview.Invoke(new Action(() => Application.Exit()));
-                    }
-                    else if (latestCfg.HideToTrayOnLaunch)
-                    {
-                        _overview.Invoke(new Action(() => _overview.HideToTray()));
-                        var overviewRef = _overview;
-                        var capturedProc = gameProc;
-                        _ = System.Threading.Tasks.Task.Run(() =>
-                        {
-                            try
-                            {
-                                if (capturedProc != null)
-                                {
-                                    try
-                                    {
-                                        capturedProc.EnableRaisingEvents = true;
-                                        capturedProc.WaitForExit();
-                                    }
-                                    catch
-                                    {
-                                        // Fall back to polling when process exit events cannot be monitored.
-                                        while (!capturedProc.HasExited)
-                                            System.Threading.Thread.Sleep(3000);
-                                    }
-                                }
-                            }
-                            catch { }
-                            finally
-                            {
-                                overviewRef.ShowFromTray();
-                            }
-                        });
-                    }
-                    else
+                    try
                     {
                         _overview.Invoke(new Action(() =>
-                            _overview.WindowState = FormWindowState.Minimized));
+                        {
+                            if (latestCfg.CloseAfterLaunch)
+                                Application.Exit();
+                            else if (latestCfg.HideToTrayOnLaunch)
+                                _overview.HideToTray();
+                            else
+                                _overview.WindowState = FormWindowState.Minimized;
+                        }));
                     }
+                    catch
+                    {
+                        gameProc.Dispose();
+                        throw;
+                    }
+
+                    if (latestCfg.CloseAfterLaunch)
+                        gameProc.Dispose();
+                    else
+                        _ = RestoreLauncherAfterGameExitAsync(gameProc, _overview);
                     }
                     catch (Exception ex)
                     {
