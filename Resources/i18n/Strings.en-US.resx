@@ -540,6 +540,9 @@
   <data name="App.Game.Update" xml:space="preserve">
     <value>Update Game</value>
   </data>
+  <data name="App.Game.ProcessNotDetected" xml:space="preserve">
+    <value>The game process was not detected. Please check whether the game started successfully.</value>
+  </data>
   <data name="App.Game.WaitingProcess" xml:space="preserve">
     <value>Waiting for game process...</value>
   </data>
