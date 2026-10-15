@@ -207,6 +207,11 @@ namespace XelLauncher.Helpers
             "Hi3Helper.Plugin.Arknights.Management.PresetConfig.ArknightsKrPresetConfig"
         };
 
+        private static readonly string[] TaiwanArknightsPresetTypes =
+        {
+            "Hi3Helper.Plugin.Arknights.Management.PresetConfig.ArknightsTwPresetConfig"
+        };
+
         private static readonly GameChannelDefinition[] ChannelList =
         {
             new(
@@ -247,6 +252,15 @@ namespace XelLauncher.Helpers
                 showByDefault: false,
                 availability: () =>
                     FindArknightsPresetType(KoreaArknightsPresetTypes) != null),
+            new(
+                "ArknightsTw", "明日方舟（繁中服）", "明日方舟（繁中服）", "Arknights (Taiwan)",
+                GameFamily.Arknights, "Taiwan", "",
+                "Arknights.ico", false, false, false, "Taiwan",
+                null,
+                () => CreateReflectedPreset(TaiwanArknightsPresetTypes),
+                availability: () =>
+                    FindArknightsPresetType(TaiwanArknightsPresetTypes) != null,
+                aliases: new[] { "ArknightsTW", "Arknights_TC" }),
             new(
                 "Endfield", "终末地", "明日方舟：终末地（官服）", "Endfield (Official)",
                 GameFamily.Endfield, "Official", "Endfield",
@@ -370,10 +384,16 @@ namespace XelLauncher.Helpers
                 subChannel,
                 sequence,
                 Array.AsReadOnly(
-                    CommonRootFiles.Concat(extraRootFiles).ToArray()),
+                    CommonRootFiles.Concat(extraRootFiles)
+                        .Concat(family == GameFamily.Endfield
+                            ? new[] { "OneChannelLC.dll", "HGP.dll" }
+                            : Array.Empty<string>()).ToArray()),
                 Array.AsReadOnly(directoryPrefixes.ToArray()),
                 Array.AsReadOnly(
-                    CommonRequiredFiles.Concat(extraRequiredFiles).ToArray()),
+                    CommonRequiredFiles.Concat(extraRequiredFiles)
+                        .Concat(family == GameFamily.Endfield
+                            ? new[] { "OneChannelLC.dll", "HGP.dll" }
+                            : Array.Empty<string>()).ToArray()),
                 bilibiliLimits ? 1000 : 128,
                 bilibiliLimits ? 512 * MiB : 128 * MiB,
                 bilibiliLimits ? 256 * MiB : 64 * MiB);

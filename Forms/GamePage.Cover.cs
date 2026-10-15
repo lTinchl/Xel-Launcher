@@ -124,20 +124,24 @@ namespace XelLauncher.Forms
 
         private async Task RefreshRemoteCoverAsync()
         {
-            if (!GameCoverCache.TryBeginDailyCoverRefresh(_game.IconName))
-            {
-                LogHelper.Log($"Client cover daily refresh skipped: {_game.IconName}");
-                return;
-            }
-
+            var refreshStarted = false;
             var refreshSucceeded = false;
             try
             {
+                var token = _coverCts.Token;
+                // This check can decode archived images and wait for an archive writer.
+                refreshStarted = await Task.Run(
+                    () => GameCoverCache.TryBeginDailyCoverRefresh(_game.IconName), token);
+                if (!refreshStarted)
+                {
+                    LogHelper.Log($"Client cover daily refresh skipped: {_game.IconName}");
+                    return;
+                }
+                if (token.IsCancellationRequested || IsDisposed) return;
                 var service = _service;
                 if (service == null) return;
 
                 LogHelper.Log($"Refreshing client cover: {_game.IconName}");
-                var token = _coverCts.Token;
                 var imageUrl = await service.GetClientCoverImageUrlAsync(token);
                 if (string.IsNullOrEmpty(imageUrl))
                 {
@@ -184,7 +188,9 @@ namespace XelLauncher.Forms
             }
             finally
             {
-                GameCoverCache.CompleteDailyCoverRefresh(_game.IconName, refreshSucceeded);
+                if (refreshStarted)
+                    await Task.Run(() => GameCoverCache.CompleteDailyCoverRefresh(
+                        _game.IconName, refreshSucceeded));
             }
         }
 

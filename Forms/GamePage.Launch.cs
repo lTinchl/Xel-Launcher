@@ -16,6 +16,7 @@ namespace XelLauncher.Forms
     public partial class GamePage : UserControl
     {
         private bool _isGameRunning;
+        private Task _gameRunningCheck = Task.CompletedTask;
 
         private static async Task RestoreLauncherAfterGameExitAsync(
             Process process, Overview overview)
@@ -37,32 +38,44 @@ namespace XelLauncher.Forms
         private void InitializeGameRunningMonitor()
         {
             var timer = new System.Windows.Forms.Timer { Interval = 1000 };
-            timer.Tick += (s, e) => UpdateGameRunningState();
+            timer.Tick += (s, e) => _ = UpdateGameRunningStateAsync();
             HandleCreated += (s, e) =>
             {
-                UpdateGameRunningState();
+                _ = UpdateGameRunningStateAsync();
                 timer.Start();
             };
             Disposed += (s, e) => timer.Dispose();
         }
 
-        private void UpdateGameRunningState()
+        private Task UpdateGameRunningStateAsync()
         {
-            if (IsDisposed || GameStart.IsDisposed) return;
-            bool running;
+            // A slow disk or process query must not queue another probe every second.
+            if (!_gameRunningCheck.IsCompleted) return _gameRunningCheck;
+            if (IsDisposed || Disposing || GameStart.IsDisposed) return Task.CompletedTask;
+            return _gameRunningCheck = UpdateGameRunningStateCoreAsync();
+        }
+
+        private async Task UpdateGameRunningStateCoreAsync()
+        {
             try
             {
-                var launchDirectory = GetExpectedGameLaunchDirectory();
-                using var process = GameLauncher.FindRunningGameProcess(
-                    launchDirectory,
-                    GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Endfield));
-                running = process != null;
+                var token = _coverCts.Token;
+                var running = await Task.Run(() =>
+                {
+                    var launchDirectory = GetExpectedGameLaunchDirectory();
+                    using var process = GameLauncher.FindRunningGameProcess(
+                        launchDirectory,
+                        GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Endfield));
+                    return process != null;
+                }, token);
+
+                if (token.IsCancellationRequested || IsDisposed || Disposing || GameStart.IsDisposed)
+                    return;
+                if (_isGameRunning == running) return;
+                _isGameRunning = running;
+                RefreshGameStartButton();
             }
             catch { return; }
-
-            if (_isGameRunning == running) return;
-            _isGameRunning = running;
-            RefreshGameStartButton();
         }
 
         private string GetExpectedGameLaunchDirectory()
@@ -136,8 +149,10 @@ namespace XelLauncher.Forms
                 var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
                 string path = entry?.RootPath ?? _game.RootPath;
                 if (string.IsNullOrEmpty(path)) return false;
-                var operationTarget = SharedRootManager.ResolveMaintenanceTarget(
-                    _game.IconName, path, allowUninstalledTarget: true);
+                var token = _coverCts.Token;
+                var operationTarget = await Task.Run(() => SharedRootManager.ResolveMaintenanceTarget(
+                    _game.IconName, path, allowUninstalledTarget: true), token);
+                if (token.IsCancellationRequested || IsDisposed) return false;
                 var effectiveIconName = operationTarget.EffectiveIconName;
 
                 var activeUpdate = GameUpdateManager.Find(path);
@@ -161,27 +176,32 @@ namespace XelLauncher.Forms
                 if (GameUpdateManager.IsRecentlyCompleted(effectiveIconName, path))
                 {
                     _gameState = GameState.Ready;
-                    var completedCfg = ConfigHelper.Load();
-                    completedCfg.GameStatusCache[_game.IconName] = new CachedGameStatus
+                    await Task.Run(() => ConfigHelper.Update(completedCfg =>
                     {
-                        IsInstalled = true,
-                        HasUpdate = false,
-                        HasPreload = false,
-                        PreloadCompleted = false,
-                        LocalVersion = entry?.LocalVersion ?? "",
-                        RemoteVersion = entry?.LocalVersion ?? "",
-                        PreloadVersion = "",
-                        InstallPath = path
-                    };
-                    ConfigHelper.Save(completedCfg);
+                        completedCfg.GameStatusCache[_game.IconName] = new CachedGameStatus
+                        {
+                            IsInstalled = true,
+                            HasUpdate = false,
+                            HasPreload = false,
+                            PreloadCompleted = false,
+                            LocalVersion = entry?.LocalVersion ?? "",
+                            RemoteVersion = entry?.LocalVersion ?? "",
+                            PreloadVersion = "",
+                            InstallPath = path
+                        };
+                    }), token);
+                    if (token.IsCancellationRequested || IsDisposed) return false;
                     if (IsHandleCreated)
                         BeginInvoke(() => RefreshGameStartButton());
                     return true;
                 }
 
-                using var statusService = new EndfieldService(effectiveIconName);
-                var status = await statusService.CheckStatusAsync(path);
-                if (status == null) return false;
+                var status = await Task.Run(async () =>
+                {
+                    using var statusService = new EndfieldService(effectiveIconName);
+                    return await statusService.CheckStatusAsync(path, token).ConfigureAwait(false);
+                }, token);
+                if (status == null || token.IsCancellationRequested || IsDisposed) return false;
 
                 activeUpdate = GameUpdateManager.Find(path);
                 if (activeUpdate != null)
@@ -212,23 +232,25 @@ namespace XelLauncher.Forms
                            : hasPreload          ? GameState.HasPreload
                                                  : GameState.Ready;
 
-                // Write cache after live check completes
-                var cfgToUpdate = ConfigHelper.Load();
-                cfgToUpdate.GameStatusCache[_game.IconName] = new CachedGameStatus
+                // Disk flushes and config lock contention must not block the UI.
+                await Task.Run(() => ConfigHelper.Update(cfgToUpdate =>
                 {
-                    IsInstalled = status.IsInstalled,
-                    HasUpdate = hasUpdate,
-                    HasPreload = hasPreload,
-                    PreloadCompleted = preloadCompleted,
-                    LocalVersion = status.LocalVersion ?? "",
-                    RemoteVersion = status.RemoteVersion ?? "",
-                    PreloadVersion = preloadVersion,
-                    InstallPath = path
-                };
-                var entryToUpdate = cfgToUpdate.Games.Find(g => g.IconName == _game.IconName);
-                if (entryToUpdate != null && !string.IsNullOrEmpty(status.LocalVersion))
-                    entryToUpdate.LocalVersion = status.LocalVersion;
-                ConfigHelper.Save(cfgToUpdate);
+                    cfgToUpdate.GameStatusCache[_game.IconName] = new CachedGameStatus
+                    {
+                        IsInstalled = status.IsInstalled,
+                        HasUpdate = hasUpdate,
+                        HasPreload = hasPreload,
+                        PreloadCompleted = preloadCompleted,
+                        LocalVersion = status.LocalVersion ?? "",
+                        RemoteVersion = status.RemoteVersion ?? "",
+                        PreloadVersion = preloadVersion,
+                        InstallPath = path
+                    };
+                    var entryToUpdate = cfgToUpdate.Games.Find(g => g.IconName == _game.IconName);
+                    if (entryToUpdate != null && !string.IsNullOrEmpty(status.LocalVersion))
+                        entryToUpdate.LocalVersion = status.LocalVersion;
+                }), token);
+                if (token.IsCancellationRequested || IsDisposed) return false;
 
                 if (IsHandleCreated)
                     BeginInvoke(() =>
@@ -985,7 +1007,8 @@ namespace XelLauncher.Forms
 
         private async void GameStart_Click(object sender, EventArgs e)
         {
-            UpdateGameRunningState();
+            await UpdateGameRunningStateAsync();
+            if (IsDisposed || Disposing || GameStart.IsDisposed) return;
             if (_isGameRunning) return;
             if (GameStart.Loading) return;
             if (_gameState == GameState.Repairing || GameRepairManager.IsRepairing(GetConfiguredGamePath()))
@@ -1337,12 +1360,16 @@ namespace XelLauncher.Forms
                             await Task.Delay(stepMs);
                         }
 
-                        GameLauncher.StartArknights(launchPath, _game.IconName);
+                        Process gameProc = await GameLauncher.StartArknightsAsync(launchPath, _game.IconName);
 
                     // Show launch success only after the game process is detected.
                     config.Text = Localizer.GetRequiredString("App.Game.WaitingProcess");
                     config.Refresh();
-                    Process gameProc = null;
+                    if (gameProc?.HasExited == true)
+                    {
+                        gameProc.Dispose();
+                        throw new InvalidOperationException(Localizer.GetRequiredString("App.Game.ProcessNotDetected"));
+                    }
                     for (int i = 0; i < 30 && gameProc == null; i++)
                     {
                         gameProc = GameLauncher.FindRunningGameProcess(

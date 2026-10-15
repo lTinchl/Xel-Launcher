@@ -110,7 +110,7 @@ namespace XelLauncher.Helpers
             }
         }
 
-        public static void StartArknights(string rootPath, string iconName)
+        public static async Task<Process> StartArknightsAsync(string rootPath, string iconName)
         {
             // ── 联动启动 ──
             var cfg = ConfigHelper.Load();
@@ -165,13 +165,18 @@ namespace XelLauncher.Helpers
                     : launchArgs + " " + entry.CustomLaunchArgs.Trim();
             }
 
-            Process.Start(new ProcessStartInfo
+            if (EndfieldLauncher.Supports(iconName))
+                return await EndfieldLauncher.StartAsync(rootPath, launchArgs, iconName);
+
+            using var started = Process.Start(new ProcessStartInfo
             {
                 FileName = exePath,
                 Arguments = launchArgs,
                 WorkingDirectory = rootPath,
                 UseShellExecute = true
             });
+            // Other channels retain the existing path-based process discovery.
+            return null;
         }
 
         public static Process FindRunningGameProcess(

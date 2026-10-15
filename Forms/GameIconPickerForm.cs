@@ -42,7 +42,7 @@ namespace XelLauncher.Forms
 
             foreach (var channel in GameChannelCatalog.Channels)
             {
-                // First-phase UI only exposes the six supported channels.
+                // Only expose channels supported by the installed plugin.
                 // Hidden Yostar definitions remain readable for old configs and
                 // future compatibility-conflict detection, but cannot be added.
                 if (!channel.IsAvailable || !channel.ShowByDefault) continue;
