@@ -402,7 +402,7 @@ namespace XelLauncher.Helpers
             ServerPayloadProfile profile, ServerPayloadUpdateResult result,
             IProgress<ServerPayloadUpdateProgress> progress, CancellationToken cancellationToken)
         {
-            if (profile.GameFamily != GameFamily.Endfield || profile.IconName == "PlayEndfield")
+            if (profile.GameFamily != GameFamily.Endfield)
                 return result;
 
             bool changed = await UsePayloadDirectoryAsync(profile.IconName,
@@ -514,7 +514,7 @@ namespace XelLauncher.Helpers
                         remote.Version, cancellationToken)
                     .ConfigureAwait(false))
             {
-                if (profile.GameFamily != GameFamily.Endfield || profile.IconName == "PlayEndfield")
+                if (profile.GameFamily != GameFamily.Endfield)
                     Report(progress, profile, ServerPayloadUpdateStage.Completed,
                         remote.Version, fileCount: previousState.FileCount);
                 return new ServerPayloadUpdateResult
@@ -669,7 +669,7 @@ namespace XelLauncher.Helpers
                 }
                 stagingDirectory = null;
 
-                if (profile.GameFamily != GameFamily.Endfield || profile.IconName == "PlayEndfield")
+                if (profile.GameFamily != GameFamily.Endfield)
                     Report(progress, profile, ServerPayloadUpdateStage.Completed,
                         remote.Version, fileCount: selectedFiles.Count,
                         downloadedBytes: downloadedBytes, totalBytes: totalDownloadBytes);
@@ -1092,6 +1092,17 @@ namespace XelLauncher.Helpers
             var targetMovedToBackup = false;
             var stagingMovedToTarget = false;
 
+            // Games.exe belongs to the launcher cache, not the game manifest.
+            // Keep it across forced payload refreshes so the launcher ZIP is only
+            // fetched when its own version or verified file content changes.
+            if (profile.GameFamily == GameFamily.Endfield && Directory.Exists(targetDirectory))
+            {
+                string existingGames = Path.Combine(targetDirectory, "Games.exe");
+                if (File.Exists(existingGames) &&
+                    !File.GetAttributes(existingGames).HasFlag(FileAttributes.ReparsePoint))
+                    File.Copy(existingGames, Path.Combine(stagingDirectory, "Games.exe"));
+            }
+
             if (Directory.Exists(backupDirectory))
                 DeleteControlledDirectory(backupDirectory);
 
@@ -1316,16 +1327,20 @@ namespace XelLauncher.Helpers
         ServerPayloadProfile profile, string payloadDirectory,
         IProgress<ServerPayloadUpdateProgress> progress, CancellationToken cancellationToken)
     {
-        string metadataPath = profile.IconName switch
+        string executablePath = Path.Combine(payloadDirectory, "Games.exe");
+        bool hasExecutable = File.Exists(executablePath) &&
+            !File.GetAttributes(executablePath).HasFlag(FileAttributes.ReparsePoint);
+        string metadataUrl = profile.IconName switch
         {
-            "Endfield" => "links/HypergryphLauncher.json",
-            "BiliEndfield" => "links-bilibili/HypergryphLauncher-Endfield.json",
-            "GlobalEndfield" => "links-global/GRYPHLINK.json",
+            "Endfield" or "BiliEndfield" =>
+                "https://launcher.hypergryph.com/api/launcher/get_latest?appcode=abYeZZ16BPluCFyT&channel=1",
+            "GlobalEndfield" or "PlayEndfield" =>
+                "https://launcher.gryphline.com/api/launcher/get_latest?appcode=TiaytKBUIEdoEwRT&channel=6",
             _ => null
         };
-        if (metadataPath == null) return false;
+        if (metadataUrl == null) return false;
 
-        var metadataUri = new Uri("https://raw.githubusercontent.com/ERSTT/HG-Link/main/" + metadataPath);
+        var metadataUri = new Uri(metadataUrl);
         using var metadataResponse = await Client.GetAsync(metadataUri, cancellationToken).ConfigureAwait(false);
         metadataResponse.EnsureSuccessStatusCode();
         await using var metadataStream = await metadataResponse.Content.ReadAsStreamAsync(cancellationToken)
@@ -1333,9 +1348,11 @@ namespace XelLauncher.Helpers
         using var metadata = await JsonDocument.ParseAsync(metadataStream, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         var root = metadata.RootElement;
+        string version = root.GetProperty("version").GetString();
         string md5 = root.GetProperty("md5").GetString();
         string url = root.GetProperty("zip_package_url").GetString();
-        if (md5?.Length != 32 || !md5.All(Uri.IsHexDigit) ||
+        if (string.IsNullOrWhiteSpace(version) ||
+            md5?.Length != 32 || !md5.All(Uri.IsHexDigit) ||
             !long.TryParse(root.GetProperty("package_size").GetString(), out long packageSize) ||
             packageSize <= 0 || packageSize > MaxPackageBytes ||
             !Uri.TryCreate(url, UriKind.Absolute, out var packageUri) ||
@@ -1346,19 +1363,21 @@ namespace XelLauncher.Helpers
         }
 
         Directory.CreateDirectory(payloadDirectory);
-        string executablePath = Path.Combine(payloadDirectory, "Games.exe");
         string statePath = Path.Combine(ServerPayloadUpdater.PayloadRoot, ".state",
             profile.PayloadDirectoryName + ".games.json");
-        bool global = profile.IconName == "GlobalEndfield";
-        if (File.Exists(executablePath) && File.Exists(statePath))
+        bool global = profile.IconName is "GlobalEndfield" or "PlayEndfield";
+        if (hasExecutable && File.Exists(statePath))
         {
             try
             {
                 using var saved = JsonDocument.Parse(await File.ReadAllTextAsync(statePath, cancellationToken)
                     .ConfigureAwait(false));
+                string savedVersion = saved.RootElement.TryGetProperty("version", out var versionElement)
+                    ? versionElement.GetString() : null;
                 string savedArchiveMd5 = saved.RootElement.GetProperty("archiveMd5").GetString();
                 string savedFileSha256 = saved.RootElement.GetProperty("fileSha256").GetString();
-                if (string.Equals(savedArchiveMd5, md5, StringComparison.OrdinalIgnoreCase) &&
+                if (string.Equals(savedVersion, version, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(savedArchiveMd5, md5, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(savedFileSha256,
                         await HashFileAsync(executablePath, SHA256.Create(), cancellationToken).ConfigureAwait(false),
                         StringComparison.OrdinalIgnoreCase) &&
@@ -1447,7 +1466,7 @@ namespace XelLauncher.Helpers
             try
             {
                 await File.WriteAllTextAsync(stateTemp,
-                    JsonSerializer.Serialize(new { archiveMd5 = md5, fileSha256 = sha256 }),
+                    JsonSerializer.Serialize(new { version, archiveMd5 = md5, fileSha256 = sha256 }),
                     cancellationToken).ConfigureAwait(false);
                 File.Move(stateTemp, statePath, true);
             }
