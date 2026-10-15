@@ -13,6 +13,7 @@ using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Hi3Helper.Hypergryph.Core.Management;
+using Hi3Helper.Hypergryph.Core.Utils;
 using Hi3Helper.Plugin.Endfield.Management;
 
 namespace XelLauncher.Helpers
@@ -542,6 +543,7 @@ namespace XelLauncher.Helpers
             };
 
             var repairer = new HgGameRepairer(RepairHttpClient, hgManager, installPath);
+            await RefreshRepairManifestAsync(hgManager, installPath, ct).ConfigureAwait(false);
             await repairer.StartRepairAsync(progressDelegate, stateDelegate, ct).ConfigureAwait(false);
             ct.ThrowIfCancellationRequested();
 
@@ -551,6 +553,62 @@ namespace XelLauncher.Helpers
                 new FileInfo(manifestPath).Length == 0)
             {
                 throw new InvalidOperationException("游戏文件校验未完整执行");
+            }
+        }
+
+        private static async Task RefreshRepairManifestAsync(
+            HgGameManager manager, string installPath, CancellationToken ct)
+        {
+            // The plugin prefers the local game_files manifest. It can become stale
+            // while the CDN replaces a file at the same URL, making every retry fail
+            // its size check even though the download is complete.
+            var baseUrl = typeof(HgGameManager).GetProperty(
+                "GameResourceBaseUrl", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.GetValue(manager) as string;
+            if (string.IsNullOrWhiteSpace(baseUrl) ||
+                !Uri.TryCreate(baseUrl.TrimEnd('/') + "/game_files", UriKind.Absolute, out var manifestUri) ||
+                manifestUri.Scheme != Uri.UriSchemeHttps)
+                throw new InvalidOperationException("Unable to locate the current game repair manifest.");
+
+            var encryptedManifest = await RepairHttpClient.GetByteArrayAsync(manifestUri, ct)
+                .ConfigureAwait(false);
+            var manifestText = HgCrypto.DecryptBytesToString(encryptedManifest);
+            if (string.IsNullOrWhiteSpace(manifestText))
+                throw new InvalidDataException("The current game repair manifest is invalid.");
+
+            var hasFile = false;
+            using (var reader = new StringReader(manifestText))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    using var entry = JsonDocument.Parse(line);
+                    if (entry.RootElement.TryGetProperty("path", out var path) &&
+                        path.ValueKind == JsonValueKind.String &&
+                        !string.IsNullOrWhiteSpace(path.GetString()))
+                        hasFile = true;
+                }
+            }
+            if (!hasFile)
+                throw new InvalidDataException("The current game repair manifest contains no files.");
+
+            var manifestPath = Path.Combine(installPath, "game_files");
+            if (File.Exists(manifestPath) &&
+                (await File.ReadAllBytesAsync(manifestPath, ct).ConfigureAwait(false))
+                    .AsSpan().SequenceEqual(encryptedManifest))
+                return;
+
+            var temporaryPath = manifestPath + ".xel-repair-" + Guid.NewGuid().ToString("N");
+            try
+            {
+                await File.WriteAllBytesAsync(temporaryPath, encryptedManifest, ct)
+                    .ConfigureAwait(false);
+                File.Move(temporaryPath, manifestPath, true);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
             }
         }
 
