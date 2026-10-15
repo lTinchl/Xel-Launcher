@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -356,6 +357,8 @@ namespace XelLauncher.Helpers
                         profile, force, progress, cancellationToken)
                     .ConfigureAwait(false);
 
+                result = await CompleteWithGamesAsync(profile, result, progress, cancellationToken)
+                    .ConfigureAwait(false);
                 RememberCurrentVersionState(profile, result);
                 return result;
             }
@@ -384,6 +387,8 @@ namespace XelLauncher.Helpers
                         progress,
                         cancellationToken)
                     .ConfigureAwait(false);
+                result = await CompleteWithGamesAsync(profile, result, progress, cancellationToken)
+                    .ConfigureAwait(false);
                 RememberCurrentVersionState(profile, result);
                 return result;
             }
@@ -391,6 +396,30 @@ namespace XelLauncher.Helpers
             {
                 gate.Release();
             }
+        }
+
+        private static async Task<ServerPayloadUpdateResult> CompleteWithGamesAsync(
+            ServerPayloadProfile profile, ServerPayloadUpdateResult result,
+            IProgress<ServerPayloadUpdateProgress> progress, CancellationToken cancellationToken)
+        {
+            if (profile.GameFamily != GameFamily.Endfield || profile.IconName == "PlayEndfield")
+                return result;
+
+            bool changed = await UsePayloadDirectoryAsync(profile.IconName,
+                directory => EndfieldGamesPayloadUpdater.EnsureAsync(
+                    profile, directory, progress, cancellationToken), cancellationToken)
+                .ConfigureAwait(false);
+            Report(progress, profile, ServerPayloadUpdateStage.Completed,
+                result.Version, fileCount: result.FileCount);
+            if (!changed) return result;
+            return new ServerPayloadUpdateResult
+            {
+                Profile = result.Profile,
+                Version = result.Version,
+                FileCount = result.FileCount,
+                DownloadedBytes = result.DownloadedBytes,
+                AlreadyCurrent = false
+            };
         }
 
         private static void RememberCurrentVersionState(
@@ -485,8 +514,9 @@ namespace XelLauncher.Helpers
                         remote.Version, cancellationToken)
                     .ConfigureAwait(false))
             {
-                Report(progress, profile, ServerPayloadUpdateStage.Completed,
-                    remote.Version, fileCount: previousState.FileCount);
+                if (profile.GameFamily != GameFamily.Endfield || profile.IconName == "PlayEndfield")
+                    Report(progress, profile, ServerPayloadUpdateStage.Completed,
+                        remote.Version, fileCount: previousState.FileCount);
                 return new ServerPayloadUpdateResult
                 {
                     Profile = profile,
@@ -639,9 +669,10 @@ namespace XelLauncher.Helpers
                 }
                 stagingDirectory = null;
 
-                Report(progress, profile, ServerPayloadUpdateStage.Completed,
-                    remote.Version, fileCount: selectedFiles.Count,
-                    downloadedBytes: downloadedBytes, totalBytes: totalDownloadBytes);
+                if (profile.GameFamily != GameFamily.Endfield || profile.IconName == "PlayEndfield")
+                    Report(progress, profile, ServerPayloadUpdateStage.Completed,
+                        remote.Version, fileCount: selectedFiles.Count,
+                        downloadedBytes: downloadedBytes, totalBytes: totalDownloadBytes);
 
                 return new ServerPayloadUpdateResult
                 {
@@ -1274,4 +1305,171 @@ namespace XelLauncher.Helpers
             public long Size { get; set; }
         }
     }
+
+    internal static class EndfieldGamesPayloadUpdater
+{
+    private const long MaxPackageBytes = 512L * 1024 * 1024;
+    private const long MaxExecutableBytes = 128L * 1024 * 1024;
+    private static readonly HttpClient Client = new() { Timeout = TimeSpan.FromMinutes(30) };
+
+    internal static async Task<bool> EnsureAsync(
+        ServerPayloadProfile profile, string payloadDirectory,
+        IProgress<ServerPayloadUpdateProgress> progress, CancellationToken cancellationToken)
+    {
+        string metadataPath = profile.IconName switch
+        {
+            "Endfield" => "links/HypergryphLauncher.json",
+            "BiliEndfield" => "links-bilibili/HypergryphLauncher-Endfield.json",
+            "GlobalEndfield" => "links-global/GRYPHLINK.json",
+            _ => null
+        };
+        if (metadataPath == null) return false;
+
+        var metadataUri = new Uri("https://raw.githubusercontent.com/ERSTT/HG-Link/main/" + metadataPath);
+        using var metadataResponse = await Client.GetAsync(metadataUri, cancellationToken).ConfigureAwait(false);
+        metadataResponse.EnsureSuccessStatusCode();
+        await using var metadataStream = await metadataResponse.Content.ReadAsStreamAsync(cancellationToken)
+            .ConfigureAwait(false);
+        using var metadata = await JsonDocument.ParseAsync(metadataStream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+        var root = metadata.RootElement;
+        string md5 = root.GetProperty("md5").GetString();
+        string url = root.GetProperty("zip_package_url").GetString();
+        if (md5?.Length != 32 || !md5.All(Uri.IsHexDigit) ||
+            !long.TryParse(root.GetProperty("package_size").GetString(), out long packageSize) ||
+            packageSize <= 0 || packageSize > MaxPackageBytes ||
+            !Uri.TryCreate(url, UriKind.Absolute, out var packageUri) ||
+            packageUri.Scheme != Uri.UriSchemeHttps ||
+            packageUri.Host is not ("launcher-sign.hycdn.cn" or "launcher.hg-cdn.com"))
+        {
+            throw new InvalidDataException("Invalid Endfield launcher package metadata.");
+        }
+
+        Directory.CreateDirectory(payloadDirectory);
+        string executablePath = Path.Combine(payloadDirectory, "Games.exe");
+        string statePath = Path.Combine(ServerPayloadUpdater.PayloadRoot, ".state",
+            profile.PayloadDirectoryName + ".games.json");
+        bool global = profile.IconName == "GlobalEndfield";
+        if (File.Exists(executablePath) && File.Exists(statePath))
+        {
+            try
+            {
+                using var saved = JsonDocument.Parse(await File.ReadAllTextAsync(statePath, cancellationToken)
+                    .ConfigureAwait(false));
+                string savedArchiveMd5 = saved.RootElement.GetProperty("archiveMd5").GetString();
+                string savedFileSha256 = saved.RootElement.GetProperty("fileSha256").GetString();
+                if (string.Equals(savedArchiveMd5, md5, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(savedFileSha256,
+                        await HashFileAsync(executablePath, SHA256.Create(), cancellationToken).ConfigureAwait(false),
+                        StringComparison.OrdinalIgnoreCase) &&
+                    OfficialLauncherTrust.IsTrusted(executablePath, global))
+                    return false;
+            }
+            catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+            {
+                LogHelper.LogError(ex, "Endfield Games.exe cache validation");
+            }
+        }
+
+        string archivePath = Path.Combine(payloadDirectory, ".games-" + Guid.NewGuid().ToString("N") + ".zip");
+        string temporaryDirectory = Path.Combine(payloadDirectory, ".games-" + Guid.NewGuid().ToString("N"));
+        string temporaryExecutable = Path.Combine(temporaryDirectory, "Games.exe");
+        try
+        {
+            Directory.CreateDirectory(temporaryDirectory);
+            progress?.Report(new ServerPayloadUpdateProgress
+            {
+                Profile = profile, Stage = ServerPayloadUpdateStage.Downloading,
+                CurrentFile = "Games.exe", FileIndex = 1, FileCount = 1,
+                TotalBytes = packageSize
+            });
+            using (var response = await Client.GetAsync(packageUri, HttpCompletionOption.ResponseHeadersRead,
+                       cancellationToken).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                await using var input = await response.Content.ReadAsStreamAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                await using var output = new FileStream(archivePath, FileMode.CreateNew, FileAccess.Write,
+                    FileShare.None, 81920, true);
+                var buffer = new byte[81920];
+                long downloaded = 0;
+                long lastReportedBytes = 0;
+                long lastReportedAt = Environment.TickCount64;
+                int read;
+                while ((read = await input.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
+                {
+                    downloaded += read;
+                    if (downloaded > packageSize) throw new InvalidDataException("Launcher ZIP exceeds its declared size.");
+                    await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                    long now = Environment.TickCount64;
+                    if (downloaded - lastReportedBytes >= 1024 * 1024 ||
+                        now - lastReportedAt >= 100 || downloaded == packageSize)
+                    {
+                        progress?.Report(new ServerPayloadUpdateProgress
+                        {
+                            Profile = profile, Stage = ServerPayloadUpdateStage.Downloading,
+                            CurrentFile = "Games.exe", FileIndex = 1, FileCount = 1,
+                            DownloadedBytes = downloaded, TotalBytes = packageSize
+                        });
+                        lastReportedBytes = downloaded;
+                        lastReportedAt = now;
+                    }
+                }
+                if (downloaded != packageSize) throw new InvalidDataException("Launcher ZIP size mismatch.");
+            }
+
+            if (!string.Equals(await HashFileAsync(archivePath, MD5.Create(), cancellationToken)
+                    .ConfigureAwait(false), md5, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Launcher ZIP MD5 mismatch.");
+
+            using (var archive = ZipFile.OpenRead(archivePath))
+            {
+                var entries = archive.Entries.Where(entry =>
+                    string.Equals(Path.GetFileName(entry.FullName), "Games.exe",
+                        StringComparison.OrdinalIgnoreCase)).ToArray();
+                if (entries.Length != 1 || entries[0].Length <= 0 || entries[0].Length > MaxExecutableBytes)
+                    throw new InvalidDataException("Launcher ZIP does not contain one valid Games.exe.");
+                await using var source = entries[0].Open();
+                await using var target = new FileStream(temporaryExecutable, FileMode.CreateNew,
+                    FileAccess.Write, FileShare.None, 81920, true);
+                await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+                if (target.Length != entries[0].Length)
+                    throw new InvalidDataException("Games.exe extraction size mismatch.");
+            }
+
+            if (!OfficialLauncherTrust.IsTrusted(temporaryExecutable, global))
+                throw new InvalidDataException("Extracted Games.exe failed official signature verification.");
+            string sha256 = await HashFileAsync(temporaryExecutable, SHA256.Create(), cancellationToken)
+                .ConfigureAwait(false);
+            File.Move(temporaryExecutable, executablePath, true);
+            Directory.CreateDirectory(Path.GetDirectoryName(statePath)!);
+            string stateTemp = statePath + ".tmp-" + Guid.NewGuid().ToString("N");
+            try
+            {
+                await File.WriteAllTextAsync(stateTemp,
+                    JsonSerializer.Serialize(new { archiveMd5 = md5, fileSha256 = sha256 }),
+                    cancellationToken).ConfigureAwait(false);
+                File.Move(stateTemp, statePath, true);
+            }
+            finally { if (File.Exists(stateTemp)) File.Delete(stateTemp); }
+            return true;
+        }
+        finally
+        {
+            if (File.Exists(archivePath)) File.Delete(archivePath);
+            if (File.Exists(temporaryExecutable)) File.Delete(temporaryExecutable);
+            if (Directory.Exists(temporaryDirectory)) Directory.Delete(temporaryDirectory);
+        }
+    }
+
+    private static async Task<string> HashFileAsync(string path, HashAlgorithm algorithm,
+        CancellationToken cancellationToken)
+    {
+        using (algorithm)
+        await using (var stream = File.OpenRead(path))
+            return Convert.ToHexString(await algorithm.ComputeHashAsync(stream, cancellationToken)
+                .ConfigureAwait(false));
+    }
+}
+
 }

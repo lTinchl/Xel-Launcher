@@ -154,26 +154,26 @@ namespace XelLauncher.Helpers
             "Endfield", "EndOfficial", GameFamily.Endfield,
             DomesticApiUrl, "6LL0KJuqHBVz33WK", DomesticLauncherAppCode,
             "1", "1", "5",
-            new[] { "eld_Endfield.db", "hgsdk.dll" },
+            new[] { "eld_Endfield.db", "hgsdk.dll", "OneChannelLC.dll", "HGP.dll" },
             new[] { "sdkdata", "U8Data/config" },
-            new[] { "hgsdk.dll" });
+            new[] { "hgsdk.dll", "OneChannelLC.dll", "HGP.dll" });
 
         private static readonly ServerPayloadProfile BiliEndfieldPayload = CreatePayload(
             "BiliEndfield", "EndBilibili", GameFamily.Endfield,
             DomesticApiUrl, "6LL0KJuqHBVz33WK", DomesticLauncherAppCode,
             "2", "2", "5",
-            new[] { "eld_Endfield.db", "PCGameSDK.dll" },
+            new[] { "eld_Endfield.db", "PCGameSDK.dll", "OneChannelLC.dll", "HGP.dll" },
             new[] { "BLPlatform64", "U8Data/config" },
-            new[] { "PCGameSDK.dll", "BLPlatform64/PCGamePlatform.exe" },
+            new[] { "PCGameSDK.dll", "BLPlatform64/PCGamePlatform.exe", "OneChannelLC.dll", "HGP.dll" },
             bilibiliLimits: true);
 
         private static readonly ServerPayloadProfile GlobalEndfieldPayload = CreatePayload(
             "GlobalEndfield", "EndGlobal", GameFamily.Endfield,
             GlobalApiUrl, EndfieldGlobalAppCode, EndfieldGlobalAppCode,
             "6", "6", "3",
-            new[] { "gfsdk.dll", "glfoundation.dll" },
+            new[] { "gfsdk.dll", "glfoundation.dll", "OneChannelLC.dll", "HGP.dll" },
             new[] { "sdkdata", "U8Data/config" },
-            new[] { "gfsdk.dll", "glfoundation.dll" });
+            new[] { "gfsdk.dll", "glfoundation.dll", "OneChannelLC.dll", "HGP.dll" });
 
         private static readonly ServerPayloadProfile PlayEndfieldPayload = CreatePayload(
             "PlayEndfield", "EndPlay", GameFamily.Endfield,
@@ -182,13 +182,13 @@ namespace XelLauncher.Helpers
             new[]
             {
                 "gfsdk.dll", "glextra.dll", "glfoundation.dll", "manifest.xml",
-                "play_pc_sdk.dll"
+                "play_pc_sdk.dll", "OneChannelLC.dll", "HGP.dll"
             },
             new[] { "sdkdata", "U8Data/config" },
             new[]
             {
                 "gfsdk.dll", "glextra.dll", "glfoundation.dll", "manifest.xml",
-                "play_pc_sdk.dll"
+                "play_pc_sdk.dll", "OneChannelLC.dll", "HGP.dll"
             });
 
         private static readonly string[] GlobalArknightsPresetTypes =
@@ -384,16 +384,10 @@ namespace XelLauncher.Helpers
                 subChannel,
                 sequence,
                 Array.AsReadOnly(
-                    CommonRootFiles.Concat(extraRootFiles)
-                        .Concat(family == GameFamily.Endfield
-                            ? new[] { "OneChannelLC.dll", "HGP.dll" }
-                            : Array.Empty<string>()).ToArray()),
+                    CommonRootFiles.Concat(extraRootFiles).ToArray()),
                 Array.AsReadOnly(directoryPrefixes.ToArray()),
                 Array.AsReadOnly(
-                    CommonRequiredFiles.Concat(extraRequiredFiles)
-                        .Concat(family == GameFamily.Endfield
-                            ? new[] { "OneChannelLC.dll", "HGP.dll" }
-                            : Array.Empty<string>()).ToArray()),
+                    CommonRequiredFiles.Concat(extraRequiredFiles).ToArray()),
                 bilibiliLimits ? 1000 : 128,
                 bilibiliLimits ? 512 * MiB : 128 * MiB,
                 bilibiliLimits ? 256 * MiB : 64 * MiB);
