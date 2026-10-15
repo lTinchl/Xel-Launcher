@@ -9,33 +9,27 @@ namespace XelLauncher.Helpers;
 
 internal static class ParentProcessLauncher
 {
-    internal const uint CreateProcessAccess = 0x0080;
-    internal const uint QueryLimitedInformation = 0x1000;
-
-    internal static SafeProcessHandle OpenParent(int processId)
-        => Open(processId, CreateProcessAccess | QueryLimitedInformation);
-
-    internal static SafeProcessHandle OpenQuery(int processId)
-        => Open(processId, QueryLimitedInformation);
-
-    private static SafeProcessHandle Open(int processId, uint access)
+    internal static SafeProcessHandle StartSuspended(string executable)
     {
-        var handle = OpenProcess(access, false, processId);
-        if (!handle.IsInvalid) return handle;
-        int error = Marshal.GetLastWin32Error();
-        handle.Dispose();
-        throw new Win32Exception(error, error == 5
-            ? "无法访问官方启动器进程。请以与官方启动器相同的权限运行 Xel Launcher（必要时以管理员身份运行）。"
-            : "无法打开官方启动器进程，请重新启动官方启动器后重试。");
+        if (executable.IndexOfAny(new[] { '"', '\0' }) >= 0)
+            throw new ArgumentException("Games.exe 路径包含无效字符。", nameof(executable));
+
+        var startup = new StartupInfo { Size = Marshal.SizeOf<StartupInfo>() };
+        var command = new StringBuilder($"\"{executable}\"");
+        if (!CreateSuspendedProcessW(executable, command, IntPtr.Zero, IntPtr.Zero,
+                false, 0x00000004, IntPtr.Zero, System.IO.Path.GetDirectoryName(executable),
+                ref startup, out var info))
+            throw new Win32Exception(Marshal.GetLastWin32Error(), "无法创建暂停的 Games.exe 父进程。");
+
+        CloseHandle(info.Thread);
+        return new SafeProcessHandle(info.Process, ownsHandle: true);
     }
 
-    internal static string GetImagePath(SafeProcessHandle handle)
+    internal static void Terminate(SafeProcessHandle process)
     {
-        var path = new StringBuilder(32768);
-        int size = path.Capacity;
-        if (!QueryFullProcessImageNameW(handle, 0, path, ref size))
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-        return path.ToString();
+        if (process == null || process.IsClosed || process.IsInvalid) return;
+        // The parent is never resumed; if it already exited there is nothing to clean up.
+        TerminateProcess(process, 0);
     }
 
     internal static Process Start(SafeProcessHandle parent, string executable, string arguments, string directory)
@@ -105,11 +99,6 @@ internal static class ParentProcessLauncher
     private struct ProcessInformation { public IntPtr Process, Thread; public int ProcessId, ThreadId; }
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int id);
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, StringBuilder path, ref int size);
-    [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool InitializeProcThreadAttributeList(IntPtr list, int count, uint flags, ref nuint size);
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -122,6 +111,16 @@ internal static class ParentProcessLauncher
     private static extern bool CreateProcessW(string application, StringBuilder command, IntPtr processAttributes,
         IntPtr threadAttributes, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint flags, IntPtr environment,
         string directory, ref StartupInfoEx startup, out ProcessInformation information);
+    [DllImport("kernel32.dll", EntryPoint = "CreateProcessW", CharSet = CharSet.Unicode,
+        ExactSpelling = true, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CreateSuspendedProcessW(string application, StringBuilder command,
+        IntPtr processAttributes, IntPtr threadAttributes,
+        [MarshalAs(UnmanagedType.Bool)] bool inherit, uint flags, IntPtr environment,
+        string directory, ref StartupInfo startup, out ProcessInformation information);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool TerminateProcess(SafeProcessHandle process, uint exitCode);
     [DllImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CloseHandle(IntPtr handle);
