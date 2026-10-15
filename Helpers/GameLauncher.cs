@@ -2,14 +2,21 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Win32.SafeHandles;
 
 namespace XelLauncher.Helpers
 {
     public static class GameLauncher
     {
         private const string ArknightsOfficialSdkDataDirName = "sdk_data_70613ebd03f0610da8808f16040ee1b3";
+        private static readonly object RunningGamesLock = new();
+        private static readonly Dictionary<string, Process> LaunchedGames =
+            new(StringComparer.OrdinalIgnoreCase);
 
         public static string GetPayloadDirPath(string iconName)
         {
@@ -166,7 +173,11 @@ namespace XelLauncher.Helpers
             }
 
             if (EndfieldLauncher.Supports(iconName))
-                return await EndfieldLauncher.StartAsync(rootPath, launchArgs, iconName);
+            {
+                var process = await EndfieldLauncher.StartAsync(rootPath, launchArgs, iconName);
+                TrackLaunchedGame(exePath, process);
+                return process;
+            }
 
             using var started = Process.Start(new ProcessStartInfo
             {
@@ -196,13 +207,29 @@ namespace XelLauncher.Helpers
                 return null;
             }
 
+            lock (RunningGamesLock)
+            {
+                if (LaunchedGames.TryGetValue(expectedPath, out var launched))
+                {
+                    try
+                    {
+                        if (!launched.HasExited)
+                            return Process.GetProcessById(launched.Id);
+                    }
+                    catch (InvalidOperationException) { }
+                    catch (ArgumentException) { }
+                    LaunchedGames.Remove(expectedPath);
+                    launched.Dispose();
+                }
+            }
+
             var processName = isEndfield ? "Endfield" : "Arknights";
             Process match = null;
             foreach (var process in Process.GetProcessesByName(processName))
             {
                 try
                 {
-                    var actualPath = process.MainModule?.FileName;
+                    var actualPath = GetProcessImagePath(process);
                     if (!string.IsNullOrWhiteSpace(actualPath) &&
                         string.Equals(
                             Path.GetFullPath(actualPath),
@@ -225,6 +252,39 @@ namespace XelLauncher.Helpers
 
             return match;
         }
+
+        private static void TrackLaunchedGame(string executable, Process process)
+        {
+            var path = Path.GetFullPath(executable);
+            lock (RunningGamesLock)
+            {
+                if (LaunchedGames.TryGetValue(path, out var previous))
+                    previous.Dispose();
+                // Keep our own process handle: the launch UI disposes its Process
+                // after the game exits or when it closes.
+                LaunchedGames[path] = Process.GetProcessById(process.Id);
+            }
+        }
+
+        private static string GetProcessImagePath(Process process)
+        {
+            using var handle = OpenProcess(0x1000, false, process.Id);
+            if (handle.IsInvalid) return null;
+            var path = new StringBuilder(32768);
+            int length = path.Capacity;
+            return QueryFullProcessImageName(handle, 0, path, ref length)
+                ? path.ToString(0, length)
+                : null;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern SafeProcessHandle OpenProcess(
+            uint desiredAccess, bool inheritHandle, int processId);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryFullProcessImageName(
+            SafeProcessHandle process, uint flags, StringBuilder path, ref int size);
 
         public static bool IsGameRunningFromDirectory(
             string rootPath,
