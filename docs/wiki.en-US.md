@@ -128,6 +128,8 @@ If a download or update is interrupted, click `Resume` to continue. If the cache
 
 After a successful launch, a notification is shown. If `Close launcher after starting game` or `Hide to tray after starting game` is enabled in global settings, the launcher closes or hides after it confirms that the game has started
 
+Endfield Official, Bilibili, Global and Google Play launch `Endfield.exe` with a suspended, officially signed standalone `Games.exe` as its parent process. The full official launcher does not need to be installed or opened. Xel Launcher downloads and verifies `Games.exe` when it is missing
+
 ## Server Switching
 
 When multiple server entries share the same game directory, the launcher prepares a runtime for the target server or replaces server files in the original game directory, depending on the `Use hard links for server switching` setting
