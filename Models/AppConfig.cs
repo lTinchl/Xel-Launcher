@@ -115,7 +115,7 @@ namespace XelLauncher.Models
         /// 主题模式："system"（跟随系统）、"light"（强制浅色）、"dark"（强制深色）
         /// </summary>
         public string ThemeMode { get; set; } = "system";
-        public bool UseHardLink { get; set; } = true;               // 切服时使用硬链接（false=强制文件复制）
+        public bool UseHardLink { get; set; } = false;              // 切服时使用硬链接（false=强制文件复制）
         public List<string> ServerPayloadAutoUpdateProfiles { get; set; } =
             GameChannelCatalog.CreateDefaultServerPayloadProfileIds();
         public Dictionary<string, CachedGameStatus> GameStatusCache { get; set; } = new();
