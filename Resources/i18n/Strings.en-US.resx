@@ -340,7 +340,7 @@
     <value>Update Server Files</value>
   </data>
   <data name="App.PayloadUpdate.Title" xml:space="preserve">
-    <value>Server Difference File Update</value>
+    <value>Server Resource File Update</value>
   </data>
   <data name="App.PayloadUpdate.Description" xml:space="preserve">
     <value>Selected regions auto-update at startup and can be updated now; unselected regions are skipped.</value>
@@ -355,7 +355,7 @@
     <value>Unable to save the automatic server payload update selection.</value>
   </data>
   <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
-    <value>Syncing server-switch payload...</value>
+    <value>Syncing server resource files...</value>
   </data>
   <data name="App.PayloadUpdate.SelectAll" xml:space="preserve">
     <value>All regions</value>

@@ -340,7 +340,7 @@
     <value>更新切服资源</value>
   </data>
   <data name="App.PayloadUpdate.Title" xml:space="preserve">
-    <value>切服差异文件更新</value>
+    <value>切服资源文件更新</value>
   </data>
   <data name="App.PayloadUpdate.Description" xml:space="preserve">
     <value>勾选的服区会在启动时自动更新，也可点击下方按钮立即更新；未勾选的服区将被跳过。</value>
@@ -355,7 +355,7 @@
     <value>无法保存切服资源自动更新范围。</value>
   </data>
   <data name="App.PayloadUpdate.AutoUpdating" xml:space="preserve">
-    <value>正在同步切服差异文件...</value>
+    <value>正在同步切服资源文件...</value>
   </data>
   <data name="App.PayloadUpdate.SelectAll" xml:space="preserve">
     <value>全部服区</value>
