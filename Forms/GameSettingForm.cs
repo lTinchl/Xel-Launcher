@@ -182,7 +182,8 @@ namespace XelLauncher.Forms
                         AntdUI.TType.Warn)
                     {
                         OkText = Localizer.GetRequiredString("OK"),
-                        CancelText = Localizer.GetRequiredString("Cancel")
+                        CancelText = Localizer.GetRequiredString("Cancel"),
+                        Width = 580,
                     });
                     if (result != DialogResult.OK) return;
 
@@ -293,7 +294,8 @@ namespace XelLauncher.Forms
                         AntdUI.TType.Warn)
                     {
                         OkText = Localizer.GetRequiredString("OK"),
-                        CancelText = Localizer.GetRequiredString("Cancel")
+                        CancelText = Localizer.GetRequiredString("Cancel"),
+                        Width = 580,
                     });
                     if (result != DialogResult.OK) return;
 
@@ -346,7 +348,8 @@ namespace XelLauncher.Forms
                         AntdUI.TType.Warn)
                     {
                         OkText = Localizer.GetRequiredString("OK"),
-                        CancelText = Localizer.GetRequiredString("Cancel")
+                        CancelText = Localizer.GetRequiredString("Cancel"),
+                        Width = 580,
                     });
                     if (result != DialogResult.OK) return;
 
@@ -372,11 +375,14 @@ namespace XelLauncher.Forms
                 };
                 Controls.Add(btnReplace);
             }
-            else if (game.IconName == "PlayEndfield")
+            else if (game.IconName is "PlayEndfield" or "SteamEndfield")
             {
+                bool isSteam = game.IconName == "SteamEndfield";
                 var btnReplace = new AntdUI.Button
                 {
-                    Text = Localizer.GetRequiredString("App.GameSetting.ReplacePlay"),
+                    Text = Localizer.GetRequiredString(isSteam
+                        ? "App.GameSetting.ReplaceSteam"
+                        : "App.GameSetting.ReplacePlay"),
                     IconSvg = "CopyOutlined",
                     IconRatio = .58F,
                     IconGap = .18F,
@@ -389,17 +395,22 @@ namespace XelLauncher.Forms
                     string path = _inputPath.Text.Trim();
                     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                     {
-                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString("App.GameSetting.WarnSetPlayPath"));
+                        AntdUI.Message.warn(_overview, Localizer.GetRequiredString(isSteam
+                            ? "App.GameSetting.WarnSetSteamPath"
+                            : "App.GameSetting.WarnSetPlayPath"));
                         return;
                     }
                     var result = AntdUI.Modal.open(new AntdUI.Modal.Config(
                         FindForm() as AntdUI.BaseForm ?? null,
                         Localizer.GetRequiredString("App.GameSetting.ConfirmReplace"),
-                        Localizer.GetRequiredString("App.GameSetting.ConfirmReplacePlay"),
+                        Localizer.GetRequiredString(isSteam
+                            ? "App.GameSetting.ConfirmReplaceSteam"
+                            : "App.GameSetting.ConfirmReplacePlay"),
                         AntdUI.TType.Warn)
                     {
                         OkText = Localizer.GetRequiredString("OK"),
-                        CancelText = Localizer.GetRequiredString("Cancel")
+                        CancelText = Localizer.GetRequiredString("Cancel"),
+                        Width = 580,
                     });
                     if (result != DialogResult.OK) return;
 
@@ -425,6 +436,8 @@ namespace XelLauncher.Forms
                 };
                 Controls.Add(btnReplace);
 
+                if (!isSteam)
+                {
                 // ── Token 分割线 ──
                 dividerToken = new AntdUI.Divider
                 {
@@ -540,6 +553,7 @@ namespace XelLauncher.Forms
                 Controls.Add(lblToken);
                 Controls.Add(inputToken);
                 Controls.Add(btnAutoToken);
+                }
             }
             else
             {

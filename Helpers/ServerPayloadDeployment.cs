@@ -325,7 +325,7 @@ namespace XelLauncher.Helpers
         private static IReadOnlyList<string> BuildManagedEntries(
             GameFamily family)
         {
-            var profiles = ServerPayloadUpdater.Profiles
+            var profiles = GameChannelCatalog.ServerPayloadProfiles
                 .Where(profile => profile.GameFamily == family)
                 .ToArray();
             var directories = profiles

@@ -76,6 +76,7 @@ namespace XelLauncher.Helpers
         public bool ShowByDefault { get; }
         public IReadOnlyList<string> Aliases { get; }
         public bool IsAvailable => _availability();
+        public bool SupportsGameManagement => _presetFactory != null;
 
         public bool Matches(string iconName)
         {
@@ -90,6 +91,8 @@ namespace XelLauncher.Helpers
 
         internal PluginPresetConfigBase CreatePreset()
         {
+            if (_presetFactory == null)
+                throw new NotSupportedException($"{IconName} uses direct game launch.");
             if (!IsAvailable)
                 throw new NotSupportedException(
                     $"The installed Hypergryph plugin does not support {IconName}.");
@@ -157,6 +160,14 @@ namespace XelLauncher.Helpers
             new[] { "eld_Endfield.db", "hgsdk.dll", "OneChannelLC.dll", "HGP.dll" },
             new[] { "sdkdata", "U8Data/config" },
             new[] { "hgsdk.dll", "OneChannelLC.dll", "HGP.dll" });
+
+        private static readonly ServerPayloadProfile SteamEndfieldPayload = CreatePayload(
+            "SteamEndfield", "EndSteam", GameFamily.Endfield,
+            GlobalApiUrl, EndfieldGlobalAppCode, EndfieldGlobalAppCode,
+            "6", "803", "3",
+            new[] { "gfsdk.dll", "glextra.dll", "glfoundation.dll", "HGP.dll", "steam_api64.dll", "steam_appid.txt" },
+            new[] { "sdkdata", "U8Data/config" },
+            new[] { "gfsdk.dll", "glextra.dll", "glfoundation.dll", "HGP.dll", "steam_api64.dll", "steam_appid.txt" });
 
         private static readonly ServerPayloadProfile BiliEndfieldPayload = CreatePayload(
             "BiliEndfield", "EndBilibili", GameFamily.Endfield,
@@ -281,7 +292,12 @@ namespace XelLauncher.Helpers
                 "Endfield (Google Play)", GameFamily.Endfield, "GooglePlay", "Endfield",
                 "PlayEndfield.ico", true,
                 false, false, "Google Play",
-                PlayEndfieldPayload, () => new EndfieldGooglePlayPresetConfig())
+                PlayEndfieldPayload, () => new EndfieldGooglePlayPresetConfig()),
+            new(
+                "SteamEndfield", "终末地(Steam)", "明日方舟：终末地（Steam）",
+                "Endfield (Steam)", GameFamily.Endfield, "Steam", "Endfield",
+                "SteamEndfield.ico", true, false, false, "Steam",
+                SteamEndfieldPayload, null)
         };
 
         private static readonly IReadOnlyList<GameChannelDefinition> ReadOnlyChannels =
@@ -341,6 +357,8 @@ namespace XelLauncher.Helpers
         public static bool CanCreateLinkedRuntime(
             string sourceIconName,
             string targetIconName) =>
+            Get(sourceIconName)?.SupportsGameManagement == true &&
+            Get(targetIconName)?.SupportsGameManagement == true &&
             !string.Equals(sourceIconName, targetIconName,
                 StringComparison.OrdinalIgnoreCase) &&
             CanSwitchChannel(sourceIconName, targetIconName);
@@ -356,7 +374,9 @@ namespace XelLauncher.Helpers
                 .ToList();
 
         public static List<string> CreateDefaultServerPayloadProfileIds() =>
-            ServerPayloadProfiles.Select(profile => profile.IconName).ToList();
+            ServerPayloadProfiles
+                .Where(profile => ServerPayloadUpdater.IsUpdateSupported(profile.IconName))
+                .Select(profile => profile.IconName).ToList();
 
         private static ServerPayloadProfile CreatePayload(
             string iconName,

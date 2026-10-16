@@ -60,6 +60,8 @@ namespace XelLauncher.Forms
         private readonly List<AntdUI.Avatar> _subBtns = new();
 
         private EndfieldService _service;
+        private bool SupportsGameManagement =>
+            GameChannelCatalog.Get(_game.IconName)?.SupportsGameManagement == true;
         private enum GameState { Unknown, NotInstalled, HasUpdate, HasPreload, Ready, Downloading, Paused, Repairing }
         private GameState _gameState = GameState.Unknown;
         private ActiveGameUpdate _activeUpdate;
@@ -104,6 +106,7 @@ namespace XelLauncher.Forms
 
         private void ApplyCachedGameStatus()
         {
+            if (!SupportsGameManagement) return;
             try
             {
                 var cfg = ConfigHelper.Load();

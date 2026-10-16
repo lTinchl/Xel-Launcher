@@ -30,7 +30,7 @@ Currently supported entries:
 | Game | Servers |
 | --- | --- |
 | Arknights | Official, Bilibili |
-| Arknights: Endfield | Official, Bilibili, Global, Google Play |
+| Arknights: Endfield | Official, Bilibili, Global, Google Play, Steam |
 
 ## Before You Start
 
@@ -130,6 +130,8 @@ After a successful launch, a notification is shown. If `Close launcher after sta
 
 Endfield Official, Bilibili, Global and Google Play launch `Endfield.exe` with a suspended, officially signed standalone `Games.exe` as its parent process. The full official launcher does not need to be installed or opened. Xel Launcher downloads and verifies `Games.exe` when it is missing
 
+The Steam entry uses the existing Endfield file replacement and launch flow, with `load\EndSteam` under the launcher directory as its local channel payload. It then runs `Endfield.exe` directly, skipping the `Games.exe` parent process. Steam can share a game directory with other Endfield channels; shared directories containing Steam use traditional file replacement. A missing or empty payload directory stops the launch with an error
+
 ## Server Switching
 
 When multiple server entries share the same game directory, the launcher prepares a runtime for the target server or replaces server files in the original game directory, depending on the `Use hard links for server switching` setting
@@ -137,7 +139,7 @@ When multiple server entries share the same game directory, the launcher prepare
 Supported switching directions:
 
 - Arknights Official and Bilibili
-- Endfield Official, Bilibili, Global, and Google Play
+- Endfield Official, Bilibili, Global, Google Play, and Steam
 
 Recommended setup:
 

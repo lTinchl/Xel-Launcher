@@ -43,7 +43,9 @@
 	| Game | Official | Bilibili | Japanese | Korean | Global | Google Play | Steam |
 	|------|:--------:|:--------:|:--------:|:------:|:------:|:-----------:|:-----:|
 	| Arknights | ✅ | ✅ | — | — | — | — | — |
-	| Endfield |   ✅ | ✅ | —  |  — | ✅ | ✅ | —  |
+	| Endfield |   ✅ | ✅ | —  |  — | ✅ | ✅ | ✅¹ |
+
+¹ The Steam entry first copies local channel files from `load\EndSteam` over the game directory, then launches `Endfield.exe` directly. Steam handles downloads, updates, and repairs.
 
 - [x] Seamless multi-account switching for Endfield and Arknights
 - [x] Game download, update, and version detection
@@ -64,7 +66,8 @@ XelLauncher/
 │   ├── EndBilibili/              # Endfield Bilibili server
 │   ├── EndGlobal/                # Endfield global server
 │   ├── EndOfficial/              # Endfield official server
-│   └── EndPlay/                  # Endfield Google Play server
+│   ├── EndPlay/                  # Endfield Google Play server
+│   └── EndSteam/                 # Endfield Steam local channel files (provided manually)
 ├── Models/                       # Configuration, game, account, and update models
 ├── Properties/                   # .resx resources and publish profiles
 ├── redist/                       # Redistributable runtime/install assets

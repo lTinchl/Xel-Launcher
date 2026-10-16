@@ -122,7 +122,7 @@ namespace XelLauncher.Forms
                 _subBtns.Add(CreateSubButton(Properties.Resources.PRTS_WIKI, btnPrtsWiki_Click, "PRTS Wiki"));
                 _subBtns.Add(CreateSubButton(Properties.Resources.Arknights_Yituliu, btnYituliu_Click, "一图流"));
             }
-            else if (_game.IconName is "GlobalEndfield" or "PlayEndfield")
+            else if (_game.IconName is "GlobalEndfield" or "PlayEndfield" or "SteamEndfield")
             {
                 _subBtns.Add(CreateSubButton(Properties.Resources.endfieldtools, btnEndfieldtools_Click, "Endfield Tools"));
             }

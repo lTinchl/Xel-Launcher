@@ -140,7 +140,9 @@ namespace XelLauncher.Helpers
         private const long MiB = 1024L * 1024L;
 
         private static readonly ServerPayloadProfile[] ProfileList =
-            GameChannelCatalog.ServerPayloadProfiles.ToArray();
+            GameChannelCatalog.ServerPayloadProfiles
+                .Where(profile => IsUpdateSupported(profile.IconName))
+                .ToArray();
 
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> UpdateLocks =
             new(StringComparer.OrdinalIgnoreCase);
@@ -162,6 +164,10 @@ namespace XelLauncher.Helpers
             CreateHttpClient(TimeSpan.FromMinutes(30));
 
         public static IReadOnlyList<ServerPayloadProfile> Profiles => ProfileList;
+
+        // Temporarily exclude Steam from resource updates while retaining its local payload for switching.
+        public static bool IsUpdateSupported(string iconName) =>
+            !string.Equals(iconName, "SteamEndfield", StringComparison.OrdinalIgnoreCase);
 
         public static event Action<string, bool> CurrentVersionStateChanged;
 

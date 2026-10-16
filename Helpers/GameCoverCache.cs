@@ -785,7 +785,7 @@ namespace XelLauncher.Helpers
             {
                 "Arknights" or "BiliArknights" => "Arknights",
                 "Endfield" or "BiliEndfield" => "Endfield",
-                "GlobalEndfield" or "PlayEndfield" => "GlobalEndfield",
+                "GlobalEndfield" or "PlayEndfield" or "SteamEndfield" => "GlobalEndfield",
                 _ => SanitizeFileName(iconName)
             };
         }

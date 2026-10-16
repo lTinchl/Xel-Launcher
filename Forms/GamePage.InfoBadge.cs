@@ -44,6 +44,11 @@ namespace XelLauncher.Forms
                         detectBaseChannel: false,
                         out _);
                     installedChannel = resolution.Base?.ChannelLabel ?? targetChannel;
+                    var installedVersion = SharedRootManager.ReadInstalledVersion(entry.RootPath);
+                    if (!string.IsNullOrWhiteSpace(installedVersion))
+                        localVersion = installedVersion;
+                    else if (string.IsNullOrWhiteSpace(localVersion))
+                        localVersion = resolution.State?.BaseVersion ?? "";
                 }
             }
             catch { }

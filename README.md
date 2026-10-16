@@ -43,7 +43,9 @@
 	| 游戏 | 官服 | Bilibili | 日服 | 韩服 | 国际服 | Google Play | Steam |
 	|------|:----:|:--------:|:----:|:----:|:------:|:-----------:|:-----:|
 	| 明日方舟 | ✅ | ✅ | — | — | — | — | — |
-	| 明日方舟:终末地 |   ✅ | ✅ | —  |  — | ✅ | ✅ | —  |
+	| 明日方舟:终末地 |   ✅ | ✅ | —  |  — | ✅ | ✅ | ✅¹ |
+
+¹ Steam 渠道启动前将 `load\EndSteam` 中的本地渠道文件复制覆盖到游戏目录，再直接运行 `Endfield.exe`；下载、更新和修复由 Steam 管理。
 
 - [x] 终末地、方舟多账号无感切换
 - [x] 游戏下载、更新和版本检测
@@ -64,7 +66,8 @@ XelLauncher/
 │   ├── EndBilibili/              # 终末地 Bilibili 服
 │   ├── EndGlobal/                # 终末地国际服
 │   ├── EndOfficial/              # 终末地官服
-│   └── EndPlay/                  # 终末地 Google Play 服
+│   ├── EndPlay/                  # 终末地 Google Play 服
+│   └── EndSteam/                 # 终末地 Steam 本地渠道文件（手动提供）
 ├── Models/                       # 配置、游戏、账号与更新数据模型
 ├── Properties/                   # .resx 资源与发布配置
 ├── redist/                       # 可再发行运行库/安装资源
