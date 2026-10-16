@@ -128,7 +128,8 @@ namespace XelLauncher.Forms
                     });
                 }
             };
-            floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Repair"), "repair").SetIcon("SafetyCertificateOutlined"));
+            if (SupportsGameManagement)
+                floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Repair"), "repair").SetIcon("SafetyCertificateOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "repair")
@@ -141,9 +142,10 @@ namespace XelLauncher.Forms
                 }
             };
 
-            floatMenu.Items.Add(new AntdUI.SelectItem(
-                Localizer.GetRequiredString("App.Game.PayloadUpdate"),
-                "payloadUpdate").SetIcon("CloudSyncOutlined"));
+            if (ServerPayloadUpdater.IsUpdateSupported(_game.IconName))
+                floatMenu.Items.Add(new AntdUI.SelectItem(
+                    Localizer.GetRequiredString("App.Game.PayloadUpdate"),
+                    "payloadUpdate").SetIcon("CloudSyncOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "payloadUpdate")
@@ -167,7 +169,8 @@ namespace XelLauncher.Forms
                 }
             };
 
-            floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Deledwonload"), "Deledwonload").SetIcon("DeleteOutlined"));
+            if (SupportsGameManagement)
+                floatMenu.Items.Add(new AntdUI.SelectItem(Localizer.GetRequiredString("App.Game.Deledwonload"), "Deledwonload").SetIcon("DeleteOutlined"));
             floatMenu.SelectedValueChanged += (s, e) =>
             {
                 if (e.Value is string v && v == "Deledwonload")

@@ -498,6 +498,9 @@
   <data name="App.PayloadUpdate.Region.PlayEndfield" xml:space="preserve">
     <value>Endfield (Google Play)</value>
   </data>
+  <data name="App.PayloadUpdate.Region.SteamEndfield" xml:space="preserve">
+    <value>Endfield (Steam)</value>
+  </data>
   <data name="App.Game.Repair" xml:space="preserve">
     <value>Verify Game Integrity</value>
   </data>
@@ -568,19 +571,22 @@
     <value>Confirm Replace</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceArkBili" xml:space="preserve">
-    <value>Replace the current Official server files with Bilibili server files? This will overwrite game files.</value>
+    <value>Replace the current server with the Bilibili server? This will overwrite game files.</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceArkOfficial" xml:space="preserve">
-    <value>Replace the current directory with Official server files? This will overwrite game files.</value>
+    <value>Replace the current server with the Official server? This will overwrite game files.</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceEndBili" xml:space="preserve">
-    <value>Replace the current directory with Bilibili server files? This will overwrite game files.</value>
+    <value>Replace the current server with the Bilibili server? This will overwrite game files.</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceGlobal" xml:space="preserve">
-    <value>Replace the current directory with Global server files? This will overwrite game files.</value>
+    <value>Replace the current server with the Global server? This will overwrite game files.</value>
   </data>
   <data name="App.GameSetting.ConfirmReplacePlay" xml:space="preserve">
-    <value>Replace the current directory with GooglePlay server files? This will overwrite game files.</value>
+    <value>Replace the current server with the Google Play server? This will overwrite game files.</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplaceSteam" xml:space="preserve">
+    <value>Replace the current server with the Steam server? This will overwrite game files.</value>
   </data>
   <data name="App.GameSetting.CustomLaunchArgs" xml:space="preserve">
     <value>Customize startup parameters</value>
@@ -622,19 +628,22 @@
     <value>Path not set</value>
   </data>
   <data name="App.GameSetting.ReplaceBili" xml:space="preserve">
-    <value>Replace files with Bilibili server</value>
+    <value>Replace server with Bilibili server</value>
   </data>
   <data name="App.GameSetting.ReplaceFailed" xml:space="preserve">
     <value>Replace failed: </value>
   </data>
   <data name="App.GameSetting.ReplaceGlobal" xml:space="preserve">
-    <value>Replace files with Global server</value>
+    <value>Replace server with Global server</value>
   </data>
   <data name="App.GameSetting.ReplaceOfficial" xml:space="preserve">
-    <value>Replace files with Official server</value>
+    <value>Replace server with Official server</value>
   </data>
   <data name="App.GameSetting.ReplacePlay" xml:space="preserve">
-    <value>Replace files with GooglePlay server</value>
+    <value>Replace server with Google Play server</value>
+  </data>
+  <data name="App.GameSetting.ReplaceSteam" xml:space="preserve">
+    <value>Replace server with Steam</value>
   </data>
   <data name="App.GameSetting.ReplaceSuccess" xml:space="preserve">
     <value>Success! Server resource package has been applied.</value>
@@ -649,10 +658,10 @@
     <value>Session Token</value>
   </data>
   <data name="App.GameSetting.SyncSuccess" xml:space="preserve">
-    <value>Path synced to Bilibili server.</value>
+    <value>Path synced to Bilibili server</value>
   </data>
   <data name="App.GameSetting.SyncSuccessAll" xml:space="preserve">
-    <value>Path synced to Bilibili, Global, and GooglePlay servers.</value>
+    <value>The path has been synchronized to other servers</value>
   </data>
   <data name="App.GameSetting.SyncToAll" xml:space="preserve">
     <value>Sync path to Bilibili / Global / GooglePlay server</value>
@@ -686,6 +695,9 @@
   </data>
   <data name="App.GameSetting.WarnSetPlayPath" xml:space="preserve">
     <value>Please set the GooglePlay server path first</value>
+  </data>
+  <data name="App.GameSetting.WarnSetSteamPath" xml:space="preserve">
+    <value>Please set the Steam server path first</value>
   </data>
   <data name="App.GameSetting.ZipNotFoundOfficial" xml:space="preserve">
     <value>Official server resource package (ArkOfficial.zip) not found. Check the load folder.</value>

@@ -498,6 +498,9 @@
   <data name="App.PayloadUpdate.Region.PlayEndfield" xml:space="preserve">
     <value>终末地（Google Play）</value>
   </data>
+  <data name="App.PayloadUpdate.Region.SteamEndfield" xml:space="preserve">
+    <value>终末地（Steam）</value>
+  </data>
   <data name="App.Game.Repair" xml:space="preserve">
     <value>校验游戏完整性</value>
   </data>
@@ -568,19 +571,22 @@
     <value>确认替换</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceArkBili" xml:space="preserve">
-    <value>确定要将当前官服替换为B服吗？此操作会覆盖游戏文件</value>
+    <value>确定要将当前服务器替换为 B 服吗？此操作会覆盖游戏文件。</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceArkOfficial" xml:space="preserve">
-    <value>Replace the current directory with Official server files? This will overwrite game files.</value>
+    <value>确定要将当前服务器替换为官服吗？此操作会覆盖游戏文件。</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceEndBili" xml:space="preserve">
-    <value>确定要将当前目录替换为B服文件吗？此操作会覆盖游戏文件</value>
+    <value>确定要将当前服务器替换为 B 服吗？此操作会覆盖游戏文件。</value>
   </data>
   <data name="App.GameSetting.ConfirmReplaceGlobal" xml:space="preserve">
-    <value>确定要将当前目录替换为国际服文件吗？此操作会覆盖游戏文件</value>
+    <value>确定要将当前服务器替换为国际服吗？此操作会覆盖游戏文件。</value>
   </data>
   <data name="App.GameSetting.ConfirmReplacePlay" xml:space="preserve">
-    <value>确定要将当前目录替换为GooglePlay服文件吗？此操作会覆盖游戏文件</value>
+    <value>确定要将当前服务器替换为 Google Play 服吗？此操作会覆盖游戏文件。</value>
+  </data>
+  <data name="App.GameSetting.ConfirmReplaceSteam" xml:space="preserve">
+    <value>确定要将当前服务器替换为 Steam 服吗？此操作会覆盖游戏文件。</value>
   </data>
   <data name="App.GameSetting.CustomLaunchArgs" xml:space="preserve">
     <value>自定义启动参数</value>
@@ -622,22 +628,25 @@
     <value>未设置路径</value>
   </data>
   <data name="App.GameSetting.ReplaceBili" xml:space="preserve">
-    <value>将文件替换为B服</value>
+    <value>将服务器替换为 B 服</value>
   </data>
   <data name="App.GameSetting.ReplaceFailed" xml:space="preserve">
     <value>替换失败：</value>
   </data>
   <data name="App.GameSetting.ReplaceGlobal" xml:space="preserve">
-    <value>将文件替换为国际服</value>
+    <value>将服务器替换为国际服</value>
   </data>
   <data name="App.GameSetting.ReplaceOfficial" xml:space="preserve">
-    <value>Replace files with Official server</value>
+    <value>将服务器替换为官服</value>
   </data>
   <data name="App.GameSetting.ReplacePlay" xml:space="preserve">
-    <value>将文件替换为GooglePlay服</value>
+    <value>将服务器替换为 Google Play 服</value>
+  </data>
+  <data name="App.GameSetting.ReplaceSteam" xml:space="preserve">
+    <value>将服务器替换为 Steam 服</value>
   </data>
   <data name="App.GameSetting.ReplaceSuccess" xml:space="preserve">
-    <value>替换成功，B服资源包已覆盖至当前目录</value>
+    <value>替换成功，服务器资源包已应用到当前目录</value>
   </data>
   <data name="App.GameSetting.Replacing" xml:space="preserve">
     <value>替换中...</value>
@@ -652,10 +661,10 @@
     <value>路径已同步到 BillBili服</value>
   </data>
   <data name="App.GameSetting.SyncSuccessAll" xml:space="preserve">
-    <value>路径已同步到 BillBili服 / 国际服 / GooglePlay服</value>
+    <value>路径已同步到其他服</value>
   </data>
   <data name="App.GameSetting.SyncToAll" xml:space="preserve">
-    <value>同步路径到 BillBili服 / 国际服 / GooglePlay服</value>
+    <value>同步路径到其他服</value>
   </data>
   <data name="App.GameSetting.SyncToBili" xml:space="preserve">
     <value>同步路径到 BillBili服</value>
@@ -686,6 +695,9 @@
   </data>
   <data name="App.GameSetting.WarnSetPlayPath" xml:space="preserve">
     <value>请先设置GooglePlay服路径</value>
+  </data>
+  <data name="App.GameSetting.WarnSetSteamPath" xml:space="preserve">
+    <value>请先设置 Steam 服路径</value>
   </data>
   <data name="App.GameSetting.ZipNotFoundOfficial" xml:space="preserve">
     <value>Official server resource package (ArkOfficial.zip) not found. Check the load folder.</value>

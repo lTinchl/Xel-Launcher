@@ -94,7 +94,8 @@ namespace XelLauncher.Forms
                     rootPath,
                     detectBaseChannel: false,
                     out _);
-                if (resolution.Mode != SharedRootMode.Shared ||
+                if (resolution.ConfiguredChannels.Any(channel => !channel.SupportsGameManagement) ||
+                    resolution.Mode != SharedRootMode.Shared ||
                     resolution.Base == null ||
                     resolution.Target == null ||
                     string.Equals(
@@ -127,6 +128,20 @@ namespace XelLauncher.Forms
 
         private async Task<bool> CheckGameStatusAsync()
         {
+            if (!SupportsGameManagement)
+            {
+                try
+                {
+                    var path = GetConfiguredGamePath();
+                    if (!string.IsNullOrWhiteSpace(path))
+                        await Task.Run(() => SharedRootManager.ResolveAndPersist(
+                            _game.IconName, path, detectBaseChannel: true));
+                    if (IsHandleCreated && !IsDisposed)
+                        BeginInvoke(() => RefreshGameInfoBadge());
+                    return true;
+                }
+                catch { return false; }
+            }
             try { _service = new EndfieldService(_game.IconName); }
             catch { return false; }
 
@@ -971,7 +986,7 @@ namespace XelLauncher.Forms
 
         private static bool IsServerPayloadAutoUpdateEnabled(string iconName)
         {
-            return ConfigHelper.Load()
+            return ServerPayloadUpdater.IsUpdateSupported(iconName) && ConfigHelper.Load()
                 .ServerPayloadAutoUpdateProfiles
                 .Contains(iconName, StringComparer.OrdinalIgnoreCase);
         }
@@ -1019,7 +1034,8 @@ namespace XelLauncher.Forms
                 return;
             }
 
-            if (_gameState == GameState.NotInstalled || _gameState == GameState.HasUpdate || _gameState == GameState.Paused)
+            if (SupportsGameManagement &&
+                (_gameState == GameState.NotInstalled || _gameState == GameState.HasUpdate || _gameState == GameState.Paused))
             {
                 InstallOrUpdateGame();
                 return;
@@ -1088,7 +1104,7 @@ namespace XelLauncher.Forms
                 {
                     _game.LocalVersion = "";
                     _preloadCompleted = false;
-                    _gameState = GameState.NotInstalled;
+                    _gameState = SupportsGameManagement ? GameState.NotInstalled : GameState.Unknown;
                     RefreshGameStartButton();
                     RefreshGameInfoBadge();
                     return;
@@ -1181,7 +1197,8 @@ namespace XelLauncher.Forms
             bool needSwitch;
             var useLinkedRuntime =
                 cfg.UseHardLink &&
-                sharedRootResolution.Mode == SharedRootMode.Shared;
+                sharedRootResolution.Mode == SharedRootMode.Shared &&
+                sharedRootResolution.ConfiguredChannels.All(channel => channel.SupportsGameManagement);
             try
             {
                 if (useLinkedRuntime)
@@ -1420,6 +1437,7 @@ namespace XelLauncher.Forms
                                 {
                                     if (!GameStart.IsDisposed)
                                         GameStart.Loading = false;
+                                    RefreshGameInfoBadge();
                                 }));
                             }
                             catch
