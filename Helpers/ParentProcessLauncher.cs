@@ -17,7 +17,7 @@ internal static class ParentProcessLauncher
         var startup = new StartupInfo { Size = Marshal.SizeOf<StartupInfo>() };
         var command = new StringBuilder($"\"{executable}\"");
         if (!CreateSuspendedProcessW(executable, command, IntPtr.Zero, IntPtr.Zero,
-                false, 0x00000004, IntPtr.Zero, System.IO.Path.GetDirectoryName(executable),
+                false, 0x00000004 | 0x08000000, IntPtr.Zero, System.IO.Path.GetDirectoryName(executable),
                 ref startup, out var info))
             throw new Win32Exception(Marshal.GetLastWin32Error(), "无法创建暂停的 Games.exe 父进程。");
 
@@ -30,6 +30,8 @@ internal static class ParentProcessLauncher
         if (process == null || process.IsClosed || process.IsInvalid) return;
         // The parent is never resumed; if it already exited there is nothing to clean up.
         TerminateProcess(process, 0);
+        // Wait for the image mapping to be released before deleting its staged file.
+        WaitForSingleObject(process, 2000);
     }
 
     internal static Process Start(SafeProcessHandle parent, string executable, string arguments, string directory)
@@ -121,6 +123,8 @@ internal static class ParentProcessLauncher
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool TerminateProcess(SafeProcessHandle process, uint exitCode);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern uint WaitForSingleObject(SafeProcessHandle process, uint milliseconds);
     [DllImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CloseHandle(IntPtr handle);

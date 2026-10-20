@@ -363,8 +363,9 @@ namespace XelLauncher.Helpers
                         profile, force, progress, cancellationToken)
                     .ConfigureAwait(false);
 
-                result = await CompleteWithGamesAsync(profile, result, progress, cancellationToken)
-                    .ConfigureAwait(false);
+                // Legacy official Games.exe download disabled: launch now stages a signed game file.
+                // result = await CompleteWithGamesAsync(profile, result, progress, cancellationToken)
+                //     .ConfigureAwait(false);
                 RememberCurrentVersionState(profile, result);
                 return result;
             }
@@ -393,8 +394,9 @@ namespace XelLauncher.Helpers
                         progress,
                         cancellationToken)
                     .ConfigureAwait(false);
-                result = await CompleteWithGamesAsync(profile, result, progress, cancellationToken)
-                    .ConfigureAwait(false);
+                // Legacy official Games.exe download disabled: launch now stages a signed game file.
+                // result = await CompleteWithGamesAsync(profile, result, progress, cancellationToken)
+                //     .ConfigureAwait(false);
                 RememberCurrentVersionState(profile, result);
                 return result;
             }
@@ -1098,9 +1100,7 @@ namespace XelLauncher.Helpers
             var targetMovedToBackup = false;
             var stagingMovedToTarget = false;
 
-            // Games.exe belongs to the launcher cache, not the game manifest.
-            // Keep it across forced payload refreshes so the launcher ZIP is only
-            // fetched when its own version or verified file content changes.
+            /* Legacy official Games.exe cache preservation is disabled.
             if (profile.GameFamily == GameFamily.Endfield && Directory.Exists(targetDirectory))
             {
                 string existingGames = Path.Combine(targetDirectory, "Games.exe");
@@ -1108,6 +1108,7 @@ namespace XelLauncher.Helpers
                     !File.GetAttributes(existingGames).HasFlag(FileAttributes.ReparsePoint))
                     File.Copy(existingGames, Path.Combine(stagingDirectory, "Games.exe"));
             }
+            */
 
             if (Directory.Exists(backupDirectory))
                 DeleteControlledDirectory(backupDirectory);

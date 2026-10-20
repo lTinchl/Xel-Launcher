@@ -11,6 +11,19 @@ internal static class OfficialLauncherTrust
     {
         if (!File.Exists(path) || !Path.GetFileName(path).Equals("Games.exe", StringComparison.OrdinalIgnoreCase))
             return false;
+        return VerifyPublisher(path, publisher => string.Equals(publisher,
+            global ? "GRYPH FRONTIER PTE. LTD." : "Shanghai Hypergryph Network Technology Co., Ltd.",
+            StringComparison.OrdinalIgnoreCase));
+    }
+
+    internal static bool IsTrustedGameFile(string path) =>
+        File.Exists(path) && VerifyPublisher(path, publisher =>
+            publisher.Contains("Hypergryph", StringComparison.OrdinalIgnoreCase) ||
+            publisher.Contains("GRYPHLINE", StringComparison.OrdinalIgnoreCase) ||
+            publisher.Contains("GRYPH FRONTIER", StringComparison.OrdinalIgnoreCase));
+
+    private static bool VerifyPublisher(string path, Func<string, bool> acceptsPublisher)
+    {
         var file = new TrustFile { Size = (uint)Marshal.SizeOf<TrustFile>(), Path = path };
         IntPtr filePointer = Marshal.AllocHGlobal(Marshal.SizeOf<TrustFile>());
         var data = new TrustData
@@ -29,8 +42,7 @@ internal static class OfficialLauncherTrust
             using var certificate = new X509Certificate2(X509Certificate.CreateFromSignedFile(path));
 #pragma warning restore SYSLIB0057
             string publisher = certificate.GetNameInfo(X509NameType.SimpleName, false);
-            return string.Equals(publisher, global ? "GRYPH FRONTIER PTE. LTD." :
-                "Shanghai Hypergryph Network Technology Co., Ltd.", StringComparison.OrdinalIgnoreCase);
+            return acceptsPublisher(publisher);
         }
         catch (System.Security.Cryptography.CryptographicException) { return false; }
         finally

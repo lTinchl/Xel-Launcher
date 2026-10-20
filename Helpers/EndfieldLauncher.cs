@@ -1,87 +1,61 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32.SafeHandles;
 
 namespace XelLauncher.Helpers;
 
 internal static class EndfieldLauncher
 {
     internal static bool Supports(string iconName) =>
-        iconName is "Endfield" or "BiliEndfield" or "GlobalEndfield";
+        iconName is "Endfield" or "BiliEndfield" or "GlobalEndfield" or "PlayEndfield";
 
-    internal static Task<Process> StartAsync(string gamePath, string arguments, string iconName) =>
-        ServerPayloadUpdater.UsePayloadDirectoryAsync(iconName, async directory =>
-        {
-            var profile = ServerPayloadUpdater.GetProfile(iconName) ??
-                throw new InvalidOperationException($"Missing payload profile for {iconName}.");
-            string gamesPath = Path.Combine(directory, "Games.exe");
-            bool global = iconName == "GlobalEndfield";
-            // A cache refresh takes the same payload lock, so the executable
-            // cannot be replaced while we create the suspended parent.
-            if (!File.Exists(gamesPath))
-                await EndfieldGamesPayloadUpdater.EnsureAsync(
-                    profile, directory, null, CancellationToken.None).ConfigureAwait(false);
-
-            return await Task.Run(() =>
-            {
-                if (File.GetAttributes(gamesPath).HasFlag(FileAttributes.ReparsePoint) ||
-                    !OfficialLauncherTrust.IsTrusted(gamesPath, global))
-                    throw new InvalidOperationException(
-                        "官方 Games.exe 数字签名或发行者验证失败，请更新切服资源后重试。");
-
-                using var imageLock = File.Open(gamesPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                SafeProcessHandle parent = ParentProcessLauncher.StartSuspended(gamesPath);
-                try
-                {
-                    var process = ParentProcessLauncher.Start(parent,
-                        Path.GetFullPath(Path.Combine(gamePath, "Endfield.exe")),
-                        arguments, Path.GetFullPath(gamePath));
-                    _ = new SuspendedParentLifetime(parent, process);
-                    parent = null;
-                    LogHelper.Log($"Endfield launch: channel={iconName}, process={process.Id}");
-                    return process;
-                }
-                finally
-                {
-                    if (parent != null)
-                    {
-                        ParentProcessLauncher.Terminate(parent);
-                        parent.Dispose();
-                    }
-                }
-            }).ConfigureAwait(false);
-        });
-
-    private sealed class SuspendedParentLifetime
+    internal static async Task<Process> StartAsync(string gamePath, string arguments, string iconName)
     {
-        private SafeProcessHandle _parent;
-
-        internal SuspendedParentLifetime(SafeProcessHandle parent, Process game)
+        // The legacy Games.exe download/cache route is disabled. The worker stages
+        // a signed game file locally and owns its lifetime independently of the UI.
+        var start = new ProcessStartInfo(Environment.ProcessPath)
         {
-            _parent = parent;
-            AppDomain.CurrentDomain.ProcessExit += OnLauncherExit;
-            _ = WaitForGameExitAsync(game);
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            RedirectStandardOutput = true
+        };
+        if (string.Equals(Path.GetFileNameWithoutExtension(Environment.ProcessPath),
+                "dotnet", StringComparison.OrdinalIgnoreCase))
+            start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory,
+                typeof(EndfieldLauncher).Assembly.GetName().Name + ".dll"));
+        start.ArgumentList.Add(EndfieldLaunchWorker.Command);
+        start.ArgumentList.Add(Path.GetFullPath(gamePath));
+        start.ArgumentList.Add(arguments ?? "");
+
+        Process worker;
+        try
+        {
+            worker = Process.Start(start) ?? throw new InvalidOperationException("无法创建启动辅助进程。");
+        }
+        catch (Exception ex)
+        {
+            LogHelper.LogError(ex, "Endfield worker unavailable; using ordinary launch");
+            return EndfieldLaunchWorker.StartDirectly(gamePath, arguments);
         }
 
-        private async Task WaitForGameExitAsync(Process game)
+        using (worker)
         {
-            try { await game.WaitForExitAsync().ConfigureAwait(false); }
-            catch (Exception ex) { LogHelper.LogError(ex, "Endfield parent lifetime"); }
-            finally { Stop(); }
-        }
-
-        private void OnLauncherExit(object sender, EventArgs args) => Stop();
-
-        private void Stop()
-        {
-            var parent = Interlocked.Exchange(ref _parent, null);
-            if (parent == null) return;
-            AppDomain.CurrentDomain.ProcessExit -= OnLauncherExit;
-            ParentProcessLauncher.Terminate(parent);
-            parent.Dispose();
+            // Acknowledgement means the worker already owns both the game and
+            // its parent. Closing the UI or this handle cannot terminate either.
+            string reply = await worker.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+            if (reply == null || !reply.StartsWith("PID:", StringComparison.Ordinal) ||
+                !int.TryParse(reply.AsSpan(4), out int processId))
+                throw new InvalidOperationException(reply ?? "终末地启动辅助进程未返回游戏进程。");
+            var process = Process.GetProcessById(processId);
+            if (process.HasExited)
+            {
+                process.Dispose();
+                throw new InvalidOperationException("终末地进程在启动过程中退出。");
+            }
+            LogHelper.Log($"Endfield launch: channel={iconName}, process={process.Id}");
+            return process;
         }
     }
 }

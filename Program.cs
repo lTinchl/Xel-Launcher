@@ -15,6 +15,14 @@ namespace XelLauncher
         [STAThread]
         static void Main(string[] args)
         {
+            // No UI, configuration, DNS setup or elevation relaunch in the worker.
+            // It must outlive the launcher window to retain Endfield's parent.
+            if (args.Length > 0 && args[0] == EndfieldLaunchWorker.Command)
+            {
+                EndfieldLaunchWorker.Run(args);
+                return;
+            }
+
             Application.ThreadException += (s, e) =>
                 LogHelper.LogError(e.Exception, "UI ThreadException");
 
