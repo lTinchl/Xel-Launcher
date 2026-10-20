@@ -149,11 +149,17 @@ namespace XelLauncher.Forms
                     action = new AntdUI.CellLink[]
                     {
                         StyleActionButton(new AntdUI.CellButton("record", Localizer.GetRequiredString("App.Account.BtnRecord"), AntdUI.TTypeMini.Primary), "primary"),
-                        new AntdUI.CellButton("setDefault", Localizer.GetRequiredString("App.Account.BtnSetDefault"), AntdUI.TTypeMini.Success).SetFore(_solidButtonText).SetRadius(5),
-                        StyleActionButton(new AntdUI.CellButton("rename", Localizer.GetRequiredString("App.Account.BtnRename"), AntdUI.TTypeMini.Default), "muted"),
+                        new AntdUI.CellButton("setDefault", Localizer.GetRequiredString("App.Account.BtnSetDefault"), AntdUI.TTypeMini.Success)
+                            .SetBack(Color.FromArgb(83, 116, 92), Color.FromArgb(94, 128, 103), Color.FromArgb(69, 99, 78))
+                            .SetFore(_solidButtonText).SetRadius(5),
+                        new AntdUI.CellButton("rename", Localizer.GetRequiredString("App.Account.BtnRename"), AntdUI.TTypeMini.Primary)
+                            .SetBack(Color.FromArgb(83, 111, 145), Color.FromArgb(96, 125, 159), Color.FromArgb(68, 94, 125))
+                            .SetFore(_solidButtonText).SetRadius(5),
                         _pendingDelete.Contains(id)
                             ? new AntdUI.CellButton("delete", Localizer.GetRequiredString("App.Account.BtnConfirmDelete"), AntdUI.TTypeMini.Error).SetFore(_solidButtonText).SetRadius(5)
-                            : new AntdUI.CellButton("delete", Localizer.GetRequiredString("App.Account.BtnDelete"), AntdUI.TTypeMini.Primary).SetBack(Color.Orange).SetFore(_solidButtonText).SetRadius(5),
+                            : new AntdUI.CellButton("delete", Localizer.GetRequiredString("App.Account.BtnDelete"), AntdUI.TTypeMini.Primary)
+                                .SetBack(Color.FromArgb(151, 105, 63), Color.FromArgb(165, 117, 74), Color.FromArgb(130, 89, 52))
+                                .SetFore(_solidButtonText).SetRadius(5),
                     }
                 });
             }
