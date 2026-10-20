@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using XelLauncher.Forms;
@@ -83,7 +84,6 @@ namespace XelLauncher
 #endif
             var command = string.Join(" ", args);
             AntdUI.Localization.DefaultLanguage = "zh-CN";
-            var cfg = ConfigHelper.Load();
             if (!IsRunningAsAdministrator())
             {
                 try
@@ -102,6 +102,17 @@ namespace XelLauncher
                     // Continue normally if the user declines the UAC prompt.
                 }
             }
+            // Acquire only after elevation so the relaunched process is not blocked
+            // by its parent. Worker and scheduled sign-in commands bypass this gate.
+            using var singleInstance = TryCreateSingleInstance();
+            if (singleInstance == null)
+            {
+                MessageBox.Show("XelLauncher 已在运行，请勿重复打开。", "XelLauncher",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var cfg = ConfigHelper.Load();
             var lang = !string.IsNullOrEmpty(cfg.Language)
                 ? cfg.Language
                 : AntdUI.Localization.CurrentLanguage;
@@ -129,6 +140,24 @@ namespace XelLauncher
             if (command == "m") Application.Run(new Main());
             else if (command == "tab") Application.Run(new TabHeaderForm());
             else Application.Run(new Overview(command == "t"));
+        }
+
+        private static Mutex TryCreateSingleInstance()
+        {
+            try
+            {
+                // Keep the named handle alive for the entire UI lifetime. Windows
+                // also closes it on a crash, allowing the next launch to proceed.
+                var mutex = new Mutex(false, @"Local\XelLauncher.SingleInstance", out var createdNew);
+                if (createdNew) return mutex;
+                mutex.Dispose();
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // An elevated instance can own the object when UAC was declined.
+                return null;
+            }
         }
 
         static bool IsWindows10Version22H2OrLater()
