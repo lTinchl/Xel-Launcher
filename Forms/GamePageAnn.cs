@@ -69,6 +69,7 @@ public class NoticeItem
         private readonly Stopwatch _bannerSlideStopwatch = new();
         private bool _releasingPointerCapture;
         private Rectangle _bannerRect;
+        private bool _bannerHovered;
         private Rectangle _listRect;
         private Rectangle _scrollTrackRect;
         private Rectangle _scrollThumbRect;
@@ -250,6 +251,17 @@ public class NoticeItem
                 if (_bannerAnimating)
                     CompleteBannerSlide();
 
+                if (_bannerHovered && _banners.Count > 1)
+                {
+                    int step = GetBannerArrowRect(false).Contains(e.Location) ? -1
+                        : GetBannerArrowRect(true).Contains(e.Location) ? 1 : 0;
+                    if (step != 0)
+                    {
+                        StartBannerSlide(0, -step * _bannerRect.Width, step);
+                        return;
+                    }
+                }
+
                 _bannerTouching = true;
                 _bannerTouchMoved = false;
                 _bannerTouchStartX = e.X;
@@ -282,6 +294,12 @@ public class NoticeItem
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
+            bool bannerHovered = !IsCollapsed && _bannerRect.Contains(e.Location);
+            if (_bannerHovered != bannerHovered)
+            {
+                _bannerHovered = bannerHovered;
+                Invalidate(_bannerRect);
+            }
             if (IsCollapsed) return;
             if ((_scrollDragging || _touchScrolling || _bannerTouching) &&
                 (e.Button & MouseButtons.Left) == 0)
@@ -382,6 +400,11 @@ public class NoticeItem
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
+            if (_bannerHovered)
+            {
+                _bannerHovered = false;
+                Invalidate(_bannerRect);
+            }
             if (_scrollDragging || _touchScrolling || _bannerTouching || _bannerAnimating) return;
             if (_hoverNoticeSourceIndex == -1) return;
 
@@ -448,6 +471,7 @@ public class NoticeItem
                     LinearGradientMode.Vertical);
                 g.FillRectangle(overlay, _bannerRect);
                 PaintDots(g, _bannerRect);
+                PaintBannerArrows(g);
             }
 
             int textX = pad + thumbW + (thumbW > 0 ? 20 : 0);
@@ -593,6 +617,44 @@ public class NoticeItem
             int g = (int)Math.Round(baseColor.G + (mixColor.G - baseColor.G) * amount);
             int b = (int)Math.Round(baseColor.B + (mixColor.B - baseColor.B) * amount);
             return Color.FromArgb(Math.Max(0, Math.Min(255, alpha)), r, g, b);
+        }
+
+        private Rectangle GetBannerArrowRect(bool next)
+        {
+            int size = Math.Min(28, Math.Min(_bannerRect.Width / 4, _bannerRect.Height - 16));
+            if (size <= 0) return Rectangle.Empty;
+            return new Rectangle(
+                next ? _bannerRect.Right - size - 6 : _bannerRect.Left + 6,
+                _bannerRect.Top + (_bannerRect.Height - size) / 2,
+                size, size);
+        }
+
+        private void PaintBannerArrows(Graphics g)
+        {
+            if (!_bannerHovered || _banners.Count <= 1) return;
+            foreach (bool next in new[] { false, true })
+            {
+                Rectangle rect = GetBannerArrowRect(next);
+                if (rect.IsEmpty) continue;
+                using var background = new SolidBrush(Color.FromArgb(125, 20, 23, 29));
+                g.FillEllipse(background, rect);
+                float cx = rect.Left + rect.Width / 2F;
+                float cy = rect.Top + rect.Height / 2F;
+                float direction = next ? 1F : -1F;
+                float unit = rect.Width / 7F;
+                using var pen = new Pen(Color.White, 1.8F)
+                {
+                    StartCap = LineCap.Round,
+                    EndCap = LineCap.Round,
+                    LineJoin = LineJoin.Round
+                };
+                g.DrawLines(pen, new[]
+                {
+                    new PointF(cx - direction * unit / 2F, cy - unit),
+                    new PointF(cx + direction * unit / 2F, cy),
+                    new PointF(cx - direction * unit / 2F, cy + unit)
+                });
+            }
         }
 
         private Image CurrentBannerImage =>
