@@ -128,7 +128,7 @@ If a download or update is interrupted, click `Resume` to continue. If the cache
 
 After a successful launch, a notification is shown. If `Close launcher after starting game` or `Hide to tray after starting game` is enabled in global settings, the launcher closes or hides after it confirms that the game has started
 
-Endfield Official, Bilibili, Global and Google Play launch `Endfield.exe` with a suspended, officially signed standalone `Games.exe` as its parent process. The full official launcher does not need to be installed or opened. Xel Launcher downloads and verifies `Games.exe` when it is missing
+Endfield Official, Bilibili, Global and Google Play search the game directory and up to three subdirectory levels for `PlatformProcess.exe`, `UnityCrashHandler64.exe`, then `Endfield.exe`. After signature and publisher verification, a candidate is copied to a private temporary directory as `Games.exe` and created suspended as the game's parent. No official launcher component is downloaded. A hidden worker retains the parent until the game exits, then releases its handles and removes the temporary files, even when `Close launcher after starting game` is enabled. If no candidate works or the bridge fails, the launcher logs the reason and tries ordinary launch; the game may still require the official launcher
 
 The Steam entry uses the existing Endfield file replacement and launch flow, with `load\EndSteam` under the launcher directory as its local channel payload. It then runs `Endfield.exe` directly, skipping the `Games.exe` parent process. Steam can share a game directory with other Endfield channels; shared directories containing Steam use traditional file replacement. A missing or empty payload directory stops the launch with an error
 
