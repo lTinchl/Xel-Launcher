@@ -2814,4 +2814,19 @@
   <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
     <value>Check for game updates</value>
   </data>
+  <data name="App.Account.IdentifyFirst" xml:space="preserve">
+    <value>The account directory for this channel has not been identified. Clear the account selection, start the game from this launcher and sign in manually. Wait a few seconds before saving the account. Close other clients of the same game before retrying.</value>
+  </data>
+  <data name="App.Account.CloseGame" xml:space="preserve">
+    <value>Close all clients of this game before switching accounts.</value>
+  </data>
+  <data name="App.Account.InvalidBackup" xml:space="preserve">
+    <value>The account backup is incomplete or does not match this channel's directory. Clear the account selection, sign in manually and save the account again.</value>
+  </data>
+  <data name="App.Account.CacheChanging" xml:space="preserve">
+    <value>Account data is still being written. The existing backup was preserved. Wait a few seconds and save again.</value>
+  </data>
+  <data name="App.Account.ResaveLegacy" xml:space="preserve">
+    <value>This account has no backup with a verified channel directory. Clear the account selection, sign in manually and save the account again. Legacy backups cannot be restored directly.</value>
+  </data>
 </root>

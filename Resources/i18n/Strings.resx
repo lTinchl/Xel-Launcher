@@ -2814,4 +2814,19 @@
   <data name="App.Setting.CheckGameUpdates" xml:space="preserve">
     <value>检查游戏更新</value>
   </data>
+  <data name="App.Account.IdentifyFirst" xml:space="preserve">
+    <value>尚未识别当前渠道的账号目录。请清空账号选择，从本启动器启动游戏并手动登录，等待几秒后再保存账号。若同时运行多个同名游戏，请关闭后重试。</value>
+  </data>
+  <data name="App.Account.CloseGame" xml:space="preserve">
+    <value>切换账号前请先关闭该游戏的所有客户端。</value>
+  </data>
+  <data name="App.Account.InvalidBackup" xml:space="preserve">
+    <value>账号备份不完整或与当前渠道目录不匹配。请清空账号选择，手动登录后重新保存账号。</value>
+  </data>
+  <data name="App.Account.CacheChanging" xml:space="preserve">
+    <value>账号数据仍在写入，本次未覆盖备份。请稍等几秒后重新保存。</value>
+  </data>
+  <data name="App.Account.ResaveLegacy" xml:space="preserve">
+    <value>此账号尚无经过渠道识别的新备份。请清空账号选择，手动登录后点击“保存账号”；旧版备份不能直接恢复。</value>
+  </data>
 </root>
