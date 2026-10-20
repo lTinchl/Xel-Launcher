@@ -38,7 +38,7 @@ namespace XelLauncher.Forms
             btn_mode.Location = new Point(972, 0);
             btn_mode.Name = "btn_mode";
             btn_mode.Radius = 0;
-            btn_mode.Size = new Size(76, 40);
+            btn_mode.Size = new Size(64, 40);
             btn_mode.TabIndex = 6;
             btn_mode.WaveSize = 0;
             btn_mode.Click += btn_mode_Click;
