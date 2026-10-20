@@ -68,6 +68,7 @@ namespace XelLauncher.Models
             GameChannelCatalog.CreateDefaultGameEntries();
 
         public Dictionary<string, string> Accounts { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> AccountSdkDirectories { get; set; } = new();
         public List<string> AccountOrder { get; set; } = new List<string>();
         // 方舟官服账号管理
         public string DefaultAccount { get; set; } = "";                    // 默认账号 ID（如 "A1"）

@@ -309,6 +309,7 @@ namespace XelLauncher.Helpers
             });
             cfg.UpdateState ??= new AppUpdateState();
             cfg.GameStatusCache ??= new();
+            cfg.AccountSdkDirectories ??= new();
             cfg.SharedRoots ??= new();
             cfg.SharedRoots.RemoveAll(sharedRoot => sharedRoot == null);
             foreach (var sharedRoot in cfg.SharedRoots)

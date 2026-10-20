@@ -243,13 +243,12 @@ namespace XelLauncher.Forms
                     {
                         try
                         {
-                            if (_iconName == "Endfield") await GameLauncher.BackupEndfieldAccount(row.id);
-                            else if (_iconName == "GlobalEndfield") await GameLauncher.BackupGlobalEndfieldAccount(row.id);
-                            else await GameLauncher.BackupAccount(row.id);
+                            await Account.BackupAsync(_iconName, row.id);
                             config.OK(string.Format(Localizer.GetRequiredString("App.Account.SaveOK"), row.name));
                         }
                         catch (Exception ex)
                         {
+                            LogHelper.LogError(ex, "SaveAccount");
                             config.Error(ex.Message);
                         }
                     });

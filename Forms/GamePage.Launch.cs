@@ -1241,40 +1241,11 @@ namespace XelLauncher.Forms
             {
                 AntdUI.Message.loading(_overview, Localizer.GetRequiredString("App.Game.Loading"), async (config) =>
                 {
+                    Account.Detection accountDetection = null;
+                    bool detectionStarted = false;
                     try
                     {
-                        if (_game.IconName == "Arknights")
-                        {
-                            string selectedAccountId = accountSelect.SelectedValue as string;
-                            if (!string.IsNullOrEmpty(selectedAccountId))
-                            {
-                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
-                                config.Refresh();
-                                await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
-                            }
-                        }
-                        else if (_game.IconName == "Endfield")
-                        {
-                            string selectedAccountId = accountSelect.SelectedValue as string;
-                            if (!string.IsNullOrEmpty(selectedAccountId))
-                            {
-                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
-                                config.Refresh();
-                                await Helpers.GameLauncher.RestoreEndfieldAccount(selectedAccountId);
-                            }
-                        }
-                        else if (_game.IconName == "GlobalEndfield")
-                        {
-                            string selectedAccountId = accountSelect.SelectedValue as string;
-                            if (!string.IsNullOrEmpty(selectedAccountId))
-                            {
-                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
-                                config.Refresh();
-                                await Helpers.GameLauncher.RestoreGlobalEndfieldAccount(selectedAccountId);
-                            }
-                        }
                         var launchPath = path;
-                        var traditionalSwitchPerformed = false;
                         if (useLinkedRuntime)
                         {
                             var targetIsBase = sharedRootResolution.Base != null &&
@@ -1336,7 +1307,6 @@ namespace XelLauncher.Forms
                                         _ => { },
                                         operationAlreadyCoordinated:
                                             callbackOperationLease != null);
-                                    traditionalSwitchPerformed = true;
                                     launchPath = path;
                                 }
                             }
@@ -1353,18 +1323,15 @@ namespace XelLauncher.Forms
                             }, isEndfield, _ => { },
                                 operationAlreadyCoordinated:
                                     callbackOperationLease != null);
-                            traditionalSwitchPerformed = true;
                         }
-                        // Run the loading wave for a random 1-3 seconds.
-                        if (traditionalSwitchPerformed && _game.IconName == "Arknights")
+                        bool accountSwitchEnabled = Account.Supports(_game.IconName) &&
+                            (ConfigHelper.Load().Games.Find(g => g.IconName == _game.IconName)?.AccountSwitchEnabled == true);
+                        if (accountSwitchEnabled && accountSelect.SelectedValue is string selectedAccountId &&
+                            !string.IsNullOrEmpty(selectedAccountId))
                         {
-                            string selectedAccountId = accountSelect.SelectedValue as string;
-                            if (!string.IsNullOrEmpty(selectedAccountId))
-                            {
-                                config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
-                                config.Refresh();
-                                await Helpers.GameLauncher.RestoreAccount(selectedAccountId);
-                            }
+                            config.Text = Localizer.GetRequiredString("App.Game.SwitchingAccount");
+                            config.Refresh();
+                            await Account.RestoreAsync(_game.IconName, selectedAccountId);
                         }
 
                         var rng = new Random();
@@ -1377,6 +1344,8 @@ namespace XelLauncher.Forms
                             await Task.Delay(stepMs);
                         }
 
+                        if (accountSwitchEnabled)
+                            accountDetection = Account.BeginDetection(_game.IconName);
                         Process gameProc = await GameLauncher.StartArknightsAsync(launchPath, _game.IconName);
 
                     // Show launch success only after the game process is detected.
@@ -1396,8 +1365,17 @@ namespace XelLauncher.Forms
                     if (gameProc == null)
                         throw new TimeoutException(Localizer.GetRequiredString("App.Game.ProcessNotDetected"));
 
+                    accountDetection?.Start(gameProc);
+                    detectionStarted = accountDetection != null;
                     config.OK(Localizer.GetRequiredString("App.Game.LaunchSuccess"));
                     var latestCfg = ConfigHelper.Load();
+                    if (latestCfg.CloseAfterLaunch && accountDetection?.NeedsIdentification == true)
+                    {
+                        // Keep observing until login writes identify the directory,
+                        // or until the game exits without logging in.
+                        _overview.Invoke(new Action(() => _overview.HideToTray()));
+                        await accountDetection.Completion;
+                    }
                     try
                     {
                         _overview.Invoke(new Action(() =>
@@ -1428,6 +1406,7 @@ namespace XelLauncher.Forms
                     }
                     finally
                     {
+                        if (!detectionStarted) accountDetection?.Dispose();
                         callbackOperationLease?.Dispose();
                         if (!GameStart.IsDisposed)
                         {

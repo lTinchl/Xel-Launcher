@@ -53,6 +53,7 @@ namespace XelLauncher.Forms
                 Radius = 24,
                 BorderWidth = 1F,
                 PlaceholderText = Localizer.GetRequiredString("App.Game.SelectAccount"),
+                AllowClear = true,
                 Font = new Font("Microsoft YaHei UI", 11F),
                 DropDownRadius = 8,
                 Placement = AntdUI.TAlignFrom.TL,
