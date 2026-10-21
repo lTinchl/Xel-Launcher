@@ -227,10 +227,6 @@ namespace XelLauncher.Forms
                         BeginInvoke(() => RefreshGameStartButton());
                     return true;
                 }
-
-                // Status checks already run for managed clients. The legacy
-                // CheckGameUpdates option has no settings control and defaults
-                // to false, so it must not hide an available client update.
                 var hasUpdate = status.HasUpdate &&
                                 !string.Equals(status.LocalVersion, status.RemoteVersion,
                                     StringComparison.OrdinalIgnoreCase);
