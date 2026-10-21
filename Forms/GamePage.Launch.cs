@@ -228,12 +228,13 @@ namespace XelLauncher.Forms
                     return true;
                 }
 
-                var hasUpdate = cfg.CheckGameUpdates &&
-                                status.HasUpdate &&
+                // Status checks already run for managed clients. The legacy
+                // CheckGameUpdates option has no settings control and defaults
+                // to false, so it must not hide an available client update.
+                var hasUpdate = status.HasUpdate &&
                                 !string.Equals(status.LocalVersion, status.RemoteVersion,
                                     StringComparison.OrdinalIgnoreCase);
-                var hasPreload = cfg.CheckGameUpdates &&
-                                 status.IsInstalled &&
+                var hasPreload = status.IsInstalled &&
                                  !hasUpdate &&
                                  status.HasPreload;
                 cfg.GameStatusCache.TryGetValue(_game.IconName, out var previousCached);
@@ -933,7 +934,7 @@ namespace XelLauncher.Forms
                     HasUpdate = false,
                     HasPreload = false,
                     PreloadCompleted = false,
-                    LocalVersion = cached?.RemoteVersion ?? cached?.LocalVersion ?? "",
+                    LocalVersion = cached?.LocalVersion ?? "",
                     RemoteVersion = cached?.RemoteVersion ?? "",
                     PreloadVersion = "",
                     InstallPath = installPath
@@ -944,8 +945,8 @@ namespace XelLauncher.Forms
                 {
                     if (!string.IsNullOrEmpty(installPath))
                         LinkedClientPolicy.UpdatePath(cfg, entry, installPath);
-                    if (!string.IsNullOrEmpty(cached?.RemoteVersion))
-                        entry.LocalVersion = cached.RemoteVersion;
+                    if (!string.IsNullOrEmpty(cached?.LocalVersion))
+                        entry.LocalVersion = cached.LocalVersion;
                 }
 
                 ConfigHelper.Save(cfg);

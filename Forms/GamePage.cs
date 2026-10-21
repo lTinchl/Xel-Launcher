@@ -140,8 +140,8 @@ namespace XelLauncher.Forms
                 if (cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached) &&
                     IsSameInstallPath(cached.InstallPath, path))
                 {
-                    var hasUpdate = cfg.CheckGameUpdates && cached.HasUpdate;
-                    var hasPreload = cfg.CheckGameUpdates && !hasUpdate && cached.HasPreload;
+                    var hasUpdate = cached.HasUpdate;
+                    var hasPreload = !hasUpdate && cached.HasPreload;
                     _preloadCompleted = hasPreload &&
                                         IsPreloadCompletedForPath(cfg.GameStatusCache.Values, path,
                                             cached.PreloadVersion);
