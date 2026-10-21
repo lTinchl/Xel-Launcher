@@ -19,6 +19,8 @@ namespace XelLauncher.Helpers
         private readonly CancellationTokenSource _cts = new();
         private IDisposable _operationLease;
         private volatile GameUpdateProgress _lastProgress;
+        private readonly object _pauseLock = new();
+        private volatile bool _mutationStarted;
 
         internal ActiveGameUpdate(
             string requestedIconName,
@@ -38,7 +40,8 @@ namespace XelLauncher.Helpers
         public Task Task { get; internal set; }
         public GameUpdateProgress LastProgress => _lastProgress;
         public bool IsCancellationRequested => _cts.IsCancellationRequested;
-        public bool CanPause => _lastProgress?.State.HasFlag(InstallProgressState.Download) == true;
+        public bool CanPause => !_mutationStarted &&
+            _lastProgress?.State.HasFlag(InstallProgressState.Download) == true;
         public event Action<GameUpdateProgress> ProgressChanged;
         internal event Action<ActiveGameUpdate> CancelRequested;
 
@@ -47,11 +50,13 @@ namespace XelLauncher.Helpers
             // Cancelling while archives are being extracted, patched, removed, or
             // committed can leave the installation half-applied. Only the download
             // stage uses resumable .tmp files and is safe to pause.
-            if (!CanPause || _cts.IsCancellationRequested)
-                return false;
-
+            lock (_pauseLock)
+            {
+                if (!CanPause || _cts.IsCancellationRequested)
+                    return false;
+                _cts.Cancel();
+            }
             CancelRequested?.Invoke(this);
-            _cts.Cancel();
             return true;
         }
 
@@ -68,7 +73,16 @@ namespace XelLauncher.Helpers
                 Downloaded = downloaded,
                 Total = total
             };
-            _lastProgress = progress;
+            lock (_pauseLock)
+            {
+                if ((state & (InstallProgressState.Install | InstallProgressState.Updating |
+                              InstallProgressState.Removing | InstallProgressState.Reconciling)) != 0)
+                {
+                    _cts.Token.ThrowIfCancellationRequested();
+                    _mutationStarted = true;
+                }
+                _lastProgress = progress;
+            }
             ProgressChanged?.Invoke(progress);
         }
     }
@@ -114,6 +128,7 @@ namespace XelLauncher.Helpers
                     var update = new ActiveGameUpdate(
                         requestedIconName, iconName, installPath, operationLease);
                     PausedUpdatePaths.Remove(key);
+                    CompletedUpdates.Remove(GetCompletedKey(iconName, installPath));
                     update.CancelRequested += MarkPaused;
                     ActiveUpdates[key] = update;
                     update.Task = RunAsync(key, update);
@@ -204,21 +219,22 @@ namespace XelLauncher.Helpers
                     LogHelper.Log($"Game update paused: {update.IconName} | {update.InstallPath}");
                     return;
                 }
-                lock (SyncRoot)
-                {
-                    PausedUpdatePaths.Remove(key);
-                    CompletedUpdates[GetCompletedKey(update.IconName, update.InstallPath)] = DateTimeOffset.UtcNow;
-                }
                 await PersistCompletedStatusAsync(update.IconName, update.InstallPath).ConfigureAwait(false);
                 SharedRootManager.RecordBaseChannel(
                     update.IconName,
                     update.InstallPath,
                     "install-or-update-completed");
+                lock (SyncRoot)
+                {
+                    PausedUpdatePaths.Remove(key);
+                    CompletedUpdates[GetCompletedKey(update.IconName, update.InstallPath)] = DateTimeOffset.UtcNow;
+                }
                 LogHelper.Log($"Game update completed: {update.IconName} | {update.InstallPath}");
             }
             catch (OperationCanceledException ex)
             {
                 LogHelper.LogError(ex, $"Game update paused: {update.IconName} | {update.InstallPath}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -243,6 +259,10 @@ namespace XelLauncher.Helpers
             {
                 using var service = new EndfieldService(iconName);
                 var status = await service.CheckStatusAsync(installPath).ConfigureAwait(false);
+                if (status == null || !status.IsInstalled || status.HasUpdate ||
+                    string.IsNullOrWhiteSpace(status.LocalVersion) ||
+                    !string.Equals(status.LocalVersion, status.RemoteVersion, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Unable to confirm the installed game version after update.");
                 var cfg = ConfigHelper.Load();
                 var localVersion = status?.LocalVersion ?? status?.RemoteVersion ?? "";
                 var remoteVersion = status?.RemoteVersion ?? status?.LocalVersion ?? "";
@@ -272,6 +292,7 @@ namespace XelLauncher.Helpers
             catch (Exception ex)
             {
                 LogHelper.LogError(ex, $"GameUpdateManager.PersistCompletedStatusAsync({iconName})");
+                throw;
             }
         }
 
