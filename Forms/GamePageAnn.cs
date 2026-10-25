@@ -469,7 +469,8 @@ public class NoticeItem
                     Color.FromArgb(10, 0, 0, 0),
                     Color.FromArgb(110, 0, 0, 0),
                     LinearGradientMode.Vertical);
-                g.FillRectangle(overlay, _bannerRect);
+                using var overlayPath = RoundedRect(_bannerRect, 10);
+                g.FillPath(overlay, overlayPath);
                 PaintDots(g, _bannerRect);
                 PaintBannerArrows(g);
             }
