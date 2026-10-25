@@ -372,3 +372,7 @@ load/
 /.dotnet-home
 /.buildcheck
 /Tests/EndfieldLaunch.Regression
+
+# Regression coverage for sign-in outcomes and safe shutdown.
+!/Tests/TrustRegression/
+/Tests/TrustRegression
