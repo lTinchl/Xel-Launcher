@@ -132,7 +132,7 @@ namespace XelLauncher.Forms
                 Ghost = true,
                 Radius = 6,
             };
-            btnDoc.Click += (s, e) => TabHeaderForm.Open("https://github.com/lTinchl/skyland-auto-sign");
+            btnDoc.Click += (s, e) => BrowserLauncher.Open("https://github.com/lTinchl/skyland-auto-sign");
 
             var divider = new AntdUI.Divider
             {

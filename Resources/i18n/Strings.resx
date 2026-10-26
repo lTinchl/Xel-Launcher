@@ -231,12 +231,6 @@
   <data name="App.BgColor.White" xml:space="preserve">
     <value>Pure White</value>
   </data>
-  <data name="App.Browser.NoRuntime" xml:space="preserve">
-    <value>未找到 WebView2 Runtime，请先安装！</value>
-  </data>
-  <data name="App.Browser.Title" xml:space="preserve">
-    <value>浏览器</value>
-  </data>
   <data name="App.Game.AccountManage" xml:space="preserve">
     <value>账号管理</value>
   </data>
@@ -743,9 +737,6 @@
   </data>
   <data name="App.Setting.Update" xml:space="preserve">
     <value>软件更新</value>
-  </data>
-  <data name="App.Setting.UseExternalBrowser" xml:space="preserve">
-    <value>使用外部浏览器</value>
   </data>
   <data name="App.Setting.UseHardLink" xml:space="preserve">
     <value>使用硬链接切服</value>
@@ -2834,5 +2825,11 @@
   </data>
   <data name="App.Exit.OperationRunning" xml:space="preserve">
     <value>游戏文件操作仍在进行，暂时无法退出。下载可先暂停；安装、修复或切服请等待完成后再退出。</value>
+  </data>
+  <data name="App.Browser.InvalidUrl" xml:space="preserve">
+    <value>仅支持 HTTP 或 HTTPS 网页链接。</value>
+  </data>
+  <data name="App.Browser.OpenFailed" xml:space="preserve">
+    <value>无法打开系统默认浏览器，请检查 Windows 默认应用设置。</value>
   </data>
 </root>

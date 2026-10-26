@@ -231,12 +231,6 @@
   <data name="App.BgColor.White" xml:space="preserve">
     <value>Pure White</value>
   </data>
-  <data name="App.Browser.NoRuntime" xml:space="preserve">
-    <value>WebView2 Runtime not found, please install it first!</value>
-  </data>
-  <data name="App.Browser.Title" xml:space="preserve">
-    <value>Browser</value>
-  </data>
   <data name="App.Game.AccountManage" xml:space="preserve">
     <value>Account Management</value>
   </data>
@@ -743,9 +737,6 @@
   </data>
   <data name="App.Setting.Update" xml:space="preserve">
     <value>Update</value>
-  </data>
-  <data name="App.Setting.UseExternalBrowser" xml:space="preserve">
-    <value>Use external browser for links</value>
   </data>
   <data name="App.Setting.UseHardLink" xml:space="preserve">
     <value>Use hard links for server switching</value>
@@ -2834,5 +2825,11 @@
   </data>
   <data name="App.Exit.OperationRunning" xml:space="preserve">
     <value>Game file operations are still running. Pause downloads or wait for installation, repair or channel switching to finish before exiting.</value>
+  </data>
+  <data name="App.Browser.InvalidUrl" xml:space="preserve">
+    <value>Only HTTP or HTTPS web links are supported.</value>
+  </data>
+  <data name="App.Browser.OpenFailed" xml:space="preserve">
+    <value>Unable to open the default browser. Check the default apps settings in Windows.</value>
   </data>
 </root>

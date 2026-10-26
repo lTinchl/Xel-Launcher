@@ -37,7 +37,6 @@ Currently supported entries:
 Check the following before use:
 
 - Your system is Windows 10 22H2 (build 19045) or later
-- Microsoft Edge WebView2 Runtime is installed. The launcher checks for it at startup and cannot open the main window without it
 - You have downloaded the installer or portable package from the project Releases page
 - Shared runtimes require the game to be on an NTFS partition and the launcher to have permission to create runtime directories in the game's parent directory. The runtime and game are on the same partition; the launcher itself does not need to be on that partition
 
@@ -271,7 +270,7 @@ The tools button in the lower-left corner of the game page provides common links
 - Warfarin Wiki
 - Endfield Tools
 
-By default, links open in the built-in browser. If `Use external browser` is enabled in settings, links open in the system default browser
+All web links open in the system default browser. No additional browser runtime is required
 
 Use `+` in the tool sidebar to add a custom link for the current game entry. Enter a name and URL, and optionally select a local icon. Right-click an added custom tool to delete it
 
@@ -283,7 +282,6 @@ Click the settings button in the top bar to open global settings. Common options
 - `Start with Windows`: launch with Windows
 - `Close launcher after starting game`: exit the launcher after the game starts successfully
 - `Hide to tray after starting game`: hide to tray after the game starts successfully, then restore after the game exits
-- `Use external browser`: open web links in the system default browser
 - `Save launcher background image`: archive fetched launcher images by game and date in the `img` folder under the launcher directory
 - `Use hard links for server switching`: prefer runtimes that share common resources when multiple compatible server entries use the same game directory. Disabling it uses traditional server switching. See [Shared Runtimes Using Hard Links](#shared-runtimes-using-hard-links)
 
@@ -369,9 +367,9 @@ Confirm that:
 
 Open `Game Settings` for the Endfield Google Play entry and confirm that `Session Token` has been filled in. If using `Auto Get Token`, start the game first and keep the game process running
 
-### Built-in web pages do not open
+### Web links do not open
 
-Confirm that WebView2 Runtime is installed. You can also enable `Use external browser` in global settings to open web pages with the system default browser
+Confirm that Windows has a default browser configured and that it can access the target page.
 
 ### Download or update fails
 

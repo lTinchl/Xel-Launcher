@@ -48,8 +48,6 @@ namespace XelLauncher
             switch8 = new AntdUI.Switch();
             label9 = new AntdUI.Label();
             switch9 = new AntdUI.Switch();
-            label10 = new AntdUI.Label();
-            switch10 = new AntdUI.Switch();
             label11 = new AntdUI.Label();
             switch11 = new AntdUI.Switch();
             label12 = new AntdUI.Label();
@@ -316,8 +314,6 @@ namespace XelLauncher
             tableSoftware.Controls.Add(switch8, 1, 7);
             tableSoftware.Controls.Add(label9, 0, 8);
             tableSoftware.Controls.Add(switch9, 1, 8);
-            tableSoftware.Controls.Add(label10, 0, 9);
-            tableSoftware.Controls.Add(switch10, 1, 9);
             tableSoftware.Controls.Add(label11, 0, 10);
             tableSoftware.Controls.Add(switch11, 1, 10);
             tableSoftware.Controls.Add(label12, 0, 11);
@@ -475,21 +471,6 @@ namespace XelLauncher
             switch9.Size = new System.Drawing.Size(50, 30);
             switch9.TabIndex = 0;
             //
-            // label10
-            //
-            label10.Dock = System.Windows.Forms.DockStyle.Fill;
-            label10.Name = "label10";
-            label10.Text = "使用外部浏览器";
-            label10.LocalizationText = "App.Setting.UseExternalBrowser";
-            label10.TabIndex = 0;
-            //
-            // switch10
-            //
-            switch10.Anchor = System.Windows.Forms.AnchorStyles.None;
-            switch10.Name = "switch10";
-            switch10.Size = new System.Drawing.Size(50, 30);
-            switch10.TabIndex = 0;
-            //
             // label11
             //
             label11.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -564,8 +545,6 @@ namespace XelLauncher
         private AntdUI.Switch switch8;
         private AntdUI.Label label9;
         private AntdUI.Switch switch9;
-        private AntdUI.Label label10;
-        private AntdUI.Switch switch10;
         private AntdUI.Label label11;
         private AntdUI.Switch switch11;
         private AntdUI.Label label12;

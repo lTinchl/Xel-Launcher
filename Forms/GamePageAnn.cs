@@ -354,7 +354,7 @@ public class NoticeItem
             {
                 var url = _banners[_selectedBannerIndex].Url;
                 if (!string.IsNullOrWhiteSpace(url))
-                    TabHeaderForm.Open(url);
+                    BrowserLauncher.Open(url);
             }
             else if (_bannerTouching && _bannerTouchMoved && _banners.Count > 1)
             {

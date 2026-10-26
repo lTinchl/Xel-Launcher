@@ -108,7 +108,6 @@ namespace XelLauncher.Models
         public bool CloseAfterLaunch { get; set; } = false;               // 启动游戏后关闭软件
         public bool HideToTrayOnLaunch { get; set; } = false;             // 启动游戏后隐藏至托盘，游戏关闭后恢复
         public string Language { get; set; } = "";                          // 用户选择的语言 (zh-CN / en-US)
-        public bool UseExternalBrowser { get; set; } = false;              // 使用外部浏览器打开链接
         public bool CheckGameUpdates { get; set; } = false;                // 检查游戏更新
         public bool ArchiveLauncherImages { get; set; } = false;           // 保存 API 新启动器图片
         public bool HideToolSidebar { get; set; } = false;                 // 隐藏游戏页工具栏

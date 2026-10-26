@@ -646,7 +646,7 @@ namespace XelLauncher.Forms
         private void NoticePanel_NoticeClick(object sender, NoticeItem e)
         {
             if (!string.IsNullOrWhiteSpace(e?.Url))
-                TabHeaderForm.Open(e.Url);
+                BrowserLauncher.Open(e.Url);
         }
     }
 }

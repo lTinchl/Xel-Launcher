@@ -17,32 +17,32 @@ namespace XelLauncher.Forms
     {
         private void btnArkntools_Click(object sender, EventArgs e)
         {
-            TabHeaderForm.Open("https://arkntools.app");
+            BrowserLauncher.Open("https://arkntools.app");
         }
 
         private void btnPrtsWiki_Click(object sender, EventArgs e)
         {
-            TabHeaderForm.Open("https://prts.wiki");
+            BrowserLauncher.Open("https://prts.wiki");
         }
 
         private void btnYituliu_Click(object sender, EventArgs e)
         {
-            TabHeaderForm.Open("https://ark.yituliu.cn");
+            BrowserLauncher.Open("https://ark.yituliu.cn");
         }
 
         private void btnEndYituliu_Click(object sender, EventArgs e)
         {
-            TabHeaderForm.Open("https://ef.yituliu.cn/");
+            BrowserLauncher.Open("https://ef.yituliu.cn/");
         }
 
         private void btnWarfarin_Click(object sender, EventArgs e)
         {
-            TabHeaderForm.Open("https://warfarin.wiki");
+            BrowserLauncher.Open("https://warfarin.wiki");
         }
 
         private void btnEndfieldtools_Click(object sender, EventArgs e)
         {
-            TabHeaderForm.Open("https://endfieldtools.dev/");
+            BrowserLauncher.Open("https://endfieldtools.dev/");
         }
 
         private void btnSignHub_Click(object sender, EventArgs e)
@@ -98,7 +98,7 @@ namespace XelLauncher.Forms
         private AntdUI.Avatar CreateCustomToolButton(CustomToolLink link)
         {
             var image = LoadCustomToolImage(link.IconPath) ?? CreateCustomToolImage(link.Name);
-            var btn = CreateSubButton(image, (s, e) => TabHeaderForm.Open(link.Url), link.Name);
+            var btn = CreateSubButton(image, (s, e) => BrowserLauncher.Open(link.Url), link.Name);
             btn.Tag = link;
             btn.MouseUp += (s, e) =>
             {

@@ -63,21 +63,6 @@ namespace XelLauncher
                 return;
             }
 
-            try
-            {
-                _ = Microsoft.Web.WebView2.Core.CoreWebView2Environment
-                    .GetAvailableBrowserVersionString();
-            }
-            catch
-            {
-                MessageBox.Show(
-                    "未检测到 Microsoft Edge WebView2 Runtime。\r\n\r\n请安装 WebView2 Runtime 后再运行 XelLauncher。",
-                    "缺少 WebView2 Runtime",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
-            }
-
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #if !NET10_0
             //ComWrappers.RegisterForMarshalling(WinFormsComInterop.WinFormsComWrappers.Instance);
@@ -138,7 +123,6 @@ namespace XelLauncher
                 AntdUI.Style.SetPrimary(System.Drawing.ColorTranslator.FromHtml(cfg.PrimaryColor));
 
             if (command == "m") Application.Run(new Main());
-            else if (command == "tab") Application.Run(new TabHeaderForm());
             else Application.Run(new Overview(command == "t"));
         }
 

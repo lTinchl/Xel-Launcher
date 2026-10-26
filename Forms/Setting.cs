@@ -105,7 +105,7 @@ namespace XelLauncher
             return Math.Max(96, (int)Math.Round(graphics.DpiX));
         }
 
-        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseExternalBrowser, UseHardLink, CheckGameUpdates, ArchiveLauncherImages, HideToolSidebar;
+        public bool Animation, ShadowEnabled, ShowInWindow, ScrollBarHide, TextRenderingHighQuality, MinimizeToTray, StartWithWindows, CloseAfterLaunch, HideToTrayOnLaunch, UseHardLink, CheckGameUpdates, ArchiveLauncherImages, HideToolSidebar;
         public string UpdateDownloadSource = UpdateHelper.DownloadSourceGitHub;
 
         public Setting(AntdUI.BaseForm _form)
@@ -144,7 +144,6 @@ namespace XelLauncher
             switch7.Checked = StartWithWindows = GetStartWithWindows();
             switch8.Checked = CloseAfterLaunch = cfg.CloseAfterLaunch;
             switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
-            switch10.Checked = UseExternalBrowser = cfg.UseExternalBrowser;
             switch11.Checked = UseHardLink = cfg.UseHardLink;
             switch12.Checked = HideToolSidebar = cfg.HideToolSidebar;
             CheckGameUpdates = cfg.CheckGameUpdates;
@@ -161,7 +160,6 @@ namespace XelLauncher
             switch7.CheckedChanged += (s, e) => { StartWithWindows = e.Value; };
             switch8.CheckedChanged += (s, e) => { CloseAfterLaunch = e.Value; };
             switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
-            switch10.CheckedChanged += (s, e) => { UseExternalBrowser = e.Value; };
             switch11.CheckedChanged += (s, e) => { UseHardLink = e.Value; };
             switch12.CheckedChanged += (s, e) => { HideToolSidebar = e.Value; };
             _archiveLauncherImagesSwitch.CheckedChanged += (s, e) => { ArchiveLauncherImages = e.Value; };
@@ -1169,7 +1167,6 @@ namespace XelLauncher
             label7.Text = L("App.Setting.StartWithWindows");
             label8.Text = L("App.Setting.CloseAfterLaunch");
             label9.Text = L("App.Setting.HideToTrayOnLaunch");
-            label10.Text = L("App.Setting.UseExternalBrowser");
             label11.Text = L("App.Setting.UseHardLink");
 
             label12.Text = L("App.Setting.HideToolSidebar");
@@ -1194,7 +1191,9 @@ namespace XelLauncher
                 tableSoftware.RowStyles[i].SizeType = SizeType.Absolute;
                 tableSoftware.RowStyles[i].Height = rowHeight;
             }
-            var visibleRows = Math.Max(0, maxVisibleRow - firstVisibleRow + 1);
+            // Row 9 belonged to the removed browser preference.
+            tableSoftware.RowStyles[9].Height = 0F;
+            var visibleRows = Math.Max(0, maxVisibleRow - firstVisibleRow + 1 - (maxVisibleRow >= 9 ? 1 : 0));
             tableSoftware.Height = visibleRows * rowHeight;
             _softwareCard.Height = tableSoftware.Height + _softwareCard.Padding.Top + _softwareCard.Padding.Bottom;
 

@@ -142,7 +142,6 @@ namespace XelLauncher.Forms
             cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
             cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
             cfg.UseHardLink = setting.UseHardLink;
-            cfg.UseExternalBrowser = setting.UseExternalBrowser;
             cfg.CheckGameUpdates = setting.CheckGameUpdates;
             cfg.UpdateDownloadSource = setting.UpdateDownloadSource;
             cfg.ArchiveLauncherImages = setting.ArchiveLauncherImages;

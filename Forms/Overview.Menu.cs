@@ -27,7 +27,6 @@ namespace XelLauncher.Forms
             cfg.CloseAfterLaunch = setting.CloseAfterLaunch;
             cfg.HideToTrayOnLaunch = setting.HideToTrayOnLaunch;
             cfg.UseHardLink = setting.UseHardLink;
-            cfg.UseExternalBrowser = setting.UseExternalBrowser;
             cfg.CheckGameUpdates = setting.CheckGameUpdates;
             cfg.UpdateDownloadSource = setting.UpdateDownloadSource;
             cfg.ArchiveLauncherImages = setting.ArchiveLauncherImages;
@@ -81,7 +80,7 @@ namespace XelLauncher.Forms
                 switch (code)
                 {
                         case "help":
-                            TabHeaderForm.Open(
+                            BrowserLauncher.Open(
                                 AntdUI.Localization.CurrentLanguage.StartsWith("en", StringComparison.OrdinalIgnoreCase)
                                     ? "https://github.com/lTinchl/Xel-Launcher/blob/master/docs/wiki.en-US.md"
                                     : "https://github.com/lTinchl/Xel-Launcher/blob/master/docs/wiki.zh-CN.md");
@@ -97,10 +96,10 @@ namespace XelLauncher.Forms
                             });
                             break;
                         case "github":
-                            TabHeaderForm.Open("https://github.com/lTinchl/Xel-Launcher");
+                            BrowserLauncher.Open("https://github.com/lTinchl/Xel-Launcher");
                             break;
                         case "bilibili":
-                            TabHeaderForm.Open("https://www.bilibili.com/video/BV1FD9MBfED5");
+                            BrowserLauncher.Open("https://www.bilibili.com/video/BV1FD9MBfED5");
                             break;
                     }
                 });
