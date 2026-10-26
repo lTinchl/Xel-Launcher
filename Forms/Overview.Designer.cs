@@ -99,7 +99,7 @@ namespace XelLauncher.Forms
             // windowBar
             //
             windowBar.BackgroundImageLayout = ImageLayout.Stretch;
-            // ÔİÊ±Òş²ØÑÕÉ«Ö÷ÌâÑ¡ÔñÆ÷ºÍ±³¾°ÑÕÉ«ÉèÖÃ£¬ºóĞø°æ±¾ÔÙ¿¼ÂÇÊÇ·ñ·Å³ö
+            // æš‚æ—¶éšè—é¢œè‰²ä¸»é¢˜é€‰æ‹©å™¨å’ŒèƒŒæ™¯é¢œè‰²è®¾ç½®ï¼Œåç»­ç‰ˆæœ¬å†è€ƒè™‘æ˜¯å¦æ”¾å‡º
             // windowBar.Controls.Add(colorTheme);
             // windowBar.Controls.Add(btn_bgcolor);
             windowBar.Controls.Add(btn_mode);
@@ -126,7 +126,7 @@ namespace XelLauncher.Forms
             //
             updateBadge.Name = "updateBadge";
             updateBadge.Size = new Size(10, 10);
-            updateBadge.Location = new Point(0, 0); // ÓÉ´úÂë¶¯Ì¬¶¨Î»
+            updateBadge.Location = new Point(0, 0); // ç”±ä»£ç åŠ¨æ€å®šä½
             updateBadge.Visible = false;
             updateBadge.Cursor = Cursors.Hand;
             updateBadge.Click += updateBadge_Click;

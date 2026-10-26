@@ -264,7 +264,7 @@ namespace XelLauncher.Helpers
                 availability: () =>
                     FindArknightsPresetType(KoreaArknightsPresetTypes) != null),
             new(
-                "ArknightsTw", "明日方舟（繁中服）", "明日方舟（繁中服）", "Arknights (Taiwan)",
+                "ArknightsTw", "施工中··", "施工中··", "Null",
                 GameFamily.Arknights, "Taiwan", "",
                 "Arknights.ico", false, false, false, "Taiwan",
                 null,
