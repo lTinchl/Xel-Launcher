@@ -2832,4 +2832,7 @@
   <data name="App.Sign.Incomplete" xml:space="preserve">
     <value>签到未全部成功，下次自动签到时将再次尝试。</value>
   </data>
+  <data name="App.Exit.OperationRunning" xml:space="preserve">
+    <value>游戏文件操作仍在进行，暂时无法退出。下载可先暂停；安装、修复或切服请等待完成后再退出。</value>
+  </data>
 </root>

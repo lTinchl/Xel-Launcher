@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms
 {
@@ -42,8 +43,6 @@ namespace XelLauncher.Forms
 
             void Exit()
             {
-                if (_trayIcon != null) _trayIcon.Visible = false;
-                CloseOwnedOverlayForms();
                 Close();
             }
 
@@ -148,10 +147,24 @@ namespace XelLauncher.Forms
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            if (!LinkedClientOperationCoordinator.TryBeginExit())
+            {
+                e.Cancel = true;
+                _applicationExitRequested = false;
+                _forceClose = false;
+                AntdUI.Message.warn(this, Localizer.GetRequiredString("App.Exit.OperationRunning"));
+                return;
+            }
+            base.OnFormClosing(e);
+            if (e.Cancel)
+            {
+                LinkedClientOperationCoordinator.CancelExit();
+                _applicationExitRequested = false;
+                return;
+            }
             _forceClose = true;
             if (_trayIcon != null) _trayIcon.Visible = false;
             CloseOwnedOverlayForms();
-            base.OnFormClosing(e);
         }
 
         private sealed class CloseCommandMessageFilter : IMessageFilter

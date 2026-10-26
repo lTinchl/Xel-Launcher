@@ -1375,6 +1375,10 @@ namespace XelLauncher.Forms
                     }
                     try
                     {
+                        // All launch file mutations have finished. Release this
+                        // operation before the common exit gate checks other work.
+                        callbackOperationLease?.Dispose();
+                        callbackOperationLease = null;
                         _overview.Invoke(new Action(() =>
                         {
                             if (latestCfg.CloseAfterLaunch)

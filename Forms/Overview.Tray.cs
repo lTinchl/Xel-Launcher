@@ -17,7 +17,7 @@ namespace XelLauncher.Forms
             var menu = new ContextMenuStrip();
             menu.Items.Add(Localizer.GetRequiredString("App.Tray.Show"), null, (s, e) => RestoreFromTray());
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(Localizer.GetRequiredString("App.Tray.Exit"), null, (s, e) => { _forceClose = true; _trayIcon.Visible = false; Application.Exit(); });
+            menu.Items.Add(Localizer.GetRequiredString("App.Tray.Exit"), null, (s, e) => { RestoreFromTray(); RequestApplicationExit(); });
             _trayIcon.ContextMenuStrip = menu;
             _trayIcon.DoubleClick += (s, e) => RestoreFromTray();
         }

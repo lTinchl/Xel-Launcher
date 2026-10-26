@@ -2832,4 +2832,7 @@
   <data name="App.Sign.Incomplete" xml:space="preserve">
     <value>Sign-in was not fully successful. Automatic sign-in will try again next time.</value>
   </data>
+  <data name="App.Exit.OperationRunning" xml:space="preserve">
+    <value>Game file operations are still running. Pause downloads or wait for installation, repair or channel switching to finish before exiting.</value>
+  </data>
 </root>

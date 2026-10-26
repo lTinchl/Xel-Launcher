@@ -12,6 +12,24 @@ namespace XelLauncher.Helpers
         private static readonly object SyncRoot = new();
         private static readonly HashSet<string> HeldKeys =
             new(StringComparer.OrdinalIgnoreCase);
+        private static bool _exiting;
+
+        // Gate exit and new operations under the same lock, including work on
+        // other game pages. A released lease means its file work has finished.
+        public static bool TryBeginExit()
+        {
+            lock (SyncRoot)
+            {
+                if (HeldKeys.Count != 0) return false;
+                _exiting = true;
+                return true;
+            }
+        }
+
+        public static void CancelExit()
+        {
+            lock (SyncRoot) _exiting = false;
+        }
 
         public static bool TryAcquire(
             string iconName,
@@ -60,7 +78,7 @@ namespace XelLauncher.Helpers
                 .ToArray();
             lock (SyncRoot)
             {
-                if (normalizedKeys.Any(HeldKeys.Contains))
+                if (_exiting || normalizedKeys.Any(HeldKeys.Contains))
                 {
                     lease = null;
                     return false;
