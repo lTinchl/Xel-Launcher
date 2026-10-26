@@ -2829,4 +2829,7 @@
   <data name="App.Account.ResaveLegacy" xml:space="preserve">
     <value>This account has no backup with a verified channel directory. Clear the account selection, sign in manually and save the account again. Legacy backups cannot be restored directly.</value>
   </data>
+  <data name="App.Sign.Incomplete" xml:space="preserve">
+    <value>Sign-in was not fully successful. Automatic sign-in will try again next time.</value>
+  </data>
 </root>

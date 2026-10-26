@@ -2829,4 +2829,7 @@
   <data name="App.Account.ResaveLegacy" xml:space="preserve">
     <value>此账号尚无经过渠道识别的新备份。请清空账号选择，手动登录后点击“保存账号”；旧版备份不能直接恢复。</value>
   </data>
+  <data name="App.Sign.Incomplete" xml:space="preserve">
+    <value>签到未全部成功，下次自动签到时将再次尝试。</value>
+  </data>
 </root>

@@ -533,8 +533,8 @@ namespace XelLauncher.Forms
             {
                 AppendLog(Localizer.GetRequiredString("App.Skport.SignStart"));
                 var progress = new Progress<string>(AppendLog);
-                await _service.SignAllAsync(tokens, progress, _cts.Token);
-                AppendLog(Localizer.GetRequiredString("App.Skport.SignComplete"));
+                var batch = await _service.SignDetailedAsync(tokens, progress, _cts.Token);
+                AppendLog(Localizer.GetRequiredString(batch.Success ? "App.Skport.SignComplete" : "App.Sign.Incomplete"));
             }
             catch (OperationCanceledException)
             {

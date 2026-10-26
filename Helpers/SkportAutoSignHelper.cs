@@ -51,24 +51,27 @@ namespace XelLauncher.Helpers
 
             ReportProgress(progress, Localizer.GetRequiredString("App.Skport.Auto.Start"));
             var logProgress = new Progress<string>(message => ReportProgress(progress, message));
-            var results = await new SkportService().SignAllAsync(tokens, logProgress, cancellationToken);
+            var batch = await new SkportService().SignDetailedAsync(tokens, logProgress, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            var results = batch.Messages;
 
-            cfg = ConfigHelper.Load();
-            cfg.SkportLastAutoSignDate = today;
-            ConfigHelper.Save(cfg);
+            if (batch.Success)
+                ConfigHelper.Update(current => current.SkportLastAutoSignDate = today);
 
             var message = results.Count == 0
                 ? Localizer.GetRequiredString("App.Skport.Auto.Done")
                 : string.Join(Environment.NewLine, results.Take(3));
             if (results.Count > 3)
                 message += Environment.NewLine + string.Format(Localizer.GetRequiredString("App.Skport.Auto.MoreResults"), results.Count - 3);
-            ReportProgress(progress, Localizer.GetRequiredString("App.Skport.Auto.Complete"));
+            ReportProgress(progress, Localizer.GetRequiredString(batch.Success
+                ? "App.Skport.Auto.Complete" : "App.Sign.Incomplete"));
 
             return new SkportAutoSignResult
             {
                 Notify = true,
-                Success = true,
-                Title = Localizer.GetRequiredString("App.Skport.Auto.CompleteTitle"),
+                Success = batch.Success,
+                Title = Localizer.GetRequiredString(batch.Success
+                    ? "App.Skport.Auto.CompleteTitle" : "App.Sign.Incomplete"),
                 Message = message
             };
         }

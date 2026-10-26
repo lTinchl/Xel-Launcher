@@ -15,6 +15,15 @@ namespace XelLauncher.Helpers
 {
     public sealed class SkylandService
     {
+        private readonly HttpClient Http;
+
+        public SkylandService() : this(DefaultHttp) { }
+
+        internal SkylandService(HttpClient http)
+        {
+            Http = http ?? throw new ArgumentNullException(nameof(http));
+        }
+
         private const int MinAccountSignDelaySeconds = 10;
         private const int MaxAccountSignDelaySeconds = 20;
 
@@ -32,7 +41,7 @@ namespace XelLauncher.Helpers
         private const string ArknightsSignUrl = "https://zonai.skland.com/api/v1/game/attendance";
         private const string EndfieldSignUrl = "https://zonai.skland.com/web/v1/game/endfield/attendance";
 
-        private static readonly HttpClient Http = new HttpClient(new HttpClientHandler
+        private static readonly HttpClient DefaultHttp = new HttpClient(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
         })
@@ -178,13 +187,18 @@ namespace XelLauncher.Helpers
         }
 
         public async Task<List<string>> SignAllAsync(IEnumerable<string> tokens, IProgress<string> progress, CancellationToken cancellationToken = default)
+            => (await SignDetailedAsync(tokens, progress, cancellationToken).ConfigureAwait(false)).Messages;
+
+        public async Task<SignBatchResult> SignDetailedAsync(IEnumerable<string> tokens, IProgress<string> progress, CancellationToken cancellationToken = default)
         {
-            var messages = new List<string>();
+            var batch = new SignBatchResult();
             var tokenList = tokens.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
             if (tokenList.Count == 0) throw new InvalidOperationException(Localizer.GetRequiredString("App.Skyland.Error.TokenRequiredEnv"));
 
+            cancellationToken.ThrowIfCancellationRequested();
             for (var i = 0; i < tokenList.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var accountLabel = string.Format(Localizer.GetRequiredString("App.Skyland.Log.Account"), i + 1);
                 progress?.Report(string.Format(Localizer.GetRequiredString("App.Skyland.Log.ProcessAccount"), accountLabel));
 
@@ -196,7 +210,7 @@ namespace XelLauncher.Helpers
                     if (bindings.Count == 0)
                     {
                         var message = string.Format(Localizer.GetRequiredString("App.Skyland.Log.NoBindings"), accountLabel);
-                        messages.Add(message);
+                        batch.Add(false, message);
                         progress?.Report(message);
                         continue;
                     }
@@ -205,25 +219,26 @@ namespace XelLauncher.Helpers
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        string result = binding.AppCode switch
+                        SignBatchResult result = binding.AppCode switch
                         {
                             "arknights" => await SignArknightsAsync(binding, session, cancellationToken).ConfigureAwait(false),
                             "endfield" => await SignEndfieldAsync(binding, session, cancellationToken).ConfigureAwait(false),
-                            _ => ""
+                            _ => new SignBatchResult()
                         };
 
-                        if (!string.IsNullOrWhiteSpace(result))
-                        {
-                            result = $"[{accountLabel}] {result}";
-                            messages.Add(result);
-                            progress?.Report(result);
-                        }
+                        batch.Merge(result, $"[{accountLabel}] ");
+                        foreach (var message in result.Messages)
+                            progress?.Report($"[{accountLabel}] {message}");
                     }
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
                     var message = string.Format(Localizer.GetRequiredString("App.Skyland.Log.AccountFailed"), accountLabel, ex.Message);
-                    messages.Add(message);
+                    batch.Add(false, message);
                     progress?.Report(message);
                 }
 
@@ -235,7 +250,8 @@ namespace XelLauncher.Helpers
                 }
             }
 
-            return messages;
+            cancellationToken.ThrowIfCancellationRequested();
+            return batch;
         }
 
         public static List<string> SplitTokens(string value)
@@ -322,7 +338,7 @@ namespace XelLauncher.Helpers
             return result;
         }
 
-        private async Task<string> SignArknightsAsync(SkylandBinding binding, SkylandSession session, CancellationToken cancellationToken)
+        private async Task<SignBatchResult> SignArknightsAsync(SkylandBinding binding, SkylandSession session, CancellationToken cancellationToken)
         {
             var body = ToPythonStyleJson(new[]
             {
@@ -336,7 +352,7 @@ namespace XelLauncher.Helpers
 
             var title = string.Format(Localizer.GetRequiredString("App.Skyland.Log.RoleTitle"), binding.GameName, binding.Nickname, binding.ChannelName);
             if (!IsApiOk(root))
-                return string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignFailed"), title, GetErrorMessage(root));
+                return SignBatchResult.Single(false, string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignFailed"), title, GetErrorMessage(root)));
 
             var awards = new List<string>();
             foreach (var item in root["data"]?["awards"]?.AsArray() ?? new JsonArray())
@@ -347,12 +363,12 @@ namespace XelLauncher.Helpers
                 if (!string.IsNullOrWhiteSpace(name)) awards.Add($"{name}x{count}");
             }
 
-            return string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skyland.ListSeparator"), awards));
+            return SignBatchResult.Single(true, string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skyland.ListSeparator"), awards)));
         }
 
-        private async Task<string> SignEndfieldAsync(SkylandBinding binding, SkylandSession session, CancellationToken cancellationToken)
+        private async Task<SignBatchResult> SignEndfieldAsync(SkylandBinding binding, SkylandSession session, CancellationToken cancellationToken)
         {
-            var results = new List<string>();
+            var results = new SignBatchResult();
             foreach (var role in binding.Roles)
             {
                 using var request = CreateSignedRequest(HttpMethod.Post, EndfieldSignUrl, "", session);
@@ -365,7 +381,7 @@ namespace XelLauncher.Helpers
                 var title = string.Format(Localizer.GetRequiredString("App.Skyland.Log.RoleTitle"), binding.GameName, role.Nickname, binding.ChannelName);
                 if (!IsApiOk(root))
                 {
-                    results.Add(string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignFailed"), title, GetErrorMessage(root)));
+                    results.Add(false, string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignFailed"), title, GetErrorMessage(root)));
                     continue;
                 }
 
@@ -382,10 +398,12 @@ namespace XelLauncher.Helpers
                     if (!string.IsNullOrWhiteSpace(name)) awards.Add($"{name}x{count}");
                 }
 
-                results.Add(string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skyland.ListSeparator"), awards)));
+                results.Add(true, string.Format(Localizer.GetRequiredString("App.Skyland.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skyland.ListSeparator"), awards)));
             }
 
-            return string.Join(Environment.NewLine, results);
+            if (results.Succeeded == 0 && results.Failed == 0)
+                results.Add(false, string.Format(Localizer.GetRequiredString("App.Skyland.Log.NoBindings"), binding.GameName));
+            return results;
         }
 
         private HttpRequestMessage CreateSignedRequest(HttpMethod method, string url, string body, SkylandSession session)
@@ -445,7 +463,7 @@ namespace XelLauncher.Helpers
             return content;
         }
 
-        private static async Task<JsonNode> SendDeviceJsonAsync(
+        private async Task<JsonNode> SendDeviceJsonAsync(
             Func<string, HttpRequestMessage> requestFactory,
             CancellationToken cancellationToken)
         {
@@ -463,7 +481,7 @@ namespace XelLauncher.Helpers
             throw new InvalidOperationException(Localizer.GetRequiredString("App.Skyland.Error.DeviceRefreshFailed"));
         }
 
-        private static async Task<JsonNode> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        private async Task<JsonNode> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var endpoint = request.RequestUri?.AbsolutePath ?? "unknown endpoint";
             HttpResponseMessage response;

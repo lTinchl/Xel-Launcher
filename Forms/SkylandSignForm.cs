@@ -602,9 +602,12 @@ namespace XelLauncher.Forms
             {
                 AppendLog(Localizer.GetRequiredString("App.Skyland.SignStart"));
                 var progress = new Progress<string>(AppendLog);
-                await _service.SignAllAsync(tokens, progress, _cts.Token);
+                var batch = await _service.SignDetailedAsync(tokens, progress, _cts.Token);
                 AppendLog(Localizer.GetRequiredString("App.Skyland.SignEnd"));
-                AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.SignComplete"));
+                if (batch.Success)
+                    AntdUI.Message.success(FindForm(), Localizer.GetRequiredString("App.Skyland.SignComplete"));
+                else
+                    AntdUI.Message.warn(FindForm(), Localizer.GetRequiredString("App.Sign.Incomplete"));
             }
             catch (OperationCanceledException)
             {

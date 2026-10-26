@@ -51,24 +51,27 @@ namespace XelLauncher.Helpers
 
             ReportProgress(progress, Localizer.GetRequiredString("App.Skyland.Auto.Start"));
             var logProgress = new Progress<string>(message => ReportProgress(progress, message));
-            var results = await new SkylandService().SignAllAsync(tokens, logProgress, cancellationToken);
+            var batch = await new SkylandService().SignDetailedAsync(tokens, logProgress, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            var results = batch.Messages;
 
-            cfg = ConfigHelper.Load();
-            cfg.SkylandLastAutoSignDate = today;
-            ConfigHelper.Save(cfg);
+            if (batch.Success)
+                ConfigHelper.Update(current => current.SkylandLastAutoSignDate = today);
 
             var message = results.Count == 0
                 ? Localizer.GetRequiredString("App.Skyland.Auto.Done")
                 : string.Join(Environment.NewLine, results.Take(3));
             if (results.Count > 3)
                 message += Environment.NewLine + string.Format(Localizer.GetRequiredString("App.Skyland.Auto.MoreResults"), results.Count - 3);
-            ReportProgress(progress, Localizer.GetRequiredString("App.Skyland.Auto.Complete"));
+            ReportProgress(progress, Localizer.GetRequiredString(batch.Success
+                ? "App.Skyland.Auto.Complete" : "App.Sign.Incomplete"));
 
             return new SkylandAutoSignResult
             {
                 Notify = true,
-                Success = true,
-                Title = Localizer.GetRequiredString("App.Skyland.Auto.CompleteTitle"),
+                Success = batch.Success,
+                Title = Localizer.GetRequiredString(batch.Success
+                    ? "App.Skyland.Auto.CompleteTitle" : "App.Sign.Incomplete"),
                 Message = message
             };
         }

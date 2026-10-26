@@ -15,6 +15,15 @@ namespace XelLauncher.Helpers
 {
     public sealed class SkportService
     {
+        private readonly HttpClient Http;
+
+        public SkportService() : this(DefaultHttp) { }
+
+        internal SkportService(HttpClient http)
+        {
+            Http = http ?? throw new ArgumentNullException(nameof(http));
+        }
+
         private const int MinAccountSignDelaySeconds = 10;
         private const int MaxAccountSignDelaySeconds = 20;
 
@@ -28,7 +37,7 @@ namespace XelLauncher.Helpers
         private const string BindingUrl = "https://zonai.skport.com/api/v1/game/player/binding";
         private const string EndfieldSignUrl = "https://zonai.skport.com/web/v1/game/endfield/attendance";
 
-        private static readonly HttpClient Http = new HttpClient(new HttpClientHandler
+        private static readonly HttpClient DefaultHttp = new HttpClient(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
         })
@@ -63,13 +72,18 @@ namespace XelLauncher.Helpers
         }
 
         public async Task<List<string>> SignAllAsync(IEnumerable<string> tokens, IProgress<string> progress, CancellationToken cancellationToken = default)
+            => (await SignDetailedAsync(tokens, progress, cancellationToken).ConfigureAwait(false)).Messages;
+
+        public async Task<SignBatchResult> SignDetailedAsync(IEnumerable<string> tokens, IProgress<string> progress, CancellationToken cancellationToken = default)
         {
-            var messages = new List<string>();
+            var batch = new SignBatchResult();
             var tokenList = tokens.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
             if (tokenList.Count == 0) throw new InvalidOperationException(Localizer.GetRequiredString("App.Skport.Error.TokenRequiredEnv"));
 
+            cancellationToken.ThrowIfCancellationRequested();
             for (var i = 0; i < tokenList.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var accountLabel = string.Format(Localizer.GetRequiredString("App.Skport.Log.Account"), i + 1);
                 progress?.Report(string.Format(Localizer.GetRequiredString("App.Skport.Log.ProcessAccount"), accountLabel));
 
@@ -81,7 +95,7 @@ namespace XelLauncher.Helpers
                     if (bindings.Count == 0)
                     {
                         var message = string.Format(Localizer.GetRequiredString("App.Skport.Log.NoBindings"), accountLabel);
-                        messages.Add(message);
+                        batch.Add(false, message);
                         progress?.Report(message);
                         continue;
                     }
@@ -90,24 +104,25 @@ namespace XelLauncher.Helpers
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        string result = "";
+                        var result = new SignBatchResult();
                         if (binding.AppCode == "endfield")
                         {
                             result = await SignEndfieldAsync(binding, session, cancellationToken).ConfigureAwait(false);
                         }
 
-                        if (!string.IsNullOrWhiteSpace(result))
-                        {
-                            result = $"[{accountLabel}] {result}";
-                            messages.Add(result);
-                            progress?.Report(result);
-                        }
+                        batch.Merge(result, $"[{accountLabel}] ");
+                        foreach (var message in result.Messages)
+                            progress?.Report($"[{accountLabel}] {message}");
                     }
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
                     var message = string.Format(Localizer.GetRequiredString("App.Skport.Log.AccountFailed"), accountLabel, ex.Message);
-                    messages.Add(message);
+                    batch.Add(false, message);
                     progress?.Report(message);
                 }
 
@@ -119,7 +134,8 @@ namespace XelLauncher.Helpers
                 }
             }
 
-            return messages;
+            cancellationToken.ThrowIfCancellationRequested();
+            return batch;
         }
 
         public static List<string> SplitTokens(string value)
@@ -188,9 +204,9 @@ namespace XelLauncher.Helpers
             return result;
         }
 
-        private async Task<string> SignEndfieldAsync(SkportBinding binding, SkportSession session, CancellationToken cancellationToken)
+        private async Task<SignBatchResult> SignEndfieldAsync(SkportBinding binding, SkportSession session, CancellationToken cancellationToken)
         {
-            var results = new List<string>();
+            var results = new SignBatchResult();
             foreach (var role in binding.Roles)
             {
                 using var request = CreateSignedRequest(HttpMethod.Post, EndfieldSignUrl, "", session);
@@ -203,7 +219,7 @@ namespace XelLauncher.Helpers
                 var title = string.Format(Localizer.GetRequiredString("App.Skport.Log.RoleTitle"), binding.GameName, role.Nickname, binding.ChannelName);
                 if (!IsApiOk(root))
                 {
-                    results.Add(string.Format(Localizer.GetRequiredString("App.Skport.Log.SignFailed"), title, GetErrorMessage(root)));
+                    results.Add(false, string.Format(Localizer.GetRequiredString("App.Skport.Log.SignFailed"), title, GetErrorMessage(root)));
                     continue;
                 }
 
@@ -220,10 +236,12 @@ namespace XelLauncher.Helpers
                     if (!string.IsNullOrWhiteSpace(name)) awards.Add($"{name}x{count}");
                 }
 
-                results.Add(string.Format(Localizer.GetRequiredString("App.Skport.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skport.ListSeparator"), awards)));
+                results.Add(true, string.Format(Localizer.GetRequiredString("App.Skport.Log.SignSuccess"), title, string.Join(Localizer.GetRequiredString("App.Skport.ListSeparator"), awards)));
             }
 
-            return string.Join(Environment.NewLine, results);
+            if (results.Succeeded == 0 && results.Failed == 0)
+                results.Add(false, string.Format(Localizer.GetRequiredString("App.Skport.Log.NoBindings"), binding.GameName));
+            return results;
         }
 
         private HttpRequestMessage CreateSignedRequest(HttpMethod method, string url, string body, SkportSession session)
@@ -275,7 +293,7 @@ namespace XelLauncher.Helpers
             return new StringContent(json, Encoding.UTF8, "application/json");
         }
 
-        private static async Task<JsonNode> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        private async Task<JsonNode> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             using var response = await Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
