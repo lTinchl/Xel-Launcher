@@ -83,6 +83,8 @@ namespace XelLauncher.Helpers
             // misleading installation failure.
             if (IsEndfieldChannel(_iconName) &&
                 hasUpdate &&
+                !HgGameMaintenance.HasPendingUpdate(installPath) &&
+                !File.Exists(Path.Combine(installPath, ".collapse_verify_game")) &&
                 IsVersionAtLeast(localVersion, remoteVersion))
             {
                 LogHelper.Log(
@@ -434,11 +436,15 @@ namespace XelLauncher.Helpers
             using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
             ct.ThrowIfCancellationRequested();
 
-            // 必须先 InitAsync，管理器才能从服务器加载远端信息（含预下载包路径）
-            manager.InitAsync(in cancelToken, out var initResult);
-            int initCode = await initResult.AsTask<int>().ConfigureAwait(false);
-            if (initCode != 0)
-                throw new InvalidOperationException("游戏信息初始化失败");
+            // A pending Hypergryph transaction carries its own fixed target.
+            // Do not require a new latest-version response to resume it.
+            if (manager is not HgGameManager || !HgGameMaintenance.HasPendingUpdate(installPath))
+            {
+                manager.InitAsync(in cancelToken, out var initResult);
+                int initCode = await initResult.AsTask<int>().ConfigureAwait(false);
+                if (initCode != 0)
+                    throw new InvalidOperationException("游戏信息初始化失败");
+            }
 
             manager.IsGameInstalled(out bool isInstalled);
 
@@ -509,125 +515,30 @@ namespace XelLauncher.Helpers
             Action<InstallProgressState, long, long> onProgress,
             CancellationToken ct = default)
         {
-            var manager = _preset.GameManager ?? throw new InvalidOperationException("GameManager 未初始化");
-            if (manager is not HgGameManager hgManager)
-                throw new InvalidOperationException("GameManager is not HgGameManager");
-
+            var manager = _preset.GameManager as HgGameManager
+                ?? throw new InvalidOperationException("GameManager is not HgGameManager");
             manager.SetGamePath(installPath);
-
             var cancelToken = Guid.NewGuid();
             using var cancelRegistration = ct.Register(() => TryCancelPluginToken(cancelToken));
             ct.ThrowIfCancellationRequested();
-
-            manager.InitAsync(in cancelToken, out var initResult);
-            int result = await initResult.AsTask<int>().ConfigureAwait(false);
-            if (result != 0)
-                throw new InvalidOperationException("游戏信息初始化失败");
-
-            manager.IsGameInstalled(out bool isInstalled);
-            if (!isInstalled)
-                throw new InvalidOperationException("未检测到已安装的游戏");
-
+            if (!HgGameMaintenance.HasPendingUpdate(installPath))
+            {
+                manager.InitAsync(in cancelToken, out var initResult);
+                if (await initResult.AsTask<int>().ConfigureAwait(false) != 0)
+                    throw new InvalidOperationException("游戏信息初始化失败");
+                manager.IsGameInstalled(out bool installed);
+                if (!installed) throw new InvalidOperationException("未检测到已安装的游戏");
+            }
             var currentState = InstallProgressState.Preparing;
-            var verificationStarted = 0;
-
-            InstallProgressDelegate progressDelegate = (in InstallProgress p) =>
+            InstallProgressDelegate progress = (in InstallProgress p) =>
                 onProgress(currentState, p.DownloadedBytes, p.TotalBytesToDownload);
-
-            InstallProgressStateDelegate stateDelegate = state =>
+            InstallProgressStateDelegate report = state =>
             {
                 currentState = state;
-                if (state.HasFlag(InstallProgressState.Verify))
-                    Interlocked.Exchange(ref verificationStarted, 1);
                 onProgress(state, 0, 0);
             };
-
-            var repairer = new HgGameRepairer(RepairHttpClient, hgManager, installPath);
-            await RefreshRepairManifestAsync(hgManager, installPath, ct).ConfigureAwait(false);
-            await repairer.StartRepairAsync(progressDelegate, stateDelegate, ct).ConfigureAwait(false);
-            ct.ThrowIfCancellationRequested();
-
-            var manifestPath = Path.Combine(installPath, "game_files");
-            if (Volatile.Read(ref verificationStarted) == 0 ||
-                !File.Exists(manifestPath) ||
-                new FileInfo(manifestPath).Length == 0)
-            {
-                throw new InvalidOperationException("游戏文件校验未完整执行");
-            }
-        }
-
-        private async Task RefreshRepairManifestAsync(
-            HgGameManager manager, string installPath, CancellationToken ct)
-        {
-            // Keep the repairer's download URL paired with the manifest from the
-            // selected server's full package. The manager's versioned API request
-            // can otherwise leave it pointing at a different package.
-            byte[] encryptedManifest;
-            string baseUrl;
-            var resourceUrlProperty = typeof(HgGameManager).GetProperty(
-                "GameResourceBaseUrl", BindingFlags.Instance | BindingFlags.NonPublic)
-                ?? throw new InvalidOperationException("Unable to set the game repair resource URL.");
-            if (ServerPayloadUpdater.GetProfile(_iconName) != null)
-            {
-                var manifest = await ServerPayloadUpdater.GetGameManifestAsync(_iconName, ct)
-                    .ConfigureAwait(false);
-                encryptedManifest = manifest.EncryptedManifest;
-                baseUrl = manifest.ResourceBaseUri.AbsoluteUri.TrimEnd('/');
-            }
-            else
-            {
-                // Channels without a legacy payload profile use the plugin's
-                // own channel API and manifest format.
-                baseUrl = resourceUrlProperty.GetValue(manager) as string;
-                if (string.IsNullOrWhiteSpace(baseUrl) ||
-                    !Uri.TryCreate(baseUrl.TrimEnd('/') + "/game_files", UriKind.Absolute,
-                        out var manifestUri) ||
-                    manifestUri.Scheme != Uri.UriSchemeHttps)
-                    throw new InvalidOperationException("Unable to locate the current game repair manifest.");
-
-                encryptedManifest = await RepairHttpClient.GetByteArrayAsync(manifestUri, ct)
-                    .ConfigureAwait(false);
-                var manifestText = HgCrypto.DecryptBytesToString(encryptedManifest);
-                if (string.IsNullOrWhiteSpace(manifestText))
-                    throw new InvalidDataException("The current game repair manifest is invalid.");
-
-                var hasFile = false;
-                using var reader = new StringReader(manifestText);
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    if (string.IsNullOrWhiteSpace(line)) continue;
-                    using var entry = JsonDocument.Parse(line);
-                    if (entry.RootElement.TryGetProperty("path", out var path) &&
-                        path.ValueKind == JsonValueKind.String &&
-                        !string.IsNullOrWhiteSpace(path.GetString()))
-                        hasFile = true;
-                }
-                if (!hasFile)
-                    throw new InvalidDataException("The current game repair manifest contains no files.");
-            }
-
-            var manifestPath = Path.Combine(installPath, "game_files");
-            if (File.Exists(manifestPath) &&
-                (await File.ReadAllBytesAsync(manifestPath, ct).ConfigureAwait(false))
-                    .AsSpan().SequenceEqual(encryptedManifest))
-            {
-                resourceUrlProperty.SetValue(manager, baseUrl);
-                return;
-            }
-
-            var temporaryPath = manifestPath + ".xel-repair-" + Guid.NewGuid().ToString("N");
-            try
-            {
-                await File.WriteAllBytesAsync(temporaryPath, encryptedManifest, ct)
-                    .ConfigureAwait(false);
-                File.Move(temporaryPath, manifestPath, true);
-                resourceUrlProperty.SetValue(manager, baseUrl);
-            }
-            finally
-            {
-                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
-            }
+            await HgGameMaintenance.RepairAsync(RepairHttpClient, manager, installPath,
+                progress, report, ct).ConfigureAwait(false);
         }
 
         private static void TryCancelPluginToken(Guid cancelToken)

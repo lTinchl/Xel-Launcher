@@ -259,10 +259,8 @@ namespace XelLauncher.Helpers
             {
                 using var service = new EndfieldService(iconName);
                 var status = await service.CheckStatusAsync(installPath).ConfigureAwait(false);
-                if (status == null || !status.IsInstalled || status.HasUpdate ||
-                    string.IsNullOrWhiteSpace(status.LocalVersion) ||
-                    !string.Equals(status.LocalVersion, status.RemoteVersion, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Unable to confirm the installed game version after update.");
+                if (status == null || !status.IsInstalled || string.IsNullOrWhiteSpace(status.LocalVersion))
+                    throw new InvalidOperationException("Update committed, but refreshed game status is unavailable.");
                 var cfg = ConfigHelper.Load();
                 var localVersion = status?.LocalVersion ?? status?.RemoteVersion ?? "";
                 var remoteVersion = status?.RemoteVersion ?? status?.LocalVersion ?? "";
@@ -278,7 +276,7 @@ namespace XelLauncher.Helpers
                 cfg.GameStatusCache[iconName] = new Models.CachedGameStatus
                 {
                     IsInstalled = status?.IsInstalled ?? true,
-                    HasUpdate = false,
+                    HasUpdate = status.HasUpdate,
                     HasPreload = status?.HasPreload ?? false,
                     PreloadCompleted = false,
                     LocalVersion = localVersion,
@@ -291,8 +289,17 @@ namespace XelLauncher.Helpers
             }
             catch (Exception ex)
             {
-                LogHelper.LogError(ex, $"GameUpdateManager.PersistCompletedStatusAsync({iconName})");
-                throw;
+                // The installer has already verified files and committed the
+                // on-disk version. A network/cache failure must not rerun it.
+                LogHelper.LogError(ex, $"Game update committed; status refresh failed ({iconName})");
+                try
+                {
+                    ConfigHelper.Update(cfg => cfg.GameStatusCache.Remove(iconName));
+                }
+                catch (Exception cacheError)
+                {
+                    LogHelper.LogError(cacheError, "Unable to invalidate game status after update");
+                }
             }
         }
 

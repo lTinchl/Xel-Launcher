@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Hi3Helper.Hypergryph.Core.Utils;
+using Hi3Helper.Hypergryph.Core.Management;
 using XelLauncher.Models;
 
 namespace XelLauncher.Helpers
@@ -301,6 +302,20 @@ namespace XelLauncher.Helpers
                                       StringComparison.OrdinalIgnoreCase))
                 .ToArray();
             if (candidates.Length == 0) return UnknownChannel;
+
+            // An interrupted apply can contain mixed channel signatures. Keep
+            // the validated transaction's identity until the plugin finishes it.
+            var pending = HgGameMaintenance.GetPendingIdentity(rootPath);
+            if (pending is { } identity)
+            {
+                var matches = candidates.Where(c =>
+                    c.PayloadProfile.AppCode == identity.AppCode &&
+                    c.PayloadProfile.Channel == identity.Channel &&
+                    c.PayloadProfile.SubChannel == identity.SubChannel).ToArray();
+                if (matches.Length != 1)
+                    throw new InvalidOperationException("未完成更新的渠道与当前共用目录不匹配，已停止操作。");
+                return matches[0].Channel;
+            }
 
             var requiredSets = candidates.ToDictionary(
                 channel => channel.IconName,

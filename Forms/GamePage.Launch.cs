@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -188,28 +188,6 @@ namespace XelLauncher.Forms
                     return true;
                 }
 
-                if (GameUpdateManager.IsRecentlyCompleted(effectiveIconName, path))
-                {
-                    _gameState = GameState.Ready;
-                    await Task.Run(() => ConfigHelper.Update(completedCfg =>
-                    {
-                        completedCfg.GameStatusCache[_game.IconName] = new CachedGameStatus
-                        {
-                            IsInstalled = true,
-                            HasUpdate = false,
-                            HasPreload = false,
-                            PreloadCompleted = false,
-                            LocalVersion = entry?.LocalVersion ?? "",
-                            RemoteVersion = entry?.LocalVersion ?? "",
-                            PreloadVersion = "",
-                            InstallPath = path
-                        };
-                    }), token);
-                    if (token.IsCancellationRequested || IsDisposed) return false;
-                    if (IsHandleCreated)
-                        BeginInvoke(() => RefreshGameStartButton());
-                    return true;
-                }
 
                 var status = await Task.Run(async () =>
                 {
@@ -227,9 +205,9 @@ namespace XelLauncher.Forms
                         BeginInvoke(() => RefreshGameStartButton());
                     return true;
                 }
-                var hasUpdate = status.HasUpdate &&
-                                !string.Equals(status.LocalVersion, status.RemoteVersion,
-                                    StringComparison.OrdinalIgnoreCase);
+                // Same-version recovery or an explicit verification request can
+                // still require maintenance; the plugin owns that decision.
+                var hasUpdate = status.HasUpdate;
                 var hasPreload = status.IsInstalled &&
                                  !hasUpdate &&
                                  status.HasPreload;
@@ -466,8 +444,11 @@ namespace XelLauncher.Forms
                                 update.IconName);
                         }
 
-                        MarkGameReadyAfterInstall(capturedPath);
-                        config.OK(Localizer.GetRequiredString("App.Game.Install.Success"));
+                        _gameState = GameState.Unknown;
+                        var refreshed = await CheckGameStatusAsync();
+                        config.OK(refreshed
+                            ? Localizer.GetRequiredString("App.Game.Install.Success")
+                            : "游戏文件更新已完成，但状态刷新失败，请稍后重新检查。");
                     }
                 }
                 catch (Exception ex) when (IsCancellation(ex))
@@ -856,7 +837,6 @@ namespace XelLauncher.Forms
                         $"Game repair completed: requested={_game.IconName} | " +
                         $"effective={effectiveIconName} | {path}");
                     config.OK(Localizer.GetRequiredString("App.Game.Repair.Success"));
-                    _ = CheckGameStatusAsync();
                 }
                 catch (Exception ex) when (IsCancellation(ex))
                 {
@@ -874,6 +854,9 @@ namespace XelLauncher.Forms
                     _repairingPath = null;
                     if (_gameState == GameState.Repairing)
                         _gameState = previousState;
+                    // The earlier refresh runs while the repair lease is held
+                    // and exits immediately. Refresh only after releasing it.
+                    _ = CheckGameStatusAsync();
 
                     if (IsHandleCreated && !IsDisposed)
                     {
@@ -913,48 +896,6 @@ namespace XelLauncher.Forms
             }
 
             return label;
-        }
-
-        private void MarkGameReadyAfterInstall(string installPath)
-        {
-            _gameState = GameState.Ready;
-
-            try
-            {
-                var cfg = ConfigHelper.Load();
-                cfg.GameStatusCache.TryGetValue(_game.IconName, out var cached);
-
-                cfg.GameStatusCache[_game.IconName] = new CachedGameStatus
-                {
-                    IsInstalled = true,
-                    HasUpdate = false,
-                    HasPreload = false,
-                    PreloadCompleted = false,
-                    LocalVersion = cached?.LocalVersion ?? "",
-                    RemoteVersion = cached?.RemoteVersion ?? "",
-                    PreloadVersion = "",
-                    InstallPath = installPath
-                };
-
-                var entry = cfg.Games.Find(g => g.IconName == _game.IconName);
-                if (entry != null)
-                {
-                    if (!string.IsNullOrEmpty(installPath))
-                        LinkedClientPolicy.UpdatePath(cfg, entry, installPath);
-                    if (!string.IsNullOrEmpty(cached?.LocalVersion))
-                        entry.LocalVersion = cached.LocalVersion;
-                }
-
-                ConfigHelper.Save(cfg);
-            }
-            catch { }
-
-            if (IsHandleCreated && !IsDisposed)
-                BeginInvoke(() =>
-                {
-                    if (!GameStart.IsDisposed) RefreshGameStartButton();
-                    RefreshGameInfoBadge();
-                });
         }
 
         private static async Task UpdateServerPayloadAfterGameUpdateAsync(string iconName)
