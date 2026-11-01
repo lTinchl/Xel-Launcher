@@ -60,14 +60,14 @@ XelLauncher/
 ├── docs/                         # 中英文 Wiki 文档
 ├── Forms/                        # WinForms 页面、弹窗与 UI 控件
 ├── Helpers/                      # 应用服务、启动/更新逻辑、存储、本地化与通用工具
-├── load/                         # 切服用差异文件
+├── load/                         # 切服用资源文件
 │   ├── ArkBilibili/              # 明日方舟 Bilibili 服
 │   ├── ArkOfficial/              # 明日方舟官服
 │   ├── EndBilibili/              # 终末地 Bilibili 服
 │   ├── EndGlobal/                # 终末地国际服
 │   ├── EndOfficial/              # 终末地官服
 │   ├── EndPlay/                  # 终末地 Google Play 服
-│   └── EndSteam/                 # 终末地 Steam 本地渠道文件（手动提供）
+│   └── EndSteam/                 # 终末地 Steam 服（手动提供）
 ├── Models/                       # 配置、游戏、账号与更新数据模型
 ├── Properties/                   # .resx 资源与发布配置
 ├── redist/                       # 可再发行运行库/安装资源

@@ -312,7 +312,7 @@ namespace XelLauncher.Helpers
                         $"local={localBaseVersion}, manifest={baseManifest.Version}");
                 }
 
-                onProgress?.Invoke("正在同步渠道差异文件...");
+                onProgress?.Invoke("正在同步渠道资源文件...");
                 await ServerPayloadUpdater.UpdateIfOutdatedAsync(
                         resolution.Target.PayloadProfile,
                         progress: null,
@@ -1008,7 +1008,7 @@ namespace XelLauncher.Helpers
                             !Directory.Exists(payloadDirectory))
                         {
                             throw new FileNotFoundException(
-                                "Linked Runtime 缺少目标渠道切服差异文件。");
+                                "Linked Runtime 缺少目标渠道切服资源文件。");
                         }
 
                         await ServerPayloadDeployment.DeployProfileAsync(

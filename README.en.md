@@ -67,7 +67,7 @@ XelLauncher/
 │   ├── EndGlobal/                # Endfield global server
 │   ├── EndOfficial/              # Endfield official server
 │   ├── EndPlay/                  # Endfield Google Play server
-│   └── EndSteam/                 # Endfield Steam local channel files (provided manually)
+│   └── EndSteam/                 # Endfield Steam server (provided manually)
 ├── Models/                       # Configuration, game, account, and update models
 ├── Properties/                   # .resx resources and publish profiles
 ├── redist/                       # Redistributable runtime/install assets
