@@ -376,3 +376,7 @@ load/
 # Regression coverage for sign-in outcomes and safe shutdown.
 !/Tests/TrustRegression/
 /Tests/TrustRegression
+
+# Transactional game update regression tests (build outputs stay ignored).
+!/Tests/Hypergryph.Update.Regression/
+/Tests/Hypergryph.Update.Regression
