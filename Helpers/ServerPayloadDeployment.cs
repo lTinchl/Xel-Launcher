@@ -19,6 +19,31 @@ namespace XelLauncher.Helpers
                     family => family,
                     BuildManagedEntries);
 
+        public static void CleanForeignChannelFiles(ServerPayloadProfile profile, string targetDirectory)
+        {
+            ArgumentNullException.ThrowIfNull(profile);
+            foreach (var relativePath in GetManagedEntries(profile.GameFamily))
+            {
+                var owned = profile.RootFiles.Contains(relativePath, StringComparer.OrdinalIgnoreCase) ||
+                    profile.DirectoryPrefixes.Any(prefix => string.Equals(
+                        NormalizeRelativePath(prefix).TrimEnd('/'), relativePath,
+                        StringComparison.OrdinalIgnoreCase));
+                if (owned) continue;
+                var path = GetChildPath(targetDirectory, relativePath);
+                if (!PathExists(path)) continue;
+                DeletePath(path);
+                LogHelper.Log($"Removed foreign channel file: {path}");
+            }
+            foreach (var relativePath in GameChannelCatalog.ServerPayloadProfiles
+                         .Where(item => item.GameFamily == profile.GameFamily)
+                         .SelectMany(item => item.RootFiles).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                var path = GetChildPath(targetDirectory, relativePath + ".tmp");
+                if (!File.Exists(path)) continue;
+                DeletePath(path);
+                LogHelper.Log($"Removed channel temporary file: {path}");
+            }
+        }
         public static bool CanUseHardLinks(string sourcePath, string targetPath)
         {
             if (string.IsNullOrWhiteSpace(sourcePath) ||

@@ -727,7 +727,7 @@ namespace XelLauncher.Forms
             try
             {
                 operationTarget = SharedRootManager.ResolveMaintenanceTarget(
-                    _game.IconName, path, allowUninstalledTarget: false);
+                    _game.IconName, path, allowUninstalledTarget: false, allowUnknownRepairTarget: true);
             }
             catch (InvalidOperationException ex)
             {
@@ -779,7 +779,7 @@ namespace XelLauncher.Forms
                 // once more so verification cannot use a channel that was base
                 // before a just-completed server switch.
                 operationTarget = SharedRootManager.ResolveMaintenanceTarget(
-                    _game.IconName, path, allowUninstalledTarget: false);
+                    _game.IconName, path, allowUninstalledTarget: false, allowUnknownRepairTarget: true);
                 effectiveIconName = operationTarget.EffectiveIconName;
                 path = operationTarget.RootPath;
                 LinkedClientPolicy.ThrowIfSharedClient(effectiveIconName, path);

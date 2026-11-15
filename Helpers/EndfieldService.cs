@@ -539,6 +539,10 @@ namespace XelLauncher.Helpers
             };
             await HgGameMaintenance.RepairAsync(RepairHttpClient, manager, installPath,
                 progress, report, ct).ConfigureAwait(false);
+            ct.ThrowIfCancellationRequested();
+            var profile = ServerPayloadUpdater.GetProfile(_iconName);
+            if (profile != null)
+                ServerPayloadDeployment.CleanForeignChannelFiles(profile, installPath);
         }
 
         private static void TryCancelPluginToken(Guid cancelToken)
