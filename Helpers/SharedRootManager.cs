@@ -227,7 +227,8 @@ namespace XelLauncher.Helpers
         public static GameOperationTarget ResolveMaintenanceTarget(
             string requestedIconName,
             string rootPath,
-            bool allowUninstalledTarget = true)
+            bool allowUninstalledTarget = true,
+            bool allowUnknownRepairTarget = false)
         {
             var resolution = ResolveAndPersist(
                 requestedIconName, rootPath, detectBaseChannel: true);
@@ -251,7 +252,7 @@ namespace XelLauncher.Helpers
 
             if (resolution.Base == null)
             {
-                if (allowUninstalledTarget &&
+                if (allowUnknownRepairTarget || allowUninstalledTarget &&
                     !File.Exists(Path.Combine(
                         resolution.RootPath,
                         GetExecutableName(resolution.Target.Family))))
@@ -529,7 +530,14 @@ namespace XelLauncher.Helpers
                     .Where(path => !required.Contains(path));
                 foreach (var path in foreignExclusive)
                 {
-                    if (File.Exists(SafeCombine(rootPath, path))) score -= 5;
+                    if (File.Exists(SafeCombine(rootPath, path)))
+                    {
+                        // Mixed Arknights SDKs must use the transactional switch
+                        // fallback instead of directly launching the highest score.
+                        if (candidate.PayloadProfile.GameFamily == GameFamily.Arknights)
+                            return int.MinValue;
+                        score -= 5;
+                    }
                 }
             }
 
