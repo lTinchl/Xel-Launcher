@@ -2833,5 +2833,31 @@
     <value>Unable to open the default browser. Check the default apps settings in Windows.</value>
   </data>
   <data name="App.Setting.ShowGameData" xml:space="preserve"><value>Show game data panel</value></data>
-  <data name="App.Game.DataDisclaimer" xml:space="preserve"><value>Queried data may be delayed and is for reference only. Please refer to the actual in-game data.</value></data>
+  <data name="App.Game.DataDisclaimer" xml:space="preserve"><value>Queried data may be delayed and is for reference only. Please refer to the actual in-game data</value></data>
+  <data name="App.Game.Dashboard.ExpandToLoad" xml:space="preserve"><value>Expand to load game data</value></data>
+  <data name="App.Game.Dashboard.AccessibleName" xml:space="preserve"><value>Playtime; expand or collapse game data</value></data>
+  <data name="App.Game.Dashboard.Playtime" xml:space="preserve"><value>Playtime</value></data>
+  <data name="App.Game.Dashboard.WeeklyPlaytime" xml:space="preserve"><value>This week: {0:0.0} h</value></data>
+  <data name="App.Game.Dashboard.TotalPlaytime" xml:space="preserve"><value>Total: {0:0.0} h</value></data>
+  <data name="App.Game.Dashboard.Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="App.Game.Dashboard.LoadFailed" xml:space="preserve"><value>Could not load data. Collapse and expand to retry</value></data>
+  <data name="App.Game.Dashboard.TimeOnly" xml:space="preserve"><value>Only playtime tracking is supported for this channel</value></data>
+  <data name="App.Game.Dashboard.LoginRequired" xml:space="preserve"><value>Please sign in through Skland Check-in first.</value></data>
+  <data name="App.Game.Dashboard.MultipleRoles" xml:space="preserve"><value>Multiple characters found. Unable to determine which one to display</value></data>
+  <data name="App.Game.Dashboard.NoRole" xml:space="preserve"><value>No Skland character found for this channel</value></data>
+  <data name="App.Game.Dashboard.FetchData" xml:space="preserve"><value>Fetch game data</value></data>
+  <data name="App.Game.Dashboard.FetchUser" xml:space="preserve"><value>Fetch Skland user information</value></data>
+  <data name="App.Game.Dashboard.UserUnavailable" xml:space="preserve"><value>Unable to retrieve Skland user information</value></data>
+  <data name="App.Game.Dashboard.FetchEndfieldData" xml:space="preserve"><value>Fetch Endfield game data</value></data>
+  <data name="App.Game.Dashboard.NoEndfieldData" xml:space="preserve"><value>No Endfield game data available</value></data>
+  <data name="App.Game.Dashboard.Sanity" xml:space="preserve"><value>Sanity</value></data>
+  <data name="App.Game.Dashboard.Recruitment" xml:space="preserve"><value>Recruitment</value></data>
+  <data name="App.Game.Dashboard.Daily" xml:space="preserve"><value>Daily</value></data>
+  <data name="App.Game.Dashboard.Weekly" xml:space="preserve"><value>Weekly</value></data>
+  <data name="App.Game.Dashboard.Annihilation" xml:space="preserve"><value>Annihilation</value></data>
+  <data name="App.Game.Dashboard.Security" xml:space="preserve"><value>SSS</value></data>
+  <data name="App.Game.Dashboard.DailyActivity" xml:space="preserve"><value>Daily Activity</value></data>
+  <data name="App.Game.Dashboard.WeeklyAffairs" xml:space="preserve"><value>Weekly Affairs</value></data>
+  <data name="App.Game.Dashboard.BattlePass" xml:space="preserve"><value>Battle Pass Level</value></data>
+  <data name="App.Game.Dashboard.Authority" xml:space="preserve"><value>Authority Level</value></data>
 </root>

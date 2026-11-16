@@ -2833,5 +2833,31 @@
     <value>无法打开系统默认浏览器，请检查 Windows 默认应用设置。</value>
   </data>
   <data name="App.Setting.ShowGameData" xml:space="preserve"><value>显示游戏数据面板</value></data>
-  <data name="App.Game.DataDisclaimer" xml:space="preserve"><value>数据查询结果可能存在延迟，仅供参考，请以游戏内实际数据为准。</value></data>
+  <data name="App.Game.DataDisclaimer" xml:space="preserve"><value>数据查询结果可能存在延迟，仅供参考，请以游戏内实际数据为准</value></data>
+  <data name="App.Game.Dashboard.ExpandToLoad" xml:space="preserve"><value>展开以加载游戏数据</value></data>
+  <data name="App.Game.Dashboard.AccessibleName" xml:space="preserve"><value>游戏时长，展开或收起游戏数据</value></data>
+  <data name="App.Game.Dashboard.Playtime" xml:space="preserve"><value>游戏时长</value></data>
+  <data name="App.Game.Dashboard.WeeklyPlaytime" xml:space="preserve"><value>周时长：{0:0.0} 小时</value></data>
+  <data name="App.Game.Dashboard.TotalPlaytime" xml:space="preserve"><value>游戏时长：{0:0.0} 小时</value></data>
+  <data name="App.Game.Dashboard.Loading" xml:space="preserve"><value>正在加载…</value></data>
+  <data name="App.Game.Dashboard.LoadFailed" xml:space="preserve"><value>数据加载失败，请收起后重试</value></data>
+  <data name="App.Game.Dashboard.TimeOnly" xml:space="preserve"><value>当前渠道仅支持时长统计</value></data>
+  <data name="App.Game.Dashboard.LoginRequired" xml:space="preserve"><value>请先在森空岛签到中登录账号</value></data>
+  <data name="App.Game.Dashboard.MultipleRoles" xml:space="preserve"><value>当前账号存在多个角色，暂无法确定展示角色</value></data>
+  <data name="App.Game.Dashboard.NoRole" xml:space="preserve"><value>未找到当前渠道的森空岛角色</value></data>
+  <data name="App.Game.Dashboard.FetchData" xml:space="preserve"><value>获取游戏数据</value></data>
+  <data name="App.Game.Dashboard.FetchUser" xml:space="preserve"><value>获取森空岛用户信息</value></data>
+  <data name="App.Game.Dashboard.UserUnavailable" xml:space="preserve"><value>未能获取森空岛用户信息</value></data>
+  <data name="App.Game.Dashboard.FetchEndfieldData" xml:space="preserve"><value>获取终末地游戏数据</value></data>
+  <data name="App.Game.Dashboard.NoEndfieldData" xml:space="preserve"><value>暂无终末地游戏数据</value></data>
+  <data name="App.Game.Dashboard.Sanity" xml:space="preserve"><value>理智</value></data>
+  <data name="App.Game.Dashboard.Recruitment" xml:space="preserve"><value>招募完成</value></data>
+  <data name="App.Game.Dashboard.Daily" xml:space="preserve"><value>日常</value></data>
+  <data name="App.Game.Dashboard.Weekly" xml:space="preserve"><value>周常</value></data>
+  <data name="App.Game.Dashboard.Annihilation" xml:space="preserve"><value>剿灭</value></data>
+  <data name="App.Game.Dashboard.Security" xml:space="preserve"><value>保全</value></data>
+  <data name="App.Game.Dashboard.DailyActivity" xml:space="preserve"><value>日常活跃度</value></data>
+  <data name="App.Game.Dashboard.WeeklyAffairs" xml:space="preserve"><value>每周事务</value></data>
+  <data name="App.Game.Dashboard.BattlePass" xml:space="preserve"><value>通行证等级</value></data>
+  <data name="App.Game.Dashboard.Authority" xml:space="preserve"><value>权限等级</value></data>
 </root>
