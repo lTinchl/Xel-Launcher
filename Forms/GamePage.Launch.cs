@@ -74,7 +74,7 @@ namespace XelLauncher.Forms
                 if (_gameDataPanel != null)
                 {
 
-                    _gameDataPanel.SetSummary(GamePlaytime.GetText("Arknights"));
+                    _gameDataPanel.SetSummary(GamePlaytime.GetText(GameChannelCatalog.Get(_game.IconName).GameId));
                 }
                 if (_isGameRunning == running) return;
                 _isGameRunning = running;
@@ -1308,8 +1308,8 @@ namespace XelLauncher.Forms
                     if (gameProc == null)
                         throw new TimeoutException(Localizer.GetRequiredString("App.Game.ProcessNotDetected"));
 
-                    if (GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Arknights))
-                        GamePlaytime.Track(gameProc);
+                    if (GameChannelCatalog.Get(_game.IconName) is { Family: GameFamily.Arknights or GameFamily.Endfield } channel)
+                        GamePlaytime.Track(gameProc, channel.GameId);
 
                     accountDetection?.Start(gameProc);
                     detectionStarted = accountDetection != null;

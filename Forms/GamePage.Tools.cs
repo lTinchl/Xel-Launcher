@@ -599,6 +599,7 @@ namespace XelLauncher.Forms
             {
                 _switchAnimationActive = false;
                 _switchAnimationProgress = 0F;
+                PositionGameDataPanel();
                 if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)
                     _gameInfoBadge.SetTransitionProgress(0F);
                 return;
@@ -903,6 +904,7 @@ namespace XelLauncher.Forms
 
             if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)
                 _gameInfoBadge.SetTransitionProgress(progress);
+            PositionGameDataPanel();
         }
 
         private void PositionSubButtons()

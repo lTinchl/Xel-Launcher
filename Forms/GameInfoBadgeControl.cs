@@ -166,7 +166,7 @@ namespace XelLauncher.Forms
         private void DrawAnnouncementSurface(Graphics g, RectangleF bounds)
         {
             using var path = CreateRoundedRectangle(bounds, S(8));
-            using var background = new SolidBrush(Color.FromArgb(100, 34, 37, 43));
+            using var background = new SolidBrush(Color.FromArgb(188, 34, 37, 43));
             using var border = new Pen(Color.FromArgb(24, 255, 255, 255), 1F);
             g.FillPath(background, path);
             g.DrawPath(border, path);

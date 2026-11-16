@@ -255,8 +255,6 @@ namespace XelLauncher.Helpers
         private static void TrackLaunchedGame(string executable, Process process)
         {
             var path = Path.GetFullPath(executable);
-            if (string.Equals(Path.GetFileName(path), "Arknights.exe", StringComparison.OrdinalIgnoreCase))
-                GamePlaytime.Track(process);
             lock (RunningGamesLock)
             {
                 if (LaunchedGames.TryGetValue(path, out var previous))

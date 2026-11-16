@@ -17,25 +17,25 @@ internal static class GamePlaytime
         try { return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, double>>>(File.ReadAllText(FilePath)) ?? new(); }
         catch { return new(); }
     }
-    private static readonly Dictionary<int, System.Threading.Timer> Monitors = new();
-    public static void Track(System.Diagnostics.Process process)
+    private static readonly Dictionary<int, (string Game, System.Threading.Timer Timer)> Monitors = new();
+    public static void Track(System.Diagnostics.Process process, string game = "Arknights")
     {
         lock (Sync)
         {
             if (Monitors.ContainsKey(process.Id)) return;
             var handle = System.Diagnostics.Process.GetProcessById(process.Id);
             var id = process.Id;
-            Observe("Arknights", true);
-            Monitors[id] = new System.Threading.Timer(_ =>
+            Observe(game, true);
+            Monitors[id] = (game, new System.Threading.Timer(_ =>
             {
                 lock (Sync)
                 {
                     bool running;
                     try { running = !handle.HasExited; } catch { running = false; }
-                    Observe("Arknights", running);
-                    if (!running && Monitors.Remove(id, out var timer)) { timer.Dispose(); handle.Dispose(); }
+                    if (!running && Monitors.Remove(id, out var timer)) { timer.Timer.Dispose(); handle.Dispose(); }
+                    Observe(game, running || Monitors.Values.Any(x => x.Game == game));
                 }
-            }, null, 5000, 5000);
+            }, null, 5000, 5000));
         }
     }    public static void Observe(string game, bool running)
     {
@@ -74,7 +74,8 @@ internal static class GamePlaytime
             var monday = DateTime.Today.AddDays(-((int)DateTime.Today.DayOfWeek + 6) % 7).ToString("yyyy-MM-dd");
             var days = Data.GetValueOrDefault(game) ?? new();
             var week = days.Where(x => string.CompareOrdinal(x.Key, monday) >= 0).Sum(x => x.Value);
-            return $"周时长：{week / 3600:0.0} 小时    游戏时长：{days.Values.Sum() / 3600:0.0} 小时";
+            return string.Format(Localizer.GetRequiredString("App.Game.Dashboard.WeeklyPlaytime"), week / 3600)
+                + "    " + string.Format(Localizer.GetRequiredString("App.Game.Dashboard.TotalPlaytime"), days.Values.Sum() / 3600);
         }
     }
 }

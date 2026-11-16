@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using XelLauncher.Helpers;
 
 namespace XelLauncher.Forms;
 
@@ -20,13 +21,15 @@ internal sealed class GameDataPanel : Control
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public Color AccentColor { get => accentColor; set { accentColor = value; Invalidate(); } }
     private bool expanded;
+    private readonly bool supportsGameData;
     private string summary = "";
-    private string details = "展开以加载游戏数据";
+    private string details = Localizer.GetRequiredString("App.Game.Dashboard.ExpandToLoad");
     public event EventHandler Expanded;
     public event EventHandler ExpansionChanged;
     public bool IsExpanded => expanded;
-    public GameDataPanel()
+    public GameDataPanel(bool supportsGameData = true)
     {
+        this.supportsGameData = supportsGameData;
         SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint |
             ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.ResizeRedraw, true);
         BackColor = Color.Transparent;
@@ -34,9 +37,10 @@ internal sealed class GameDataPanel : Control
         Font = new Font("Microsoft YaHei UI", 8F);
         UpdateLayout();
         Cursor = Cursors.Default;
-        TabStop = true;
-        AccessibleName = "游戏时长，展开或收起游戏数据";
-        AccessibleRole = AccessibleRole.PushButton;
+        TabStop = supportsGameData;
+        AccessibleName = Localizer.GetRequiredString(supportsGameData
+            ? "App.Game.Dashboard.AccessibleName" : "App.Game.Dashboard.Playtime");
+        AccessibleRole = supportsGameData ? AccessibleRole.PushButton : AccessibleRole.StaticText;
         disclaimerButton = new AntdUI.Button
         {
             IconSvg = "QuestionCircleFilled",
@@ -50,7 +54,7 @@ internal sealed class GameDataPanel : Control
             AccessibleName = XelLauncher.Helpers.Localizer.GetRequiredString("App.Game.DataDisclaimer"),
             Visible = false
         };
-        disclaimerTooltip = new AntdUI.TooltipComponent { Delay = 250, Radius = 8, ArrowAlign = AntdUI.TAlign.Left };
+        disclaimerTooltip = new AntdUI.TooltipComponent { Delay = 250, Radius = 8, ArrowAlign = AntdUI.TAlign.Left , Font = new Font("Microsoft YaHei UI", 11F) };
         disclaimerTooltip.SetTip(disclaimerButton, XelLauncher.Helpers.Localizer.GetRequiredString("App.Game.DataDisclaimer"));
         Controls.Add(disclaimerButton);
         UpdateLayout();
@@ -63,11 +67,12 @@ internal sealed class GameDataPanel : Control
     private int bodyHeight;
     private int S(int value) => Math.Max(1, (int)Math.Round(value * DeviceDpi / 96F));
     private string[] SummaryCells => summary.Split(new[] { "    " }, 2, StringSplitOptions.None);
-    private string Identity => details.Contains("\n理智 ") ? details.Substring(0, details.IndexOf("\n理智 ", StringComparison.Ordinal)) : "";
+    private string SanityPrefix => Localizer.GetRequiredString("App.Game.Dashboard.Sanity") + " ";
+    private string Identity => details.Contains("\n" + SanityPrefix) ? details.Substring(0, details.IndexOf("\n" + SanityPrefix, StringComparison.Ordinal)) : "";
     private string DataText => Identity.Length > 0 ? details.Substring(Identity.Length + 1) : details;
     private int IdentityHeight => HasData && Identity.Length > 0 ? rowHeight + S(3) : 0;
     private string[] DetailCells => DataText.Split(new[] { "\n", "     " }, StringSplitOptions.None);
-    private bool HasData => DetailCells.Length == 6 && DataText.StartsWith("理智 ", StringComparison.Ordinal);
+    private bool HasData => DetailCells.Length is 5 or 6 && DataText.StartsWith(SanityPrefix, StringComparison.Ordinal);
     public event EventHandler LayoutMetricsChanged;
     public void SetAvailableWidth(int value)
     {
@@ -83,7 +88,7 @@ internal sealed class GameDataPanel : Control
     private void UpdateLayout()
     {
         if (Font == null) return;
-        int preferredColumn = Math.Max(Measure("游戏时长：0.0 小时"), SummaryCells.Max(Measure));
+        int preferredColumn = Math.Max(Measure(string.Format(Localizer.GetRequiredString("App.Game.Dashboard.TotalPlaytime"), 0D)), SummaryCells.Max(Measure));
         if (HasData) preferredColumn = Math.Max(preferredColumn, DetailCells.Max(MeasureCell) + S(18));
         preferredColumn += S(8);
         int preferredWidth = preferredColumn * 2 + S(18);
@@ -96,12 +101,12 @@ internal sealed class GameDataPanel : Control
         bodyHeight = headerHeight;
         if (expanded)
         {
-            int detailHeight = HasData ? rowHeight * (6 / columns) + IdentityHeight :
+            int detailHeight = HasData ? rowHeight * ((DetailCells.Length + columns - 1) / columns) + IdentityHeight :
                 TextRenderer.MeasureText(details, Font, new Size(Math.Max(1, width - S(18)), int.MaxValue),
                     TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
             bodyHeight += S(3) + detailHeight + S(5);
         }
-        Size = new Size(Math.Max(1, width), bodyHeight + S(12) + 1);
+        Size = new Size(Math.Max(1, width), bodyHeight + (supportsGameData ? S(12) : 0) + 1);
         Invalidate();
         if (disclaimerButton != null)
         {
@@ -164,6 +169,7 @@ internal sealed class GameDataPanel : Control
     private void Toggle() => SetExpanded(!expanded);
     public void SetExpanded(bool value)
     {
+        if (!supportsGameData) return;
         if (expanded == value) return;
         expanded = value;
         UpdateLayout();
@@ -173,12 +179,12 @@ internal sealed class GameDataPanel : Control
     private Rectangle ToggleBounds => new Rectangle(Width / 2 - S(22), bodyHeight - S(6), S(44), S(19));    protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        Cursor = ToggleBounds.Contains(e.Location) ? Cursors.Hand : Cursors.Default;
+        Cursor = supportsGameData && ToggleBounds.Contains(e.Location) ? Cursors.Hand : Cursors.Default;
     }
     protected override void OnMouseClick(MouseEventArgs e)
     {
         base.OnMouseClick(e);
-        if (e.Button == MouseButtons.Left && ToggleBounds.Contains(e.Location))
+        if (supportsGameData && e.Button == MouseButtons.Left && ToggleBounds.Contains(e.Location))
         {
             Focus();
             Toggle();
@@ -198,7 +204,9 @@ internal sealed class GameDataPanel : Control
                 ForeColor, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
             return;
         }
-        string[] names = { "sanity", "recruit", "daily", "weekly", "annihilation", "security" };
+        string[] names = DetailCells.Length == 5
+            ? new[] { "sanity", "endfield-daily", "endfield-weekly", "endfield-protocol", "endfield-authority" }
+            : new[] { "sanity", "recruit", "daily", "weekly", "annihilation", "security" };
         var cells = DetailCells;
         if (IdentityHeight > 0)
         {
@@ -297,12 +305,15 @@ internal sealed class GameDataPanel : Control
         path.AddArc(0, 0, diameter, diameter, 180, 90);
         path.AddArc(w - diameter, 0, diameter, diameter, 270, 90);
         path.AddArc(w - diameter, h - diameter, diameter, diameter, 0, 90);
-        path.AddLine(w - radius, h, center + tab, h);
-        path.AddBezier(center + tab, h, center + tab / 2, h, center + tab / 2, h + S(12), center, h + S(12));
-        path.AddBezier(center, h + S(12), center - tab / 2, h + S(12), center - tab / 2, h, center - tab, h);
-        path.AddLine(center - tab, h, radius, h);
+        if (supportsGameData)
+        {
+            path.AddLine(w - radius, h, center + tab, h);
+            path.AddBezier(center + tab, h, center + tab / 2, h, center + tab / 2, h + S(12), center, h + S(12));
+            path.AddBezier(center, h + S(12), center - tab / 2, h + S(12), center - tab / 2, h, center - tab, h);
+            path.AddLine(center - tab, h, radius, h);
+        }
         path.AddArc(0, h - diameter, diameter, diameter, 90, 90);
-        path.CloseFigure();        using var brush = new SolidBrush(Color.FromArgb(100, 34, 37, 43));
+        path.CloseFigure();        using var brush = new SolidBrush(Color.FromArgb(188, 34, 37, 43));
         using var border = new Pen(Color.FromArgb(24, 255, 255, 255));
         g.FillPath(brush, path); g.DrawPath(border, path);
         var summaryCells = SummaryCells;
@@ -311,6 +322,7 @@ internal sealed class GameDataPanel : Control
                 new Rectangle(S(9) + index % columns * columnWidth, S(4) + index / columns * rowHeight,
                     Math.Max(1, columnWidth - S(4)), rowHeight), ForeColor,
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);        using var arrow = new Pen(ForeColor, 1.3F) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round };
+        if (!supportsGameData) return;
         float arrowY = h + S(5);
         g.DrawLines(arrow, expanded
             ? new[] { new PointF(center - S(3), arrowY + S(2)), new PointF(center, arrowY - S(1)), new PointF(center + S(3), arrowY + S(2)) }
