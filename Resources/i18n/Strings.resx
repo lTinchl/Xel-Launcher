@@ -2833,4 +2833,5 @@
     <value>无法打开系统默认浏览器，请检查 Windows 默认应用设置。</value>
   </data>
   <data name="App.Setting.ShowGameData" xml:space="preserve"><value>显示游戏数据面板</value></data>
+  <data name="App.Game.DataDisclaimer" xml:space="preserve"><value>数据查询结果可能存在延迟，仅供参考，请以游戏内实际数据为准。</value></data>
 </root>

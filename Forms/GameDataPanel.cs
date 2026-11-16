@@ -14,6 +14,8 @@ internal sealed class GameDataPanel : Control
 {
     private readonly Dictionary<string, Bitmap> icons = new();
     private Font valueFont;
+    private AntdUI.Button disclaimerButton;
+    private AntdUI.TooltipComponent disclaimerTooltip;
     private Color accentColor = Color.FromArgb(48, 214, 238);
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public Color AccentColor { get => accentColor; set { accentColor = value; Invalidate(); } }
@@ -21,6 +23,8 @@ internal sealed class GameDataPanel : Control
     private string summary = "";
     private string details = "展开以加载游戏数据";
     public event EventHandler Expanded;
+    public event EventHandler ExpansionChanged;
+    public bool IsExpanded => expanded;
     public GameDataPanel()
     {
         SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint |
@@ -33,6 +37,23 @@ internal sealed class GameDataPanel : Control
         TabStop = true;
         AccessibleName = "游戏时长，展开或收起游戏数据";
         AccessibleRole = AccessibleRole.PushButton;
+        disclaimerButton = new AntdUI.Button
+        {
+            IconSvg = "QuestionCircleFilled",
+            Ghost = true,
+            ForeColor = Color.FromArgb(180, 180, 180),
+            BackColor = Color.Transparent,
+            BorderWidth = 0,
+            Radius = 99,
+            Padding = Padding.Empty,
+            Cursor = Cursors.Help,
+            AccessibleName = XelLauncher.Helpers.Localizer.GetRequiredString("App.Game.DataDisclaimer"),
+            Visible = false
+        };
+        disclaimerTooltip = new AntdUI.TooltipComponent { Delay = 250, Radius = 8, ArrowAlign = AntdUI.TAlign.Left };
+        disclaimerTooltip.SetTip(disclaimerButton, XelLauncher.Helpers.Localizer.GetRequiredString("App.Game.DataDisclaimer"));
+        Controls.Add(disclaimerButton);
+        UpdateLayout();
     }
     private int availableWidth = int.MaxValue;
     private int columns = 2;
@@ -68,7 +89,7 @@ internal sealed class GameDataPanel : Control
         int preferredWidth = preferredColumn * 2 + S(18);
         columns = availableWidth < preferredWidth ? 1 : 2;
         int width = Math.Min(availableWidth, preferredColumn * columns + S(18));
-        if (Identity.Length > 0) width = Math.Min(availableWidth, Math.Max(width, Measure(Identity) + S(18)));
+        if (Identity.Length > 0) width = Math.Min(availableWidth, Math.Max(width, Measure(Identity) + S(40)));
         columnWidth = Math.Max(1, (width - S(18)) / columns);
         rowHeight = Math.Max((valueFont ?? Font).Height + S(3), S(17));
         headerHeight = rowHeight * (columns == 1 ? SummaryCells.Length : 1) + S(9);
@@ -82,6 +103,21 @@ internal sealed class GameDataPanel : Control
         }
         Size = new Size(Math.Max(1, width), bodyHeight + S(12) + 1);
         Invalidate();
+        if (disclaimerButton != null)
+        {
+            disclaimerButton.Visible = expanded && IdentityHeight > 0;
+            if (expanded && IdentityHeight > 0)
+            {
+                int split = Identity.LastIndexOf(" Lv.", StringComparison.Ordinal);
+                string name = split >= 0 ? Identity.Substring(0, split) : Identity;
+                string level = split >= 0 ? Identity.Substring(split + 1) : "";
+                int levelWidth = Measure(level);
+                int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(46) - levelWidth));
+                disclaimerButton.Bounds = new Rectangle(S(21) + nameWidth + levelWidth,
+                    headerHeight + (rowHeight - S(16)) / 2, S(16), S(16));
+                disclaimerTooltip.CustomWidth = S(280);
+            }
+        }
         LayoutMetricsChanged?.Invoke(this, EventArgs.Empty);
     }
     protected override void OnFontChanged(EventArgs e)
@@ -125,10 +161,13 @@ internal sealed class GameDataPanel : Control
         icons.Clear();
         UpdateLayout();
     }
-    private void Toggle()
+    private void Toggle() => SetExpanded(!expanded);
+    public void SetExpanded(bool value)
     {
-        expanded = !expanded;
+        if (expanded == value) return;
+        expanded = value;
         UpdateLayout();
+        ExpansionChanged?.Invoke(this, EventArgs.Empty);
         if (expanded) Expanded?.Invoke(this, EventArgs.Empty);
     }
     private Rectangle ToggleBounds => new Rectangle(Width / 2 - S(22), bodyHeight - S(6), S(44), S(19));    protected override void OnMouseMove(MouseEventArgs e)
@@ -167,7 +206,7 @@ internal sealed class GameDataPanel : Control
             string name = split >= 0 ? Identity.Substring(0, split) : Identity;
             string level = split >= 0 ? Identity.Substring(split + 1) : "";
             int levelWidth = Measure(level);
-            int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(24) - levelWidth));
+            int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(46) - levelWidth));
             TextRenderer.DrawText(g, name, Font, new Rectangle(S(9), headerHeight, nameWidth, rowHeight), ForeColor,
                 TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             TextRenderer.DrawText(g, level, Font, new Rectangle(S(15) + nameWidth, headerHeight, levelWidth, rowHeight), AccentColor,
@@ -239,6 +278,7 @@ internal sealed class GameDataPanel : Control
             foreach (var icon in icons.Values) icon?.Dispose();
             icons.Clear();
             valueFont?.Dispose();
+            disclaimerTooltip?.Dispose();
         }
         base.Dispose(disposing);
     }

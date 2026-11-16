@@ -2833,4 +2833,5 @@
     <value>Unable to open the default browser. Check the default apps settings in Windows.</value>
   </data>
   <data name="App.Setting.ShowGameData" xml:space="preserve"><value>Show game data panel</value></data>
+  <data name="App.Game.DataDisclaimer" xml:space="preserve"><value>Queried data may be delayed and is for reference only. Please refer to the actual in-game data.</value></data>
 </root>
