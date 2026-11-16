@@ -2832,4 +2832,5 @@
   <data name="App.Browser.OpenFailed" xml:space="preserve">
     <value>Unable to open the default browser. Check the default apps settings in Windows.</value>
   </data>
+  <data name="App.Setting.ShowGameData" xml:space="preserve"><value>Show game data panel</value></data>
 </root>

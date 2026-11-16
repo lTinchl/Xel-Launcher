@@ -2832,4 +2832,5 @@
   <data name="App.Browser.OpenFailed" xml:space="preserve">
     <value>无法打开系统默认浏览器，请检查 Windows 默认应用设置。</value>
   </data>
+  <data name="App.Setting.ShowGameData" xml:space="preserve"><value>显示游戏数据面板</value></data>
 </root>

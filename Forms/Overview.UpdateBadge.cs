@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using XelLauncher.Helpers;
 using XelLauncher.Models;
@@ -146,8 +146,10 @@ namespace XelLauncher.Forms
             cfg.UpdateDownloadSource = setting.UpdateDownloadSource;
             cfg.ArchiveLauncherImages = setting.ArchiveLauncherImages;
             cfg.HideToolSidebar = setting.HideToolSidebar;
+            cfg.ShowGameData = setting.ShowGameData;
             ConfigHelper.Save(cfg);
             _currentGamePage?.ApplyToolSidebarVisibility(setting.HideToolSidebar);
+            _currentGamePage?.ApplyGameDataVisibility(setting.ShowGameData);
             Setting.ApplyStartWithWindows(setting.StartWithWindows);
             LoadUpdateBadgeFromCache();
             RebuildGameButtons();

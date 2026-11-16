@@ -8,10 +8,15 @@ public partial class GamePage
 {
     private GameDataPanel _gameDataPanel;
     private bool _gameDataLoading;
+    public void ApplyGameDataVisibility(bool visible)
+    {
+        if (_gameDataPanel != null) _gameDataPanel.Visible = visible;
+    }
     private void BuildGameDataPanel()
     {
         if (!GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Arknights)) return;
         _gameDataPanel = new GameDataPanel { AccentColor = GetCoverAccentPalette().PrimaryHover };
+        _gameDataPanel.Visible = ConfigHelper.Load().ShowGameData;
         _coverPictureBox.Controls.Add(_gameDataPanel);
         void Position()
         {

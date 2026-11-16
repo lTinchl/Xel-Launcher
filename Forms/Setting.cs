@@ -62,6 +62,8 @@ namespace XelLauncher
         private AntdUI.Label _updateNotifyOption;
         private AntdUI.Label _archiveLauncherImagesLabel;
         private AntdUI.Switch _archiveLauncherImagesSwitch;
+        private AntdUI.Switch _showGameDataSwitch;
+        public bool ShowGameData = true;
         private AntdUI.Select _updateDownloadSourceSelect;
         private ContextMenuStrip _updateDownloadSourceMenu;
         private bool _showFallbackButton;
@@ -113,6 +115,7 @@ namespace XelLauncher
             form = _form;
             InitializeComponent();
             AddArchiveLauncherImagesOption();
+            AddGameDataOption();
             _updateCardTargetHeight = UpdateCardCompactPixelHeight;
             Size = DSize(600, 560);
             MinimumSize = Size;
@@ -146,6 +149,7 @@ namespace XelLauncher
             switch9.Checked = HideToTrayOnLaunch = cfg.HideToTrayOnLaunch;
             switch11.Checked = UseHardLink = cfg.UseHardLink;
             switch12.Checked = HideToolSidebar = cfg.HideToolSidebar;
+            _showGameDataSwitch.Checked = ShowGameData = cfg.ShowGameData;
             CheckGameUpdates = cfg.CheckGameUpdates;
             UpdateDownloadSource = UpdateHelper.NormalizeDownloadSource(cfg.UpdateDownloadSource);
             _netdiskSourceMode = UpdateHelper.IsNetdiskDownloadSource(UpdateDownloadSource);
@@ -161,6 +165,7 @@ namespace XelLauncher
             switch8.CheckedChanged += (s, e) => { CloseAfterLaunch = e.Value; };
             switch9.CheckedChanged += (s, e) => { HideToTrayOnLaunch = e.Value; };
             switch11.CheckedChanged += (s, e) => { UseHardLink = e.Value; };
+            _showGameDataSwitch.CheckedChanged += (s, e) => { ShowGameData = e.Value; };
             switch12.CheckedChanged += (s, e) => { HideToolSidebar = e.Value; };
             _archiveLauncherImagesSwitch.CheckedChanged += (s, e) => { ArchiveLauncherImages = e.Value; };
 
@@ -168,6 +173,30 @@ namespace XelLauncher
             Load += (s, e) => LoadUpdateFromCache();
         }
 
+        private void AddGameDataOption()
+        {
+            const int row = 13;
+            tableSoftware.RowCount++;
+            tableSoftware.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
+            foreach (Control control in tableSoftware.Controls)
+                if (tableSoftware.GetRow(control) >= row)
+                    tableSoftware.SetRow(control, tableSoftware.GetRow(control) + 1);
+            var label = new AntdUI.Label
+            {
+                Dock = DockStyle.Fill,
+                Text = L("App.Setting.ShowGameData"),
+                LocalizationText = "App.Setting.ShowGameData",
+                Name = "labelShowGameData"
+            };
+            _showGameDataSwitch = new AntdUI.Switch
+            {
+                Anchor = AnchorStyles.None,
+                Size = DSize(50, 30),
+                Name = "switchShowGameData"
+            };
+            tableSoftware.Controls.Add(label, 0, row);
+            tableSoftware.Controls.Add(_showGameDataSwitch, 1, row);
+        }
         private void AddArchiveLauncherImagesOption()
         {
             _archiveLauncherImagesLabel = new AntdUI.Label
