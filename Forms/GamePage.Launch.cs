@@ -1308,6 +1308,9 @@ namespace XelLauncher.Forms
                     if (gameProc == null)
                         throw new TimeoutException(Localizer.GetRequiredString("App.Game.ProcessNotDetected"));
 
+                    if (GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Arknights))
+                        GamePlaytime.Track(gameProc);
+
                     accountDetection?.Start(gameProc);
                     detectionStarted = accountDetection != null;
                     config.OK(Localizer.GetRequiredString("App.Game.LaunchSuccess"));
