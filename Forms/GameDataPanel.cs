@@ -24,22 +24,86 @@ internal sealed class GameDataPanel : Control
         BackColor = Color.Transparent;
         ForeColor = Color.Gainsboro;
         Font = new Font("Microsoft YaHei UI", 8F);
-        Size = new Size(260, 26);
-        Cursor = Cursors.Hand;
+        UpdateLayout();
+        Cursor = Cursors.Default;
         TabStop = true;
         AccessibleName = "游戏时长，展开或收起游戏数据";
         AccessibleRole = AccessibleRole.PushButton;
     }
-    public void SetSummary(string value) { summary = value; Invalidate(); }
-    public void SetDetails(string value) { details = value; Invalidate(); }
+    private int availableWidth = int.MaxValue;
+    private int columns = 2;
+    private int columnWidth;
+    private int headerHeight;
+    private int rowHeight;
+    private int bodyHeight;
+    private int S(int value) => Math.Max(1, (int)Math.Round(value * DeviceDpi / 96F));
+    private string[] SummaryCells => summary.Split(new[] { "    " }, 2, StringSplitOptions.None);
+    private string[] DetailCells => details.Split(new[] { "\n", "     " }, StringSplitOptions.None);
+    private bool HasData => DetailCells.Length == 6 && details.StartsWith("理智 ", StringComparison.Ordinal);
+    public event EventHandler LayoutMetricsChanged;
+    public void SetAvailableWidth(int value)
+    {
+        value = Math.Max(1, value);
+        if (availableWidth == value) return;
+        availableWidth = value;
+        UpdateLayout();
+    }
+    public void SetSummary(string value) { if (summary == value) return; summary = value; UpdateLayout(); }
+    public void SetDetails(string value) { details = value; UpdateLayout(); }
+    private int Measure(string text) => TextRenderer.MeasureText(text, Font, Size.Empty,
+        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width;
+    private void UpdateLayout()
+    {
+        if (Font == null) return;
+        int preferredColumn = Math.Max(Measure("游戏时长：0.0 小时"), SummaryCells.Max(Measure));
+        if (HasData) preferredColumn = Math.Max(preferredColumn, DetailCells.Max(Measure) + S(18));
+        preferredColumn += S(8);
+        int preferredWidth = preferredColumn * 2 + S(18);
+        columns = availableWidth < preferredWidth ? 1 : 2;
+        int width = Math.Min(availableWidth, preferredColumn * columns + S(18));
+        columnWidth = Math.Max(1, (width - S(18)) / columns);
+        rowHeight = Math.Max(Font.Height + S(3), S(17));
+        headerHeight = rowHeight * (columns == 1 ? SummaryCells.Length : 1) + S(9);
+        bodyHeight = headerHeight;
+        if (expanded)
+        {
+            int detailHeight = HasData ? rowHeight * (6 / columns) :
+                TextRenderer.MeasureText(details, Font, new Size(Math.Max(1, width - S(18)), int.MaxValue),
+                    TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
+            bodyHeight += S(3) + detailHeight + S(5);
+        }
+        Size = new Size(Math.Max(1, width), bodyHeight + S(12) + 1);
+        Invalidate();
+        LayoutMetricsChanged?.Invoke(this, EventArgs.Empty);
+    }
+    protected override void OnFontChanged(EventArgs e) { base.OnFontChanged(e); UpdateLayout(); }
+    protected override void OnDpiChangedAfterParent(EventArgs e)
+    {
+        base.OnDpiChangedAfterParent(e);
+        foreach (var icon in icons.Values) icon?.Dispose();
+        icons.Clear();
+        UpdateLayout();
+    }
     private void Toggle()
     {
         expanded = !expanded;
-        Height = expanded ? 84 : 26;
-        Invalidate();
+        UpdateLayout();
         if (expanded) Expanded?.Invoke(this, EventArgs.Empty);
     }
-    protected override void OnMouseClick(MouseEventArgs e) { base.OnMouseClick(e); if (e.Button == MouseButtons.Left && e.Y < 26) Toggle(); }
+    private Rectangle ToggleBounds => new Rectangle(Width / 2 - S(22), bodyHeight - S(6), S(44), S(19));    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        Cursor = ToggleBounds.Contains(e.Location) ? Cursors.Hand : Cursors.Default;
+    }
+    protected override void OnMouseClick(MouseEventArgs e)
+    {
+        base.OnMouseClick(e);
+        if (e.Button == MouseButtons.Left && ToggleBounds.Contains(e.Location))
+        {
+            Focus();
+            Toggle();
+        }
+    }
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
@@ -47,32 +111,26 @@ internal sealed class GameDataPanel : Control
     }
     private void DrawDetails(Graphics g)
     {
-        var rows = details.Split('\n');
-        if (rows.Length != 3 || !rows[0].StartsWith("理智 ", StringComparison.Ordinal))
+        if (!HasData)
         {
-            TextRenderer.DrawText(g, details, Font, new Rectangle(9, 29, Width - 18, Height - 34),
+            TextRenderer.DrawText(g, details, Font,
+                new Rectangle(S(9), headerHeight + S(3), Math.Max(1, Width - S(18)), bodyHeight - headerHeight),
                 ForeColor, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
             return;
         }
-
         string[] names = { "sanity", "recruit", "daily", "weekly", "annihilation", "security" };
-        int columnWidth = (Width - 18) / 2;
-        for (int row = 0; row < rows.Length; row++)
+        var cells = DetailCells;
+        for (int index = 0; index < cells.Length; index++)
         {
-            var cells = rows[row].Split(new[] { "     " }, StringSplitOptions.None);
-            for (int column = 0; column < Math.Min(2, cells.Length); column++)
-            {
-                int x = 9 + column * columnWidth;
-                int y = 29 + row * 17;
-                var icon = GetIcon(names[row * 2 + column]);
-                if (icon != null) g.DrawImage(icon, new Rectangle(x, y + 1, 14, 14));
-                TextRenderer.DrawText(g, cells[column], Font,
-                    new Rectangle(x + 18, y, columnWidth - 20, 17), ForeColor,
-                    TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
-            }
+            int x = S(9) + index % columns * columnWidth;
+            int y = headerHeight + S(3) + index / columns * rowHeight;
+            var icon = GetIcon(names[index]);
+            if (icon != null) g.DrawImage(icon, new Rectangle(x, y + (rowHeight - S(14)) / 2, S(14), S(14)));
+            TextRenderer.DrawText(g, cells[index], Font,
+                new Rectangle(x + S(18), y, Math.Max(1, columnWidth - S(20)), rowHeight), ForeColor,
+                TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
         }
     }
-
     private Bitmap GetIcon(string name)
     {
         if (icons.TryGetValue(name, out var icon)) return icon;
@@ -101,19 +159,19 @@ internal sealed class GameDataPanel : Control
                     }
                     element.Attribute("opacity")?.Remove();
                 }
-                using var rendered = AntdUI.SvgExtend.SvgToBmp(document.ToString(), 56, 56, null);
+                using var rendered = AntdUI.SvgExtend.SvgToBmp(document.ToString(), S(56), S(56), null);
                 if (rendered != null)
                 {
-                    icon = new Bitmap(56, 56);
+                    icon = new Bitmap(S(56), S(56));
                     using var graphics = Graphics.FromImage(icon);
                     using var attributes = new ImageAttributes();
                     attributes.SetColorMatrix(new ColorMatrix { Matrix33 = 0.5F });
-                    graphics.DrawImage(rendered, new Rectangle(0, 0, 56, 56),
+                    graphics.DrawImage(rendered, new Rectangle(0, 0, S(56), S(56)),
                         0, 0, rendered.Width, rendered.Height, GraphicsUnit.Pixel, attributes);
                 }
             }
             else
-                icon = AntdUI.SvgExtend.SvgToBmp(svg, 28, 28, null);
+                icon = AntdUI.SvgExtend.SvgToBmp(svg, S(28), S(28), null);
         }
         catch (Exception ex)
         {
@@ -138,16 +196,38 @@ internal sealed class GameDataPanel : Control
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
         using var path = new GraphicsPath();
-        var w = Width - 1; var h = Height - 1;
-        path.AddArc(0, 0, 16, 16, 180, 90); path.AddArc(w - 16, 0, 16, 16, 270, 90);
-        path.AddArc(w - 16, h - 16, 16, 16, 0, 90); path.AddArc(0, h - 16, 16, 16, 90, 90); path.CloseFigure();
-        using var brush = new SolidBrush(Color.FromArgb(100, 34, 37, 43));
+        var w = Width - 1; var h = bodyHeight;
+        float center = w / 2F;
+        float radius = Math.Min(S(8), Math.Min(w / 2F, h / 2F));
+        if (radius <= 0) return;
+        float diameter = radius * 2;
+        float tab = Math.Min(S(24), Math.Max(1, center - radius));
+        path.AddArc(0, 0, diameter, diameter, 180, 90);
+        path.AddArc(w - diameter, 0, diameter, diameter, 270, 90);
+        path.AddArc(w - diameter, h - diameter, diameter, diameter, 0, 90);
+        path.AddLine(w - radius, h, center + tab, h);
+        path.AddBezier(center + tab, h, center + tab / 2, h, center + tab / 2, h + S(12), center, h + S(12));
+        path.AddBezier(center, h + S(12), center - tab / 2, h + S(12), center - tab / 2, h, center - tab, h);
+        path.AddLine(center - tab, h, radius, h);
+        path.AddArc(0, h - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();        using var brush = new SolidBrush(Color.FromArgb(100, 34, 37, 43));
         using var border = new Pen(Color.FromArgb(24, 255, 255, 255));
         g.FillPath(brush, path); g.DrawPath(border, path);
-        TextRenderer.DrawText(g, summary, Font, new Rectangle(9, 0, Width - 34, 26), ForeColor,
-            TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
-        TextRenderer.DrawText(g, expanded ? "▴" : "▾", Font, new Rectangle(Width - 24, 0, 20, 26), ForeColor, TextFormatFlags.VerticalCenter);
+        var summaryCells = SummaryCells;
+        for (int index = 0; index < summaryCells.Length; index++)
+            TextRenderer.DrawText(g, summaryCells[index], Font,
+                new Rectangle(S(9) + index % columns * columnWidth, S(4) + index / columns * rowHeight,
+                    Math.Max(1, columnWidth - S(4)), rowHeight), ForeColor,
+                TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);        using var arrow = new Pen(ForeColor, 1.3F) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round };
+        float arrowY = h + S(5);
+        g.DrawLines(arrow, expanded
+            ? new[] { new PointF(center - S(3), arrowY + S(2)), new PointF(center, arrowY - S(1)), new PointF(center + S(3), arrowY + S(2)) }
+            : new[] { new PointF(center - S(3), arrowY - S(1)), new PointF(center, arrowY + S(2)), new PointF(center + S(3), arrowY - S(1)) });
         if (expanded) DrawDetails(g);
-        if (Focused) ControlPaint.DrawFocusRectangle(g, new Rectangle(3, 3, Width - 6, 20));
+        if (Focused && ShowFocusCues)
+        {
+            using var focus = new Pen(Color.FromArgb(120, ForeColor));
+            g.DrawEllipse(focus, center - S(8), h - S(2), S(16), S(12));
+        }
     }
 }

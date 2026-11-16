@@ -15,10 +15,12 @@ public partial class GamePage
         _coverPictureBox.Controls.Add(_gameDataPanel);
         void Position()
         {
-            _gameDataPanel.Width = Math.Min(260, Math.Max(100, _coverPictureBox.ClientSize.Width - 28));
-            _gameDataPanel.Location = new Point(Math.Max(14, _coverPictureBox.ClientSize.Width - _gameDataPanel.Width - 14), 14);
+            int margin = (int)Math.Round(14 * _gameDataPanel.DeviceDpi / 96F);
+            _gameDataPanel.SetAvailableWidth(Math.Max(1, _coverPictureBox.ClientSize.Width - margin * 2));
+            _gameDataPanel.Location = new Point(Math.Max(0, _coverPictureBox.ClientSize.Width - _gameDataPanel.Width - margin), margin);
             _gameDataPanel.BringToFront();
         }
+        _gameDataPanel.LayoutMetricsChanged += (s, e) => Position();
         _coverPictureBox.Resize += (s, e) => Position();
         _gameDataPanel.Expanded += async (s, e) =>
         {

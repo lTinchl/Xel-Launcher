@@ -13,6 +13,7 @@ namespace XelLauncher.Forms
 
             _gameInfoBadge = new GameInfoBadgeControl();
             _coverPictureBox.Controls.Add(_gameInfoBadge);
+            _gameInfoBadge.SizeChanged += (s, e) => PositionGameInfoBadge();
             RefreshGameInfoBadge();
             PositionGameInfoBadge();
         }
@@ -73,9 +74,9 @@ namespace XelLauncher.Forms
         {
             if (_gameInfoBadge == null || _gameInfoBadge.IsDisposed || _coverPictureBox == null) return;
 
-            const int left = 14;
-            const int top = 14;
-            int maxX = Math.Max(8, _coverPictureBox.ClientSize.Width - _gameInfoBadge.Width - 12);
+            int left = (int)Math.Round(14 * _gameInfoBadge.DeviceDpi / 96F);
+            int top = left;
+            int maxX = Math.Max(0, _coverPictureBox.ClientSize.Width - _gameInfoBadge.Width - left);
             _gameInfoBadge.Location = new Point(Math.Min(left, maxX), top);
             _gameInfoBadge.BringToFront();
         }

@@ -10,7 +10,8 @@ namespace XelLauncher.Forms
     internal sealed class GameInfoBadgeControl : Control
     {
         private const int PanelHeight = 24;
-        private const int ControlHeight = 25;
+        private int S(int value) => Math.Max(1, (int)Math.Round(value * DeviceDpi / 96F));
+        private int ScaledPanelHeight => Math.Max(S(PanelHeight), Font.Height + S(10));
         private const int HorizontalPadding = 9;
         private const int SectionGap = 7;
         private string _channelText = "";
@@ -31,7 +32,7 @@ namespace XelLauncher.Forms
             BackColor = Color.Transparent;
             Font = new Font("Microsoft YaHei UI", 8F, FontStyle.Regular);
             _channelFont ??= new Font(Font, FontStyle.Bold);
-            Height = ControlHeight;
+            ResizeToContent();
             TabStop = false;
         }
 
@@ -86,12 +87,12 @@ namespace XelLauncher.Forms
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
             var transitionState = g.Save();
             g.SetClip(ClientRectangle, CombineMode.Intersect);
-            float transitionOffset = (float)Math.Round((PanelHeight + 2F) * _transitionProgress);
+            float transitionOffset = (float)Math.Round((ScaledPanelHeight + S(2)) * _transitionProgress);
             g.TranslateTransform(0F, -transitionOffset);
 
             try
             {
-                var panelBounds = new RectangleF(0.5F, 0.5F, Width - 1F, PanelHeight - 1F);
+                var panelBounds = new RectangleF(0.5F, 0.5F, Width - 1F, ScaledPanelHeight - 1F);
                 DrawAnnouncementSurface(g, panelBounds);
 
                 SplitVersionText(_versionText, out string versionLabel, out string versionValue);
@@ -100,12 +101,12 @@ namespace XelLauncher.Forms
                 float valueWidth = MeasureTextWidth(g, versionValue, Font);
                 float textTop = panelBounds.Top;
                 float textHeight = panelBounds.Height;
-                float channelLeft = panelBounds.Left + HorizontalPadding;
-                float separatorX = channelLeft + channelWidth + SectionGap;
-                float versionLeft = separatorX + SectionGap + 1F;
+                float channelLeft = panelBounds.Left + S(HorizontalPadding);
+                float separatorX = channelLeft + channelWidth + S(SectionGap);
+                float versionLeft = separatorX + S(SectionGap) + S(1);
 
                 using (var separatorPen = new Pen(Color.FromArgb(42, 255, 255, 255), 1F))
-                    g.DrawLine(separatorPen, separatorX, panelBounds.Top + 6F, separatorX, panelBounds.Bottom - 6F);
+                    g.DrawLine(separatorPen, separatorX, panelBounds.Top + S(6), separatorX, panelBounds.Bottom - S(6));
 
                 DrawLeftText(
                     g,
@@ -122,7 +123,7 @@ namespace XelLauncher.Forms
                     Color.FromArgb(172, 207, 219, 230));
                 DrawLeftText(
                     g,
-                    new RectangleF(versionLeft + labelWidth, textTop - 1F, valueWidth + 1F, textHeight),
+                    new RectangleF(versionLeft + labelWidth, textTop - S(1), valueWidth + 1F, textHeight),
                     versionValue,
                     Font,
                     Color.FromArgb(224, 222, 235, 244));
@@ -148,17 +149,25 @@ namespace XelLauncher.Forms
             if (Font == null || _channelFont == null) return;
 
             SplitVersionText(_versionText, out string versionLabel, out string versionValue);
-            int channelWidth = MeasureTextWidth(_channelText, _channelFont);
-            int versionWidth = MeasureTextWidth(versionLabel, Font) + MeasureTextWidth(versionValue, Font);
-            int width = HorizontalPadding * 2 + channelWidth + SectionGap * 2 + 1 + versionWidth;
-            Size = new Size(Math.Max(142, width), ControlHeight);
+            using var g = CreateGraphics();
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            float channelWidth = MeasureTextWidth(g, _channelText, _channelFont);
+            float versionWidth = MeasureTextWidth(g, versionLabel, Font) + MeasureTextWidth(g, versionValue, Font);
+            int width = (int)Math.Ceiling(S(HorizontalPadding) * 2 + channelWidth + S(SectionGap) * 2 + S(1) + versionWidth + 1);
+            Size = new Size(width, ScaledPanelHeight + 1);
         }
 
-        private static void DrawAnnouncementSurface(Graphics g, RectangleF bounds)
+        protected override void OnDpiChangedAfterParent(EventArgs e)
         {
-            using var path = CreateRoundedRectangle(bounds, 8F);
-            using var background = new SolidBrush(Color.FromArgb(188, 34, 37, 43));
-            using var border = new Pen(Color.FromArgb(34, 255, 255, 255), 1F);
+            base.OnDpiChangedAfterParent(e);
+            ResizeToContent();
+            Invalidate();
+        }
+        private void DrawAnnouncementSurface(Graphics g, RectangleF bounds)
+        {
+            using var path = CreateRoundedRectangle(bounds, S(8));
+            using var background = new SolidBrush(Color.FromArgb(100, 34, 37, 43));
+            using var border = new Pen(Color.FromArgb(24, 255, 255, 255), 1F);
             g.FillPath(background, path);
             g.DrawPath(border, path);
         }
@@ -208,15 +217,6 @@ namespace XelLauncher.Forms
             format.Trimming = StringTrimming.None;
             format.FormatFlags |= StringFormatFlags.NoWrap;
             g.DrawString(text, font, brush, bounds, format);
-        }
-
-        private static int MeasureTextWidth(string text, Font font)
-        {
-            return TextRenderer.MeasureText(
-                text ?? "",
-                font,
-                Size.Empty,
-                TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width;
         }
 
         private static float MeasureTextWidth(Graphics g, string text, Font font)
