@@ -102,6 +102,7 @@ namespace XelLauncher.Models
         public List<string> SkportTokens { get; set; } = new List<string>();
 
         public bool ShowGameData { get; set; } = true;
+        public bool GameDataExpanded { get; set; } = false;
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
         public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色
