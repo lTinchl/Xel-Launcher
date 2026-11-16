@@ -284,15 +284,32 @@ namespace XelLauncher.Helpers
                 var data = root["data"];
                 string Ratio(JsonNode item, string max = "total") => item == null ? "--" : $"{item["current"]}/{item[max]}";
                 var recruit = data?["recruit"]?.AsArray();
-                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var now = data?["currentTs"]?.GetValue<long>() ?? DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 var ready = recruit?.Count(x => (x?["finishTs"]?.GetValue<long>() ?? -1) > 0 && x["finishTs"].GetValue<long>() <= now);
                 var reward = data?["tower"]?["reward"];
                 string tower = reward == null ? "--" : $"{(reward["higherItem"]?["current"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["current"]?.GetValue<int>() ?? 0)}/{(reward["higherItem"]?["total"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["total"]?.GetValue<int>() ?? 0)}";
-                return $"理智 {Ratio(data?["status"]?["ap"], "max")}     招募完成 {ready}/{recruit?.Count}\n" +
+                return $"理智 {FormatCurrentSanity(data?["status"]?["ap"], now)}     招募完成 {ready}/{recruit?.Count}\n" +
                     $"日常 {Ratio(data?["routine"]?["daily"])}     周常 {Ratio(data?["routine"]?["weekly"])}\n" +
                     $"剿灭 {Ratio(data?["campaign"]?["reward"])}     保全 {tower}";
             }
             return "未找到当前渠道的森空岛角色";
+        }
+        internal static string FormatCurrentSanity(JsonNode ap, long now)
+        {
+            if (ap?["current"] == null || ap["max"] == null) return "--";
+            long current = ap["current"].GetValue<long>();
+            long max = ap["max"].GetValue<long>();
+            long completeRecoveryTime = ap["completeRecoveryTime"]?.GetValue<long>() ?? -1;
+            // The API snapshot is not advanced as sanity regenerates offline.
+            // Infer remaining sanity from the full-recovery timestamp (one per 6 minutes).
+            // Preserve overflow from potions and never infer recovery from a sentinel timestamp.
+            if (current >= 0 && current < max && completeRecoveryTime > 0 && now > 0)
+            {
+                long remaining = Math.Max(0, completeRecoveryTime - now);
+                long missing = remaining / 360 + (remaining % 360 > 0 ? 1 : 0);
+                current = Math.Max(current, Math.Clamp(max - missing, 0, max));
+            }
+            return $"{current}/{max}";
         }
         private async Task<SkylandSession> LoginByTokenAsync(string token, CancellationToken cancellationToken)
         {
