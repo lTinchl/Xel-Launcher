@@ -288,7 +288,10 @@ namespace XelLauncher.Helpers
                 var ready = recruit?.Count(x => (x?["finishTs"]?.GetValue<long>() ?? -1) > 0 && x["finishTs"].GetValue<long>() <= now);
                 var reward = data?["tower"]?["reward"];
                 string tower = reward == null ? "--" : $"{(reward["higherItem"]?["current"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["current"]?.GetValue<int>() ?? 0)}/{(reward["higherItem"]?["total"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["total"]?.GetValue<int>() ?? 0)}";
-                return $"理智 {FormatCurrentSanity(data?["status"]?["ap"], now)}     招募完成 {ready}/{recruit?.Count}\n" +
+                var nickname = (data?["status"]?["name"]?.GetValue<string>() ?? matches[0].Nickname).Replace("\r", " ").Replace("\n", " ");
+                var level = data?["status"]?["level"]?.ToString() ?? "--";
+                return $"{nickname} Lv.{level}\n" +
+                    $"理智 {FormatCurrentSanity(data?["status"]?["ap"], now)}     招募完成 {ready}/{recruit?.Count}\n" +
                     $"日常 {Ratio(data?["routine"]?["daily"])}     周常 {Ratio(data?["routine"]?["weekly"])}\n" +
                     $"剿灭 {Ratio(data?["campaign"]?["reward"])}     保全 {tower}";
             }

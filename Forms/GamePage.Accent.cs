@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -28,6 +28,8 @@ namespace XelLauncher.Forms
             }
 
             ApplyCoverAccentToLaunchControls();
+            if (_gameDataPanel != null && !_gameDataPanel.IsDisposed)
+                _gameDataPanel.AccentColor = GetCoverAccentPalette().PrimaryHover;
             if (_gameInfoBadge != null && !_gameInfoBadge.IsDisposed)
                 _gameInfoBadge.AccentColor = GetCoverAccentPalette().PrimaryHover;
         }

@@ -13,6 +13,10 @@ namespace XelLauncher.Forms;
 internal sealed class GameDataPanel : Control
 {
     private readonly Dictionary<string, Bitmap> icons = new();
+    private Font valueFont;
+    private Color accentColor = Color.FromArgb(48, 214, 238);
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public Color AccentColor { get => accentColor; set { accentColor = value; Invalidate(); } }
     private bool expanded;
     private string summary = "";
     private string details = "展开以加载游戏数据";
@@ -38,8 +42,11 @@ internal sealed class GameDataPanel : Control
     private int bodyHeight;
     private int S(int value) => Math.Max(1, (int)Math.Round(value * DeviceDpi / 96F));
     private string[] SummaryCells => summary.Split(new[] { "    " }, 2, StringSplitOptions.None);
-    private string[] DetailCells => details.Split(new[] { "\n", "     " }, StringSplitOptions.None);
-    private bool HasData => DetailCells.Length == 6 && details.StartsWith("理智 ", StringComparison.Ordinal);
+    private string Identity => details.Contains("\n理智 ") ? details.Substring(0, details.IndexOf("\n理智 ", StringComparison.Ordinal)) : "";
+    private string DataText => Identity.Length > 0 ? details.Substring(Identity.Length + 1) : details;
+    private int IdentityHeight => HasData && Identity.Length > 0 ? rowHeight + S(3) : 0;
+    private string[] DetailCells => DataText.Split(new[] { "\n", "     " }, StringSplitOptions.None);
+    private bool HasData => DetailCells.Length == 6 && DataText.StartsWith("理智 ", StringComparison.Ordinal);
     public event EventHandler LayoutMetricsChanged;
     public void SetAvailableWidth(int value)
     {
@@ -56,18 +63,19 @@ internal sealed class GameDataPanel : Control
     {
         if (Font == null) return;
         int preferredColumn = Math.Max(Measure("游戏时长：0.0 小时"), SummaryCells.Max(Measure));
-        if (HasData) preferredColumn = Math.Max(preferredColumn, DetailCells.Max(Measure) + S(18));
+        if (HasData) preferredColumn = Math.Max(preferredColumn, DetailCells.Max(MeasureCell) + S(18));
         preferredColumn += S(8);
         int preferredWidth = preferredColumn * 2 + S(18);
         columns = availableWidth < preferredWidth ? 1 : 2;
         int width = Math.Min(availableWidth, preferredColumn * columns + S(18));
+        if (Identity.Length > 0) width = Math.Min(availableWidth, Math.Max(width, Measure(Identity) + S(18)));
         columnWidth = Math.Max(1, (width - S(18)) / columns);
-        rowHeight = Math.Max(Font.Height + S(3), S(17));
+        rowHeight = Math.Max((valueFont ?? Font).Height + S(3), S(17));
         headerHeight = rowHeight * (columns == 1 ? SummaryCells.Length : 1) + S(9);
         bodyHeight = headerHeight;
         if (expanded)
         {
-            int detailHeight = HasData ? rowHeight * (6 / columns) :
+            int detailHeight = HasData ? rowHeight * (6 / columns) + IdentityHeight :
                 TextRenderer.MeasureText(details, Font, new Size(Math.Max(1, width - S(18)), int.MaxValue),
                     TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
             bodyHeight += S(3) + detailHeight + S(5);
@@ -76,7 +84,40 @@ internal sealed class GameDataPanel : Control
         Invalidate();
         LayoutMetricsChanged?.Invoke(this, EventArgs.Empty);
     }
-    protected override void OnFontChanged(EventArgs e) { base.OnFontChanged(e); UpdateLayout(); }
+    protected override void OnFontChanged(EventArgs e)
+    {
+        base.OnFontChanged(e);
+        valueFont?.Dispose();
+        valueFont = new Font(Font.FontFamily, Font.Size + 1F, FontStyle.Bold, Font.Unit);
+        UpdateLayout();
+    }
+    private string[] CellParts(string text)
+    {
+        int space = text.LastIndexOf(' ');
+        int slash = text.IndexOf('/', Math.Max(0, space));
+        if (space < 0 || slash < 0) return new[] { text, "", "" };
+        return new[] { text.Substring(0, space + 1), text.Substring(space + 1, slash - space - 1), text.Substring(slash) };
+    }
+    private int MeasureCell(string text)
+    {
+        var parts = CellParts(text);
+        return Measure(parts[0]) + TextRenderer.MeasureText(parts[1], valueFont ?? Font, Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + Measure(parts[2]);
+    }
+    private void DrawCell(Graphics g, string text, Rectangle bounds)
+    {
+        var parts = CellParts(text);
+        for (int i = 0; i < parts.Length && bounds.Width > 0; i++)
+        {
+            var font = i == 1 ? valueFont ?? Font : Font;
+            int width = TextRenderer.MeasureText(parts[i], font, Size.Empty,
+                TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width;
+            TextRenderer.DrawText(g, parts[i], font, new Rectangle(bounds.X, bounds.Y, Math.Min(width, bounds.Width), bounds.Height),
+                i == 1 ? AccentColor : ForeColor, TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            bounds.X += width;
+            bounds.Width -= width;
+        }
+    }
     protected override void OnDpiChangedAfterParent(EventArgs e)
     {
         base.OnDpiChangedAfterParent(e);
@@ -120,15 +161,25 @@ internal sealed class GameDataPanel : Control
         }
         string[] names = { "sanity", "recruit", "daily", "weekly", "annihilation", "security" };
         var cells = DetailCells;
+        if (IdentityHeight > 0)
+        {
+            int split = Identity.LastIndexOf(" Lv.", StringComparison.Ordinal);
+            string name = split >= 0 ? Identity.Substring(0, split) : Identity;
+            string level = split >= 0 ? Identity.Substring(split + 1) : "";
+            int levelWidth = Measure(level);
+            int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(24) - levelWidth));
+            TextRenderer.DrawText(g, name, Font, new Rectangle(S(9), headerHeight, nameWidth, rowHeight), ForeColor,
+                TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            TextRenderer.DrawText(g, level, Font, new Rectangle(S(15) + nameWidth, headerHeight, levelWidth, rowHeight), AccentColor,
+                TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter);
+        }
         for (int index = 0; index < cells.Length; index++)
         {
             int x = S(9) + index % columns * columnWidth;
-            int y = headerHeight + S(3) + index / columns * rowHeight;
+            int y = headerHeight + IdentityHeight + S(3) + index / columns * rowHeight;
             var icon = GetIcon(names[index]);
             if (icon != null) g.DrawImage(icon, new Rectangle(x, y + (rowHeight - S(14)) / 2, S(14), S(14)));
-            TextRenderer.DrawText(g, cells[index], Font,
-                new Rectangle(x + S(18), y, Math.Max(1, columnWidth - S(20)), rowHeight), ForeColor,
-                TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
+            DrawCell(g, cells[index], new Rectangle(x + S(18), y, Math.Max(1, columnWidth - S(20)), rowHeight));
         }
     }
     private Bitmap GetIcon(string name)
@@ -187,6 +238,7 @@ internal sealed class GameDataPanel : Control
         {
             foreach (var icon in icons.Values) icon?.Dispose();
             icons.Clear();
+            valueFont?.Dispose();
         }
         base.Dispose(disposing);
     }

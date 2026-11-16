@@ -11,7 +11,7 @@ public partial class GamePage
     private void BuildGameDataPanel()
     {
         if (!GameChannelCatalog.IsFamily(_game.IconName, GameFamily.Arknights)) return;
-        _gameDataPanel = new GameDataPanel();
+        _gameDataPanel = new GameDataPanel { AccentColor = GetCoverAccentPalette().PrimaryHover };
         _coverPictureBox.Controls.Add(_gameDataPanel);
         void Position()
         {
