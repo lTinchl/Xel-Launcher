@@ -265,6 +265,35 @@ namespace XelLauncher.Helpers
                 .ToList();
         }
 
+        public async Task<string> GetDashboardAsync(string iconName, CancellationToken cancellationToken)
+        {
+            var tokens = SkylandTokenStorage.GetTokens(ConfigHelper.Load()).ToArray();
+            if (tokens.Length == 0) return "请先在森空岛签到中登录账号";
+            var channel = iconName == "BiliArknights" ? "2" : "1";
+            foreach (var token in tokens)
+            {
+                var session = await LoginByTokenAsync(token, cancellationToken).ConfigureAwait(false);
+                var bindings = await GetBindingListAsync(session, cancellationToken).ConfigureAwait(false);
+                var matches = bindings.Where(x => x.AppCode == "arknights" && x.ChannelMasterId == channel).ToArray();
+                if (matches.Length == 0) continue;
+                if (matches.Length > 1) return "当前账号存在多个角色，暂无法确定展示角色";
+                var url = "https://zonai.skland.com/api/v1/game/player/info?uid=" + Uri.EscapeDataString(matches[0].Uid);
+                using var request = CreateSignedRequest(HttpMethod.Get, url, null, session);
+                var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
+                EnsureApiOk(root, "获取游戏数据");
+                var data = root["data"];
+                string Ratio(JsonNode item, string max = "total") => item == null ? "--" : $"{item["current"]}/{item[max]}";
+                var recruit = data?["recruit"]?.AsArray();
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var ready = recruit?.Count(x => (x?["finishTs"]?.GetValue<long>() ?? -1) > 0 && x["finishTs"].GetValue<long>() <= now);
+                var reward = data?["tower"]?["reward"];
+                string tower = reward == null ? "--" : $"{(reward["higherItem"]?["current"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["current"]?.GetValue<int>() ?? 0)}/{(reward["higherItem"]?["total"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["total"]?.GetValue<int>() ?? 0)}";
+                return $"理智 {Ratio(data?["status"]?["ap"], "max")}     招募完成 {ready}/{recruit?.Count}\n" +
+                    $"日常 {Ratio(data?["routine"]?["daily"])}     周常 {Ratio(data?["routine"]?["weekly"])}\n" +
+                    $"剿灭 {Ratio(data?["campaign"]?["reward"])}     保全 {tower}";
+            }
+            return "未找到当前渠道的森空岛角色";
+        }
         private async Task<SkylandSession> LoginByTokenAsync(string token, CancellationToken cancellationToken)
         {
             for (var attempt = 0; attempt < 2; attempt++)

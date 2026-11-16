@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -85,6 +85,7 @@ namespace XelLauncher.Forms
 
             BuildLaunchPanel();
             BuildCoverImage(initialCoverImage, initialCoverPath);
+            BuildGameDataPanel();
             InitializeGameRunningMonitor();
 
             LoadAccountSelect();

@@ -71,6 +71,11 @@ namespace XelLauncher.Forms
 
                 if (token.IsCancellationRequested || IsDisposed || Disposing || GameStart.IsDisposed)
                     return;
+                if (_gameDataPanel != null)
+                {
+
+                    _gameDataPanel.SetSummary(GamePlaytime.GetText("Arknights"));
+                }
                 if (_isGameRunning == running) return;
                 _isGameRunning = running;
                 RefreshGameStartButton();
