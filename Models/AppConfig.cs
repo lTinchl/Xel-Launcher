@@ -103,6 +103,8 @@ namespace XelLauncher.Models
 
         public bool ShowGameData { get; set; } = true;
         public bool GameDataExpanded { get; set; } = false;
+        // Canonical game/channel name -> last manually selected game role UID.
+        public Dictionary<string, string> GameDataSelectedUids { get; set; } = new();
         public bool ShowTrayIcon { get; set; } = false;                     // 是否显示托盘图标
         public bool MinimizeToTray { get; set; } = false;                   // 关闭主窗口时是否最小化到托盘
         public string PrimaryColor { get; set; } = "#1677FF";               // 色板工具选择的主色

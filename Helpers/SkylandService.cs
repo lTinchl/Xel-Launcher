@@ -13,9 +13,10 @@ using System.Threading.Tasks;
 
 namespace XelLauncher.Helpers
 {
-    public sealed class SkylandService
+    public sealed partial class SkylandService
     {
         private readonly HttpClient Http;
+        private const long DashboardCacheLifetimeMs = 5 * 60 * 1000;
         private static readonly SemaphoreSlim DashboardCacheLock = new(1, 1);
         private static readonly Dictionary<string, (string Text, long Expires)> DashboardCache = new();
 
@@ -31,7 +32,7 @@ namespace XelLauncher.Helpers
                 var result = await load().ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (result.Success)
-                    DashboardCache[key] = (result.Text, Environment.TickCount64 + 5 * 60 * 1000);
+                    DashboardCache[key] = (result.Text, Environment.TickCount64 + DashboardCacheLifetimeMs);
                 return result.Text;
             }
             finally { DashboardCacheLock.Release(); }
@@ -287,49 +288,24 @@ namespace XelLauncher.Helpers
 
         public async Task<string> GetDashboardAsync(string iconName, CancellationToken cancellationToken)
         {
-            var definition = GameChannelCatalog.Get(iconName);
-            if (definition == null || definition.Channel is not ("Official" or "Bilibili"))
-                return Localizer.GetRequiredString("App.Game.Dashboard.TimeOnly");
-            var tokens = SkylandTokenStorage.GetTokens(ConfigHelper.Load()).ToArray();
-            if (tokens.Length == 0) return Localizer.GetRequiredString("App.Game.Dashboard.LoginRequired");
-            // Keep credentials out of cache keys; translated text is scoped to the UI language.
-            var account = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(tokens))));
-            var key = $"{definition.IconName}:{account}:{AntdUI.Localization.CurrentLanguage}:{CultureInfo.CurrentUICulture.Name}";
-            return await GetCachedDashboardAsync(key,
-                () => GetDashboardCoreAsync(definition, tokens, cancellationToken), cancellationToken).ConfigureAwait(false);
+            var roles = await GetDashboardRolesAsync(iconName, cancellationToken).ConfigureAwait(false);
+            if (roles.Roles.Count == 0) return Localizer.GetRequiredString(roles.EmptyMessageKey);
+            return await GetDashboardAsync(roles.Roles[0], cancellationToken).ConfigureAwait(false);
         }
-        private async Task<(string Text, bool Success)> GetDashboardCoreAsync(GameChannelDefinition definition, string[] tokens, CancellationToken cancellationToken)
+        internal static string FormatArknightsDashboard(JsonNode data, string nickname)
         {
-            var channel = definition.Channel == "Bilibili" ? "2" : "1";
-            var appCode = definition.Family == GameFamily.Endfield ? "endfield" : "arknights";
-            foreach (var token in tokens)
-            {
-                var session = await LoginByTokenAsync(token, cancellationToken).ConfigureAwait(false);
-                var bindings = await GetBindingListAsync(session, cancellationToken).ConfigureAwait(false);
-                var matches = bindings.Where(x => x.AppCode == appCode && x.ChannelMasterId == channel).ToArray();
-                if (matches.Length == 0) continue;
-                if (matches.Length > 1) return (Localizer.GetRequiredString("App.Game.Dashboard.MultipleRoles"), false);
-                if (appCode == "endfield")
-                    return await GetEndfieldDashboardAsync(matches[0], session, cancellationToken).ConfigureAwait(false);
-                var url = "https://zonai.skland.com/api/v1/game/player/info?uid=" + Uri.EscapeDataString(matches[0].Uid);
-                using var request = CreateSignedRequest(HttpMethod.Get, url, null, session);
-                var root = await SendJsonAsync(request, cancellationToken).ConfigureAwait(false);
-                EnsureApiOk(root, Localizer.GetRequiredString("App.Game.Dashboard.FetchData"));
-                var data = root["data"];
-                string Ratio(JsonNode item, string max = "total") => item == null ? "--" : $"{item["current"]}/{item[max]}";
-                var recruit = data?["recruit"]?.AsArray();
-                var now = data?["currentTs"]?.GetValue<long>() ?? DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var ready = recruit?.Count(x => (x?["finishTs"]?.GetValue<long>() ?? -1) > 0 && x["finishTs"].GetValue<long>() <= now);
-                var reward = data?["tower"]?["reward"];
-                string tower = reward == null ? "--" : $"{(reward["higherItem"]?["current"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["current"]?.GetValue<int>() ?? 0)}/{(reward["higherItem"]?["total"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["total"]?.GetValue<int>() ?? 0)}";
-                var nickname = (data?["status"]?["name"]?.GetValue<string>() ?? matches[0].Nickname).Replace("\r", " ").Replace("\n", " ");
-                var level = data?["status"]?["level"]?.ToString() ?? "--";
-                return ($"{nickname} Lv.{level}\n" +
-                    $"{Localizer.GetRequiredString("App.Game.Dashboard.Sanity")} {FormatCurrentSanity(data?["status"]?["ap"], now)}     {Localizer.GetRequiredString("App.Game.Dashboard.Recruitment")} {ready}/{recruit?.Count}\n" +
-                    $"{Localizer.GetRequiredString("App.Game.Dashboard.Daily")} {Ratio(data?["routine"]?["daily"])}     {Localizer.GetRequiredString("App.Game.Dashboard.Weekly")} {Ratio(data?["routine"]?["weekly"])}\n" +
-                    $"{Localizer.GetRequiredString("App.Game.Dashboard.Annihilation")} {Ratio(data?["campaign"]?["reward"])}     {Localizer.GetRequiredString("App.Game.Dashboard.Security")} {tower}", data != null);
-            }
-            return (Localizer.GetRequiredString("App.Game.Dashboard.NoRole"), false);
+            string Ratio(JsonNode item, string max = "total") => item == null ? "--" : $"{item["current"]}/{item[max]}";
+            var recruit = data?["recruit"]?.AsArray();
+            var now = data?["currentTs"]?.GetValue<long>() ?? DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var ready = recruit?.Count(x => (x?["finishTs"]?.GetValue<long>() ?? -1) > 0 && x["finishTs"].GetValue<long>() <= now);
+            var reward = data?["tower"]?["reward"];
+            string tower = reward == null ? "--" : $"{(reward["higherItem"]?["current"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["current"]?.GetValue<int>() ?? 0)}/{(reward["higherItem"]?["total"]?.GetValue<int>() ?? 0) + (reward["lowerItem"]?["total"]?.GetValue<int>() ?? 0)}";
+            nickname = (data?["status"]?["name"]?.GetValue<string>() ?? nickname).Replace("\r", " ").Replace("\n", " ");
+            var level = data?["status"]?["level"]?.ToString() ?? "--";
+            return $"{nickname} Lv.{level}\n" +
+                $"{Localizer.GetRequiredString("App.Game.Dashboard.Sanity")} {FormatCurrentSanity(data?["status"]?["ap"], now)}     {Localizer.GetRequiredString("App.Game.Dashboard.Recruitment")} {ready}/{recruit?.Count}\n" +
+                $"{Localizer.GetRequiredString("App.Game.Dashboard.Daily")} {Ratio(data?["routine"]?["daily"])}     {Localizer.GetRequiredString("App.Game.Dashboard.Weekly")} {Ratio(data?["routine"]?["weekly"])}\n" +
+                $"{Localizer.GetRequiredString("App.Game.Dashboard.Annihilation")} {Ratio(data?["campaign"]?["reward"])}     {Localizer.GetRequiredString("App.Game.Dashboard.Security")} {tower}";
         }
         private async Task<(string Text, bool Success)> GetEndfieldDashboardAsync(SkylandBinding binding, SkylandSession session, CancellationToken cancellationToken)
         {

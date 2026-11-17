@@ -24,6 +24,14 @@ internal sealed class GameDataPanel : Control
     private readonly bool supportsGameData;
     private string summary = "";
     private string details = Localizer.GetRequiredString("App.Game.Dashboard.ExpandToLoad");
+    private string status = "";
+    private bool detailsPlaceholder;
+    private int accountIndex;
+    private int accountCount;
+    private bool accountHovered;
+    private Size? accountLayoutSize;
+    private int accountLayoutColumns;
+    public event EventHandler<int> AccountSwitchRequested;
     public event EventHandler Expanded;
     public event EventHandler ExpansionChanged;
     public bool IsExpanded => expanded;
@@ -57,6 +65,8 @@ internal sealed class GameDataPanel : Control
         disclaimerTooltip = new AntdUI.TooltipComponent { Delay = 250, Radius = 8, ArrowAlign = AntdUI.TAlign.Left , Font = new Font("Microsoft YaHei UI", 11F) };
         disclaimerTooltip.SetTip(disclaimerButton, XelLauncher.Helpers.Localizer.GetRequiredString("App.Game.DataDisclaimer"));
         Controls.Add(disclaimerButton);
+        disclaimerButton.MouseEnter += (s, e) => { accountHovered = true; Invalidate(); };
+        disclaimerButton.MouseLeave += (s, e) => UpdateAccountHover();
         UpdateLayout();
     }
     private int availableWidth = int.MaxValue;
@@ -79,10 +89,45 @@ internal sealed class GameDataPanel : Control
         value = Math.Max(1, value);
         if (availableWidth == value) return;
         availableWidth = value;
+        accountLayoutSize = null;
         UpdateLayout();
     }
     public void SetSummary(string value) { if (summary == value) return; summary = value; UpdateLayout(); }
-    public void SetDetails(string value) { details = value; UpdateLayout(); }
+    public void SetDetails(string value, bool placeholder = false)
+    {
+        details = value;
+        detailsPlaceholder = placeholder;
+        status = "";
+        UpdateLayout();
+    }
+    public void SetStatus(string value) { status = value; Invalidate(); }
+    public void SetAccountPosition(int index, int count)
+    {
+        if (accountCount != count) accountLayoutSize = null;
+        accountIndex = index;
+        accountCount = count;
+        UpdateLayout();
+    }
+    private bool CanSwitchAccounts => expanded && accountCount > 1;
+    private int AccountRight
+    {
+        get
+        {
+            var cells = SummaryCells;
+            int index = cells.Length - 1;
+            return S(9) + index % columns * columnWidth
+                + Math.Min(Measure(cells[index].TrimEnd()), Math.Max(1, columnWidth - S(4)));
+        }
+    }
+    private Rectangle AccountIndexBounds => new(AccountRight - Math.Max(S(28), Measure($"{accountIndex + 1}/{accountCount}")),
+        headerHeight, Math.Max(S(28), Measure($"{accountIndex + 1}/{accountCount}")), rowHeight);
+    private int AccountSpace => accountCount > 1 ? Math.Max(S(48), Width - AccountIndexBounds.Left + S(11)) : 0;
+    private Rectangle PreviousAccountBounds => new(AccountIndexBounds.Left - S(20), headerHeight, S(20), rowHeight);
+    private void UpdateAccountHover()
+    {
+        accountHovered = ClientRectangle.Contains(PointToClient(MousePosition));
+        Invalidate();
+    }
     private int Measure(string text) => TextRenderer.MeasureText(text, Font, Size.Empty,
         TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width;
     private void UpdateLayout()
@@ -94,7 +139,12 @@ internal sealed class GameDataPanel : Control
         int preferredWidth = preferredColumn * 2 + S(18);
         columns = availableWidth < preferredWidth ? 1 : 2;
         int width = Math.Min(availableWidth, preferredColumn * columns + S(18));
-        if (Identity.Length > 0) width = Math.Min(availableWidth, Math.Max(width, Measure(Identity) + S(40)));
+        if (Identity.Length > 0) width = Math.Min(availableWidth, Math.Max(width, Measure(Identity) + S(40) + (accountCount > 1 ? S(48) : 0)));
+        if (accountLayoutSize.HasValue)
+        {
+            width = Math.Min(availableWidth, accountLayoutSize.Value.Width);
+            columns = accountLayoutColumns;
+        }
         columnWidth = Math.Max(1, (width - S(18)) / columns);
         rowHeight = Math.Max((valueFont ?? Font).Height + S(3), S(17));
         headerHeight = rowHeight * (columns == 1 ? SummaryCells.Length : 1) + S(9);
@@ -106,7 +156,14 @@ internal sealed class GameDataPanel : Control
                     TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
             bodyHeight += S(3) + detailHeight + S(5);
         }
+        if (accountLayoutSize.HasValue && expanded)
+            bodyHeight = accountLayoutSize.Value.Height - S(12) - 1;
         Size = new Size(Math.Max(1, width), bodyHeight + (supportsGameData ? S(12) : 0) + 1);
+        if (accountCount > 1 && expanded && HasData && !detailsPlaceholder && !accountLayoutSize.HasValue)
+        {
+            accountLayoutSize = Size;
+            accountLayoutColumns = columns;
+        }
         Invalidate();
         if (disclaimerButton != null)
         {
@@ -117,7 +174,7 @@ internal sealed class GameDataPanel : Control
                 string name = split >= 0 ? Identity.Substring(0, split) : Identity;
                 string level = split >= 0 ? Identity.Substring(split + 1) : "";
                 int levelWidth = Measure(level);
-                int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(46) - levelWidth));
+                int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(46) - levelWidth - AccountSpace));
                 disclaimerButton.Bounds = new Rectangle(S(21) + nameWidth + levelWidth,
                     headerHeight + (rowHeight - S(16)) / 2, S(16), S(16));
                 disclaimerTooltip.CustomWidth = S(280);
@@ -129,6 +186,7 @@ internal sealed class GameDataPanel : Control
     {
         base.OnFontChanged(e);
         valueFont?.Dispose();
+        accountLayoutSize = null;
         valueFont = new Font(Font.FontFamily, Font.Size + 1F, FontStyle.Bold, Font.Unit);
         UpdateLayout();
     }
@@ -164,6 +222,7 @@ internal sealed class GameDataPanel : Control
         base.OnDpiChangedAfterParent(e);
         foreach (var icon in icons.Values) icon?.Dispose();
         icons.Clear();
+        accountLayoutSize = null;
         UpdateLayout();
     }
     private void Toggle() => SetExpanded(!expanded);
@@ -172,18 +231,37 @@ internal sealed class GameDataPanel : Control
         if (!supportsGameData) return;
         if (expanded == value) return;
         expanded = value;
+        accountLayoutSize = null;
         UpdateLayout();
         ExpansionChanged?.Invoke(this, EventArgs.Empty);
         if (expanded) Expanded?.Invoke(this, EventArgs.Empty);
     }
-    private Rectangle ToggleBounds => new Rectangle(Width / 2 - S(22), bodyHeight - S(6), S(44), S(19));    protected override void OnMouseMove(MouseEventArgs e)
+    private Rectangle ToggleBounds => new Rectangle(Width / 2 - S(22), bodyHeight - S(6), S(44), S(19));
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        base.OnMouseEnter(e);
+        accountHovered = true;
+        Invalidate();
+    }
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        UpdateAccountHover();
+    }
+    protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        Cursor = supportsGameData && ToggleBounds.Contains(e.Location) ? Cursors.Hand : Cursors.Default;
+        Cursor = (supportsGameData && ToggleBounds.Contains(e.Location)) ||
+            (CanSwitchAccounts && PreviousAccountBounds.Contains(e.Location))
+            ? Cursors.Hand : Cursors.Default;
     }
     protected override void OnMouseClick(MouseEventArgs e)
     {
         base.OnMouseClick(e);
+        if (CanSwitchAccounts && accountHovered && e.Button == MouseButtons.Left)
+        {
+            if (PreviousAccountBounds.Contains(e.Location)) { AccountSwitchRequested?.Invoke(this, -1); return; }
+        }
         if (supportsGameData && e.Button == MouseButtons.Left && ToggleBounds.Contains(e.Location))
         {
             Focus();
@@ -193,13 +271,19 @@ internal sealed class GameDataPanel : Control
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
+        if (CanSwitchAccounts && e.KeyCode is Keys.Left or Keys.Right)
+        {
+            AccountSwitchRequested?.Invoke(this, e.KeyCode == Keys.Left ? -1 : 1);
+            e.Handled = true;
+            return;
+        }
         if (e.KeyCode is Keys.Space or Keys.Enter) { Toggle(); e.Handled = true; }
     }
     private void DrawDetails(Graphics g)
     {
         if (!HasData)
         {
-            TextRenderer.DrawText(g, details, Font,
+            TextRenderer.DrawText(g, string.IsNullOrEmpty(status) ? details : status, Font,
                 new Rectangle(S(9), headerHeight + S(3), Math.Max(1, Width - S(18)), bodyHeight - headerHeight),
                 ForeColor, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
             return;
@@ -214,11 +298,19 @@ internal sealed class GameDataPanel : Control
             string name = split >= 0 ? Identity.Substring(0, split) : Identity;
             string level = split >= 0 ? Identity.Substring(split + 1) : "";
             int levelWidth = Measure(level);
-            int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(46) - levelWidth));
+            int nameWidth = Math.Min(Measure(name), Math.Max(1, Width - S(46) - levelWidth - AccountSpace));
             TextRenderer.DrawText(g, name, Font, new Rectangle(S(9), headerHeight, nameWidth, rowHeight), ForeColor,
                 TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             TextRenderer.DrawText(g, level, Font, new Rectangle(S(15) + nameWidth, headerHeight, levelWidth, rowHeight), AccentColor,
                 TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter);
+        }
+        if (!string.IsNullOrEmpty(status))
+        {
+            TextRenderer.DrawText(g, status, Font,
+                new Rectangle(S(9), headerHeight + IdentityHeight + S(3), Math.Max(1, Width - S(18)),
+                    Math.Max(1, bodyHeight - headerHeight - IdentityHeight - S(6))), ForeColor,
+                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
+            return;
         }
         for (int index = 0; index < cells.Length; index++)
         {
@@ -328,6 +420,23 @@ internal sealed class GameDataPanel : Control
             ? new[] { new PointF(center - S(3), arrowY + S(2)), new PointF(center, arrowY - S(1)), new PointF(center + S(3), arrowY + S(2)) }
             : new[] { new PointF(center - S(3), arrowY - S(1)), new PointF(center, arrowY + S(2)), new PointF(center + S(3), arrowY - S(1)) });
         if (expanded) DrawDetails(g);
+        if (CanSwitchAccounts)
+        {
+            TextRenderer.DrawText(g, $"{accountIndex + 1}/{accountCount}", Font,
+                AccountIndexBounds, ForeColor,
+                TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+            if (accountHovered)
+            {
+                using var back = new SolidBrush(Color.FromArgb(45, Color.White));
+                using var pen = new Pen(Color.FromArgb(200, ForeColor), S(1)) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+                var bounds = PreviousAccountBounds;
+                var circle = new Rectangle(bounds.X + S(2), bounds.Y + (bounds.Height - S(16)) / 2, S(16), S(16));
+                g.FillEllipse(back, circle);
+                float x = circle.X + circle.Width / 2F, y = circle.Y + circle.Height / 2F;
+                g.DrawLines(pen, new[] { new PointF(x + S(2), y - S(3)),
+                    new PointF(x - S(2), y), new PointF(x + S(2), y + S(3)) });
+            }
+        }
         if (Focused && ShowFocusCues)
         {
             using var focus = new Pen(Color.FromArgb(120, ForeColor));
